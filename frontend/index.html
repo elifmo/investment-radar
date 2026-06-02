@@ -12,7 +12,6 @@
       font-size: 14px; min-height: 100vh;
     }
 
-    /* Header */
     header {
       background: #1a1d27; border-bottom: 1px solid #2d3148;
       padding: 14px 24px; display: flex; align-items: center; justify-content: space-between;
@@ -21,7 +20,6 @@
     header h1 span { color: #6366f1; }
     #last-updated { color: #64748b; font-size: 12px; }
 
-    /* Tabs */
     .tabs {
       background: #1a1d27; border-bottom: 1px solid #2d3148;
       display: flex; padding: 0 24px;
@@ -34,42 +32,26 @@
     .tab-btn:hover { color: #e2e8f0; }
     .tab-btn.active { color: #6366f1; border-bottom-color: #6366f1; }
 
-    /* Layout */
     .layout {
       display: grid; grid-template-columns: 1fr 380px;
       height: calc(100vh - 97px); overflow: hidden;
     }
 
-    /* Left panel */
     .panel-left {
       overflow-y: auto; padding: 20px 16px 20px 24px;
       border-right: 1px solid #2d3148;
     }
     .panel-header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 12px;
+      display: flex; align-items: baseline; justify-content: space-between;
+      margin-bottom: 14px;
     }
     .panel-title {
-      font-size: 12px; font-weight: 600; color: #64748b;
-      text-transform: uppercase; letter-spacing: 0.08em;
+      font-size: 13px; font-weight: 700; color: #e2e8f0;
     }
-    .panel-date {
-      font-size: 12px; color: #94a3b8; font-weight: 500;
-    }
-
-    /* Market filter pills */
-    .mf-pills {
-      display: flex; gap: 6px; margin-bottom: 14px;
-    }
-    .mf-pill {
-      background: #1e2130; border: 1px solid #2d3148; border-radius: 20px;
-      color: #94a3b8; cursor: pointer; font-size: 11px; font-weight: 600;
-      padding: 4px 12px; transition: all 0.15s; white-space: nowrap;
-    }
-    .mf-pill:hover { border-color: #6366f1; color: #e2e8f0; }
-    .mf-pill.active { background: #6366f1; border-color: #6366f1; color: #fff; }
-    .mf-pill.usa.active  { background: #1e3a5f; border-color: #60a5fa; color: #60a5fa; }
-    .mf-pill.bist.active { background: #1e3b2b; border-color: #4ade80; color: #4ade80; }
+    .panel-date { font-size: 12px; }
+    .date-today     { color: #4ade80; }
+    .date-yesterday { color: #94a3b8; }
+    .date-stale     { color: #fb923c; }
 
     table { width: 100%; border-collapse: collapse; }
     thead th {
@@ -85,31 +67,22 @@
     tbody td { padding: 10px; vertical-align: middle; }
 
     .ticker-cell { font-weight: 700; color: #fff; font-size: 14px; }
-    .market-badge {
-      display: inline-block; font-size: 10px; font-weight: 600;
-      padding: 2px 6px; border-radius: 4px; background: #2d3148; color: #94a3b8;
-    }
-    .market-badge.usa  { background: #1e3a5f; color: #60a5fa; }
-    .market-badge.bist { background: #1e3b2b; color: #4ade80; }
-
-    .close-cell { font-size: 13px; color: #cbd5e1; font-weight: 500; white-space: nowrap; }
+    .close-cell  { font-size: 13px; color: #cbd5e1; font-weight: 500; white-space: nowrap; }
+    .score-cell  { font-weight: 700; font-size: 15px; }
+    .score-high  { color: #4ade80; }
+    .score-mid   { color: #facc15; }
+    .score-low   { color: #f87171; }
+    .why-cell    { color: #94a3b8; max-width: 210px; font-size: 12px; line-height: 1.4; }
 
     .streak-badge {
-      display: inline-flex; align-items: center; gap: 3px;
+      display: inline-flex; align-items: center; gap: 2px;
       font-size: 11px; font-weight: 700; padding: 2px 7px;
       border-radius: 20px; white-space: nowrap;
     }
-    .streak-1 { background: #1e2130; color: #64748b; }
-    .streak-2 { background: #1e3b2b; color: #4ade80; }
-    .streak-3 { background: #2d3a1a; color: #a3e635; }
+    .streak-1   { background: #1e2130; color: #64748b; }
+    .streak-2   { background: #1e3b2b; color: #4ade80; }
+    .streak-3   { background: #2d3a1a; color: #a3e635; }
     .streak-hot { background: #3b1f0a; color: #fb923c; }
-
-    .score-cell { font-weight: 700; font-size: 15px; }
-    .score-high { color: #4ade80; }
-    .score-mid  { color: #facc15; }
-    .score-low  { color: #f87171; }
-
-    .why-cell { color: #94a3b8; max-width: 200px; font-size: 12px; line-height: 1.4; }
 
     .action-btn {
       background: #6366f1; border: none; border-radius: 5px;
@@ -118,15 +91,14 @@
     }
     .action-btn:hover { background: #4f46e5; }
 
-    /* Right panel */
     .panel-right { overflow-y: auto; padding: 20px; background: #131520; }
     .detail-empty {
       display: flex; align-items: center; justify-content: center;
       height: 100%; color: #4b5563; font-size: 13px; text-align: center; line-height: 1.8;
     }
-    .detail-ticker { font-size: 22px; font-weight: 800; color: #fff; }
-    .detail-close  { font-size: 16px; color: #94a3b8; margin: 2px 0 4px; }
-    .detail-score  { display: inline-block; font-size: 28px; font-weight: 800; margin: 4px 0 8px; }
+    .detail-ticker { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+    .detail-close  { font-size: 16px; color: #94a3b8; margin-bottom: 4px; }
+    .detail-score  { display: inline-block; font-size: 28px; font-weight: 800; margin-bottom: 12px; }
     .detail-why {
       color: #94a3b8; font-size: 13px; line-height: 1.6; margin-bottom: 16px;
       background: #1a1d27; border-radius: 8px; padding: 12px;
@@ -150,7 +122,6 @@
 
     .status-row { text-align: center; padding: 40px; color: #4b5563; font-size: 13px; }
 
-    /* Radar tab */
     .radar-card {
       background: #1a1d27; border: 1px solid #2d3148; border-radius: 8px;
       padding: 14px; margin-bottom: 10px;
@@ -158,7 +129,6 @@
     .radar-card-ticker { font-weight: 700; font-size: 16px; margin-bottom: 6px; }
     .radar-card-meta   { color: #94a3b8; font-size: 12px; margin-bottom: 4px; }
 
-    /* Modal */
     .modal-overlay {
       display: none; position: fixed; inset: 0;
       background: rgba(0,0,0,0.7); z-index: 100;
@@ -198,53 +168,25 @@
   <span id="last-updated">Loading...</span>
 </header>
 
-<div class="tabs">
-  <button class="tab-btn active" data-tab="candidates">Candidates</button>
+<div class="tabs" id="tabs-bar">
+  <!-- market tabs injected by JS from MARKETS array -->
   <button class="tab-btn" data-tab="radar">My Radar</button>
   <button class="tab-btn" data-tab="stats">Statistics</button>
 </div>
 
-<!-- Candidates tab -->
-<div id="tab-candidates" class="layout">
-  <div class="panel-left">
-    <div class="panel-header">
-      <span class="panel-title">Daily Candidates</span>
-      <span class="panel-date" id="panel-date"></span>
-    </div>
-    <div class="mf-pills">
-      <button class="mf-pill active" data-market="all">All Markets</button>
-      <button class="mf-pill usa"  data-market="usa">🇺🇸 USA</button>
-      <button class="mf-pill bist" data-market="bist">🇹🇷 BIST</button>
-    </div>
-    <table>
-      <thead>
-        <tr>
-          <th>Ticker</th><th>Market</th><th>Close</th><th>Score</th><th>Streak</th><th>Why Today</th><th>Action</th>
-        </tr>
-      </thead>
-      <tbody id="candidates-tbody">
-        <tr class="status-row"><td colspan="6">Loading candidates...</td></tr>
-      </tbody>
-    </table>
-  </div>
-  <div class="panel-right" id="detail-panel">
-    <div class="detail-empty">← Select a stock<br>to see details</div>
-  </div>
+<!-- market tab panels injected by JS -->
+<div id="market-tabs-content"></div>
+
+<div id="tab-radar" class="tab-content" style="display:none; padding:24px;">
+  <div style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:16px;">My Radar</div>
+  <div id="radar-list" style="color:#64748b;">Loading...</div>
 </div>
 
-<!-- My Radar tab -->
-<div id="tab-radar" style="display:none; padding:24px;">
-  <div class="panel-title">My Radar</div>
-  <div id="radar-list" style="color:#64748b; margin-top:16px;">Loading...</div>
+<div id="tab-stats" class="tab-content" style="display:none; padding:24px;">
+  <div style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:16px;">Statistics</div>
+  <div style="color:#64748b;">Coming soon — Phase 3</div>
 </div>
 
-<!-- Stats tab -->
-<div id="tab-stats" style="display:none; padding:24px;">
-  <div class="panel-title">Statistics</div>
-  <div style="color:#64748b; margin-top:16px;">Coming soon — Phase 3</div>
-</div>
-
-<!-- Add to Radar modal -->
 <div class="modal-overlay" id="radar-modal">
   <div class="modal">
     <h2>+ Add to Radar</h2>
@@ -277,112 +219,194 @@
 
   const app = initializeApp(firebaseConfig);
   const db  = getFirestore(app);
-
   const USER_ID = 1;
-  let allCandidates = [];
-  let activeMarket  = "all";
 
-  // ── Tabs ──────────────────────────────────────────────────────────────────
+  // ── Market config — add new markets here ──────────────────────────────────
+  const MARKETS = [
+    { id: "bist",   label: "🇹🇷 BIST",   market: "BIST",   currency: "₺" },
+    { id: "usa",    label: "🇺🇸 USA",    market: "USA",    currency: "$" },
+    // { id: "crypto", label: "₿ Crypto",  market: "CRYPTO", currency: "$" },
+    // { id: "aex",    label: "🇳🇱 AEX",   market: "AEX",    currency: "€" },
+  ];
+
+  // Per-market state
+  const state = {};
+  MARKETS.forEach(m => { state[m.id] = { candidates: [], loaded: false, date: null, daysAgo: null }; });
+
+  // ── Build tab buttons (prepend market tabs before Radar/Stats) ─────────────
+  const tabsBar = document.getElementById("tabs-bar");
+  MARKETS.slice().reverse().forEach((m, ri) => {
+    const btn = document.createElement("button");
+    btn.className = "tab-btn" + (ri === MARKETS.length - 1 ? " active" : "");
+    btn.dataset.tab = m.id;
+    btn.textContent = m.label;
+    tabsBar.insertBefore(btn, tabsBar.firstChild);
+  });
+
+  // ── Build market tab content divs ─────────────────────────────────────────
+  const tabsContent = document.getElementById("market-tabs-content");
+  MARKETS.forEach((m, i) => {
+    const div = document.createElement("div");
+    div.id        = `tab-${m.id}`;
+    div.className = "layout tab-content";
+    div.style.display = i === 0 ? "grid" : "none";
+    div.innerHTML = `
+      <div class="panel-left">
+        <div class="panel-header">
+          <span class="panel-title">${m.label}</span>
+          <span class="panel-date" id="date-${m.id}">Loading...</span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Ticker</th><th>Close</th><th>Score</th><th>Streak</th><th>Why Today</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-${m.id}">
+            <tr class="status-row"><td colspan="6">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="panel-right" id="detail-${m.id}">
+        <div class="detail-empty">← Select a stock<br>to see details</div>
+      </div>`;
+    tabsContent.appendChild(div);
+  });
+
+  // ── Tab switching ─────────────────────────────────────────────────────────
+  let activeTab = MARKETS[0].id;
+
   document.querySelectorAll(".tab-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
-      const tab = btn.dataset.tab;
-      document.getElementById("tab-candidates").style.display = tab === "candidates" ? "grid"  : "none";
-      document.getElementById("tab-radar").style.display      = tab === "radar"      ? "block" : "none";
-      document.getElementById("tab-stats").style.display      = tab === "stats"      ? "block" : "none";
-      if (tab === "radar") loadRadar();
+      switchTab(btn.dataset.tab);
     });
   });
 
-  // ── Market filter pills ───────────────────────────────────────────────────
-  document.querySelectorAll(".mf-pill").forEach(pill => {
-    pill.addEventListener("click", () => {
-      document.querySelectorAll(".mf-pill").forEach(p => p.classList.remove("active"));
-      pill.classList.add("active");
-      activeMarket = pill.dataset.market;
-      renderTable();
-      document.getElementById("detail-panel").innerHTML =
-        `<div class="detail-empty">← Select a stock<br>to see details</div>`;
-    });
-  });
+  function switchTab(tabId) {
+    document.querySelectorAll(".tab-content").forEach(el => el.style.display = "none");
+    activeTab = tabId;
 
-  // ── Load candidates from Firestore ────────────────────────────────────────
-  async function loadCandidates() {
-    const tbody = document.getElementById("candidates-tbody");
-    try {
-      const now   = new Date();
-      const today = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
-      const dateLabel = now.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+    const target = document.getElementById(`tab-${tabId}`);
+    if (!target) return;
 
-      document.getElementById("panel-date").textContent = dateLabel;
-      document.getElementById("last-updated").textContent = `Close: ${dateLabel}`;
+    const m = MARKETS.find(x => x.id === tabId);
+    target.style.display = m ? "grid" : "block";
 
-      const snap = await getDocs(
-        query(collection(db, "daily_candidates"), where("date", "==", today))
-      );
-
-      allCandidates = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      allCandidates.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
-
-      if (allCandidates.length === 0) {
-        tbody.innerHTML = `<tr class="status-row"><td colspan="7">No candidates for today yet.<br><small style="color:#64748b">Run: python pipeline.py all</small></td></tr>`;
-        document.getElementById("last-updated").textContent = `No data — ${dateLabel}`;
-        return;
-      }
-
-      renderTable();
-      console.log("Loaded", allCandidates.length, "candidates");
-    } catch (err) {
-      console.error("Firestore error:", err);
-      tbody.innerHTML = `<tr class="status-row"><td colspan="6">
-        Firebase error — check DevTools (F12).<br>
-        <small style="color:#64748b">May need Firestore security rules update.</small>
-      </td></tr>`;
+    if (m) {
+      if (state[tabId].loaded) updateHeader(tabId);
+      // data already loading or loaded — nothing extra needed
+    } else if (tabId === "radar") {
+      loadRadar();
     }
   }
 
-  function renderTable() {
-    const tbody = document.getElementById("candidates-tbody");
-    const filtered = activeMarket === "all"
-      ? allCandidates
-      : allCandidates.filter(c => (c.market ?? "USA").toUpperCase() === activeMarket.toUpperCase());
+  // ── Firestore: find most recent date for a market (up to 7 days back) ─────
+  function localDateStr(d) {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  }
 
-    if (filtered.length === 0) {
-      const label = activeMarket === "usa" ? "USA" : "BIST";
-      tbody.innerHTML = `<tr class="status-row"><td colspan="7">No ${label} candidates today.</td></tr>`;
+  async function findLatestCandidates(market) {
+    const now = new Date();
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const dateStr = localDateStr(d);
+      const snap = await getDocs(query(
+        collection(db, "daily_candidates"),
+        where("market", "==", market),
+        where("date",   "==", dateStr)
+      ));
+      if (!snap.empty) return { docs: snap.docs, date: dateStr, daysAgo: i };
+    }
+    return null;
+  }
+
+  // ── Load a market's candidates ────────────────────────────────────────────
+  async function loadMarket(mConfig) {
+    const mId   = mConfig.id;
+    const tbody = document.getElementById(`tbody-${mId}`);
+    try {
+      const result = await findLatestCandidates(mConfig.market);
+
+      if (!result) {
+        tbody.innerHTML = `<tr class="status-row"><td colspan="6">No data yet.<br>
+          <small style="color:#64748b">Run: python pipeline.py ${mId}</small></td></tr>`;
+        document.getElementById(`date-${mId}`).textContent = "No data";
+        return;
+      }
+
+      state[mId].candidates = result.docs.map(d => ({ id: d.id, ...d.data() }));
+      state[mId].candidates.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+      state[mId].loaded  = true;
+      state[mId].date    = result.date;
+      state[mId].daysAgo = result.daysAgo;
+
+      setDateLabel(mId, result);
+      if (activeTab === mId) updateHeader(mId);
+      renderTable(mId);
+    } catch (err) {
+      console.error(`Error loading ${mId}:`, err);
+      tbody.innerHTML = `<tr class="status-row"><td colspan="6">Firebase error — check DevTools (F12).</td></tr>`;
+    }
+  }
+
+  function setDateLabel(mId, result) {
+    const el       = document.getElementById(`date-${mId}`);
+    const niceDate = new Date(result.date + "T12:00:00").toLocaleDateString("en-US", {
+      weekday: "short", month: "short", day: "numeric", year: "numeric"
+    });
+    if (result.daysAgo === 0) {
+      el.innerHTML = `<span class="date-today">${niceDate} · today's close</span>`;
+    } else if (result.daysAgo === 1) {
+      el.innerHTML = `<span class="date-yesterday">${niceDate} · yesterday's close</span>`;
+    } else {
+      el.innerHTML = `<span class="date-stale">${niceDate} · ${result.daysAgo} days ago ⚠</span>`;
+    }
+  }
+
+  function updateHeader(mId) {
+    const m = MARKETS.find(x => x.id === mId);
+    const s = state[mId];
+    if (!s.date) return;
+    const niceDate = new Date(s.date + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    const suffix   = s.daysAgo === 0 ? "today" : s.daysAgo === 1 ? "yesterday" : `${s.daysAgo}d ago`;
+    document.getElementById("last-updated").textContent = `${m.label}: ${niceDate} close · ${suffix}`;
+  }
+
+  // ── Render table ──────────────────────────────────────────────────────────
+  function renderTable(mId) {
+    const m     = MARKETS.find(x => x.id === mId);
+    const tbody = document.getElementById(`tbody-${mId}`);
+    if (state[mId].candidates.length === 0) {
+      tbody.innerHTML = `<tr class="status-row"><td colspan="6">No candidates found.</td></tr>`;
       return;
     }
-
-    tbody.innerHTML = filtered.map(renderRow).join("");
-    attachRowEvents();
+    tbody.innerHTML = state[mId].candidates.map(c => renderRow(c, m)).join("");
+    attachRowEvents(mId);
   }
 
   function scoreClass(s) { return s >= 75 ? "score-high" : s >= 65 ? "score-mid" : "score-low"; }
 
   function streakBadge(streak) {
-    if (!streak || streak < 1) return `<span class="streak-badge streak-1">1d</span>`;
-    if (streak >= 5) return `<span class="streak-badge streak-hot">🔥${streak}d</span>`;
-    if (streak >= 3) return `<span class="streak-badge streak-3">▲${streak}d</span>`;
-    if (streak >= 2) return `<span class="streak-badge streak-2">▲${streak}d</span>`;
-    return `<span class="streak-badge streak-1">1d</span>`;
+    if (!streak || streak < 2) return `<span class="streak-badge streak-1">1d</span>`;
+    if (streak >= 5)           return `<span class="streak-badge streak-hot">🔥${streak}d</span>`;
+    if (streak >= 3)           return `<span class="streak-badge streak-3">▲${streak}d</span>`;
+    return                            `<span class="streak-badge streak-2">▲${streak}d</span>`;
   }
 
-  function formatClose(c) {
+  function fmtClose(c, currency) {
     if (c.close == null) return "—";
-    const market = (c.market ?? "USA").toUpperCase();
-    const num = Number(c.close).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    return market === "BIST" ? `₺${num}` : `$${num}`;
+    return currency + Number(c.close).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
-  function renderRow(c) {
-    const score  = c.score ?? 0;
-    const market = (c.market ?? "USA").toLowerCase();
+  function renderRow(c, m) {
+    const score = c.score ?? 0;
     return `
-      <tr data-ticker="${c.ticker}">
+      <tr data-ticker="${c.ticker}" data-mid="${m.id}">
         <td class="ticker-cell">${c.ticker}</td>
-        <td><span class="market-badge ${market}">${c.market ?? "USA"}</span></td>
-        <td class="close-cell">${formatClose(c)}</td>
+        <td class="close-cell">${fmtClose(c, m.currency)}</td>
         <td class="score-cell ${scoreClass(score)}">${score}</td>
         <td>${streakBadge(c.streak)}</td>
         <td class="why-cell">${c.why_today ?? "-"}</td>
@@ -390,47 +414,50 @@
       </tr>`;
   }
 
-  function attachRowEvents() {
-    document.querySelectorAll("tbody tr[data-ticker]").forEach(row => {
+  function attachRowEvents(mId) {
+    document.querySelectorAll(`#tbody-${mId} tr[data-ticker]`).forEach(row => {
       row.addEventListener("click", e => {
         if (e.target.classList.contains("action-btn")) return;
-        document.querySelectorAll("tbody tr").forEach(r => r.classList.remove("selected"));
+        document.querySelectorAll(`#tbody-${mId} tr`).forEach(r => r.classList.remove("selected"));
         row.classList.add("selected");
-        showDetail(row.dataset.ticker);
+        showDetail(mId, row.dataset.ticker);
       });
     });
-    document.querySelectorAll(".action-btn[data-ticker]").forEach(btn => {
+    document.querySelectorAll(`#tbody-${mId} .action-btn`).forEach(btn => {
       btn.addEventListener("click", () => openModal(btn.dataset.ticker));
     });
   }
 
   // ── Detail panel ──────────────────────────────────────────────────────────
-  function showDetail(ticker) {
-    const c = allCandidates.find(x => x.ticker === ticker);
+  function showDetail(mId, ticker) {
+    const m = MARKETS.find(x => x.id === mId);
+    const c = state[mId].candidates.find(x => x.ticker === ticker);
     if (!c) return;
-    const score  = c.score ?? 0;
-    const market = (c.market ?? "USA").toUpperCase();
+    const score = c.score ?? 0;
+    const cur   = m.currency;
 
     const kv = (label, val, cls = "") =>
-      val != null ? `<div class="kv-item"><div class="kv-label">${label}</div><div class="kv-value ${cls}">${val}</div></div>` : "";
+      val != null
+        ? `<div class="kv-item"><div class="kv-label">${label}</div><div class="kv-value ${cls}">${val}</div></div>`
+        : "";
 
-    const rrVal  = c.risk_reward   ? parseFloat(c.risk_reward)  : null;
-    const volVal = c.volume_ratio  ? parseFloat(c.volume_ratio) : null;
+    const rrVal  = c.risk_reward  ? parseFloat(c.risk_reward)  : null;
+    const volVal = c.volume_ratio ? parseFloat(c.volume_ratio) : null;
 
-    document.getElementById("detail-panel").innerHTML = `
+    document.getElementById(`detail-${mId}`).innerHTML = `
       <div style="margin-bottom:16px;">
-        <div class="detail-ticker">${c.ticker} <span style="font-size:13px;"><span class="market-badge ${market.toLowerCase()}">${market}</span></span> ${streakBadge(c.streak)}</div>
-        <div class="detail-close">${formatClose(c)}</div>
+        <div class="detail-ticker">${c.ticker} ${streakBadge(c.streak)}</div>
+        <div class="detail-close">${fmtClose(c, cur)}</div>
         <div class="detail-score ${scoreClass(score)}">${score}<span style="font-size:14px;color:#64748b;"> / 100</span></div>
       </div>
       <div class="detail-why">${c.why_today ?? "No summary available."}</div>
       <div class="kv-grid">
-        ${kv("Close",      formatClose(c))}
-        ${kv("Support",    c.support    != null ? (market === "BIST" ? "₺" : "$") + Number(c.support).toFixed(2)    : null, "green")}
-        ${kv("Resistance", c.resistance != null ? (market === "BIST" ? "₺" : "$") + Number(c.resistance).toFixed(2) : null, "red")}
+        ${kv("Close",      fmtClose(c, cur))}
+        ${kv("Support",    c.support    != null ? cur + Number(c.support).toFixed(2)    : null, "green")}
+        ${kv("Resistance", c.resistance != null ? cur + Number(c.resistance).toFixed(2) : null, "red")}
         ${rrVal  ? kv("Risk / Reward", `1:${rrVal}`,  rrVal  >= 1.5 ? "green" : "yellow") : ""}
         ${volVal ? kv("Volume",        `${volVal}x`,  volVal >= 1.5 ? "green" : "yellow") : ""}
-        ${kv("RSI",     c.rsi  != null ? c.rsi     : null, c.rsi >= 70 ? "yellow" : "green")}
+        ${kv("RSI", c.rsi != null ? c.rsi : null, c.rsi >= 70 ? "yellow" : "green")}
         ${kv("Signals", c.triggers?.length ? c.triggers.length + " triggers" : null)}
       </div>
       ${c.triggers?.length ? `
@@ -453,12 +480,8 @@
   async function loadRadar() {
     const container = document.getElementById("radar-list");
     try {
-      const q    = query(collection(db, "radar_items"), where("user_id", "==", USER_ID));
-      const snap = await getDocs(q);
-      if (snap.empty) {
-        container.innerHTML = `<p>No stocks in your radar yet.</p>`;
-        return;
-      }
+      const snap = await getDocs(query(collection(db, "radar_items"), where("user_id", "==", USER_ID)));
+      if (snap.empty) { container.innerHTML = `<p>No stocks in your radar yet.</p>`; return; }
       container.innerHTML = snap.docs.map(d => {
         const item = d.data();
         return `<div class="radar-card">
@@ -503,8 +526,8 @@
     }
   });
 
-  // ── Boot ──────────────────────────────────────────────────────────────────
-  loadCandidates();
+  // ── Boot: load all markets in parallel ────────────────────────────────────
+  MARKETS.forEach(m => loadMarket(m));
 </script>
 
 </body>
