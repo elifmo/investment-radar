@@ -1,0 +1,15 @@
+usa:
+  - MSFT
+  - NVDA
+  - AAPL
+  - TSLA
+  - GOOGL
+  # Phase 2: full S&P500 + Nasdaq100 (~550 tickers) will be added here
+
+bist:
+  - FROTO.IS
+  - ASELS.IS
+  - TUPRS.IS
+  - EREGL.IS
+  - AKBNK.IS
+  # Phase 2: full BIST100 (~100 tickers) will be added here

@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Investment Radar</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0f1117; color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px; min-height: 100vh;
+    }
+
+    /* Header */
+    header {
+      background: #1a1d27; border-bottom: 1px solid #2d3148;
+      padding: 14px 24px; display: flex; align-items: center; justify-content: space-between;
+    }
+    header h1 { font-size: 18px; font-weight: 700; color: #fff; }
+    header h1 span { color: #6366f1; }
+    #last-updated { color: #64748b; font-size: 12px; }
+
+    /* Tabs */
+    .tabs {
+      background: #1a1d27; border-bottom: 1px solid #2d3148;
+      display: flex; padding: 0 24px;
+    }
+    .tab-btn {
+      background: none; border: none; color: #94a3b8; cursor: pointer;
+      font-size: 13px; font-weight: 500; padding: 12px 20px;
+      border-bottom: 2px solid transparent; transition: all 0.15s;
+    }
+    .tab-btn:hover { color: #e2e8f0; }
+    .tab-btn.active { color: #6366f1; border-bottom-color: #6366f1; }
+
+    /* Layout */
+    .layout {
+      display: grid; grid-template-columns: 1fr 380px;
+      height: calc(100vh - 97px); overflow: hidden;
+    }
+
+    /* Left panel */
+    .panel-left {
+      overflow-y: auto; padding: 20px 16px 20px 24px;
+      border-right: 1px solid #2d3148;
+    }
+    .panel-title {
+      font-size: 12px; font-weight: 600; color: #64748b;
+      text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      text-align: left; padding: 8px 10px; font-size: 11px; font-weight: 600;
+      color: #64748b; text-transform: uppercase; letter-spacing: 0.06em;
+      border-bottom: 1px solid #2d3148; white-space: nowrap;
+    }
+    tbody tr {
+      cursor: pointer; border-bottom: 1px solid #1e2130; transition: background 0.1s;
+    }
+    tbody tr:hover { background: #1e2130; }
+    tbody tr.selected { background: #1e2338; }
+    tbody td { padding: 10px; vertical-align: middle; }
+
+    .ticker-cell { font-weight: 700; color: #fff; font-size: 14px; }
+    .market-badge {
+      display: inline-block; font-size: 10px; font-weight: 600;
+      padding: 2px 6px; border-radius: 4px; background: #2d3148; color: #94a3b8;
+    }
+    .market-badge.usa  { background: #1e3a5f; color: #60a5fa; }
+    .market-badge.bist { background: #1e3b2b; color: #4ade80; }
+
+    .score-cell { font-weight: 700; font-size: 15px; }
+    .score-high { color: #4ade80; }
+    .score-mid  { color: #facc15; }
+    .score-low  { color: #f87171; }
+
+    .why-cell { color: #94a3b8; max-width: 220px; font-size: 12px; line-height: 1.4; }
+
+    .action-btn {
+      background: #6366f1; border: none; border-radius: 5px;
+      color: #fff; cursor: pointer; font-size: 11px; font-weight: 600;
+      padding: 5px 10px; white-space: nowrap; transition: background 0.15s;
+    }
+    .action-btn:hover { background: #4f46e5; }
+
+    /* Right panel */
+    .panel-right { overflow-y: auto; padding: 20px; background: #131520; }
+    .detail-empty {
+      display: flex; align-items: center; justify-content: center;
+      height: 100%; color: #4b5563; font-size: 13px; text-align: center; line-height: 1.8;
+    }
+    .detail-ticker { font-size: 22px; font-weight: 800; color: #fff; }
+    .detail-score  { display: inline-block; font-size: 28px; font-weight: 800; margin: 8px 0; }
+    .detail-why {
+      color: #94a3b8; font-size: 13px; line-height: 1.6; margin-bottom: 16px;
+      background: #1a1d27; border-radius: 8px; padding: 12px;
+      border-left: 3px solid #6366f1;
+    }
+    .detail-section { margin-bottom: 16px; }
+    .detail-section h3 {
+      font-size: 11px; font-weight: 600; color: #64748b;
+      text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;
+    }
+    .signal-list { list-style: none; }
+    .signal-list li { font-size: 12px; padding: 4px 0; line-height: 1.5; color: #cbd5e1; }
+
+    .kv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+    .kv-item { background: #1a1d27; border-radius: 6px; padding: 10px 12px; }
+    .kv-label { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; }
+    .kv-value { font-size: 15px; font-weight: 700; color: #fff; margin-top: 2px; }
+    .kv-value.green  { color: #4ade80; }
+    .kv-value.red    { color: #f87171; }
+    .kv-value.yellow { color: #facc15; }
+
+    .status-row { text-align: center; padding: 40px; color: #4b5563; font-size: 13px; }
+
+    /* Radar tab */
+    .radar-card {
+      background: #1a1d27; border: 1px solid #2d3148; border-radius: 8px;
+      padding: 14px; margin-bottom: 10px;
+    }
+    .radar-card-ticker { font-weight: 700; font-size: 16px; margin-bottom: 6px; }
+    .radar-card-meta   { color: #94a3b8; font-size: 12px; margin-bottom: 4px; }
+
+    /* Modal */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7); z-index: 100;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #1a1d27; border: 1px solid #2d3148; border-radius: 12px;
+      padding: 24px; width: 420px; max-width: 90vw;
+    }
+    .modal h2 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+    .modal label {
+      display: block; font-size: 11px; color: #64748b;
+      text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;
+    }
+    .modal textarea {
+      width: 100%; background: #0f1117; border: 1px solid #2d3148;
+      border-radius: 6px; color: #e2e8f0; font-size: 13px;
+      padding: 10px; resize: vertical; margin-bottom: 14px;
+      min-height: 70px; font-family: inherit;
+    }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .btn-cancel {
+      background: #2d3148; border: none; border-radius: 6px;
+      color: #94a3b8; cursor: pointer; font-size: 13px; padding: 8px 16px;
+    }
+    .btn-save {
+      background: #6366f1; border: none; border-radius: 6px;
+      color: #fff; cursor: pointer; font-size: 13px; font-weight: 600; padding: 8px 16px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Investment <span>Radar</span></h1>
+  <span id="last-updated">Loading...</span>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" data-tab="candidates">Candidates</button>
+  <button class="tab-btn" data-tab="radar">My Radar</button>
+  <button class="tab-btn" data-tab="stats">Statistics</button>
+</div>
+
+<!-- Candidates tab -->
+<div id="tab-candidates" class="layout">
+  <div class="panel-left">
+    <div class="panel-title">Daily Candidates</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Ticker</th><th>Market</th><th>Score</th><th>Why Today</th><th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="candidates-tbody">
+        <tr class="status-row"><td colspan="5">Loading candidates...</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="panel-right" id="detail-panel">
+    <div class="detail-empty">← Select a stock<br>to see details</div>
+  </div>
+</div>
+
+<!-- My Radar tab -->
+<div id="tab-radar" style="display:none; padding:24px;">
+  <div class="panel-title">My Radar</div>
+  <div id="radar-list" style="color:#64748b; margin-top:16px;">Loading...</div>
+</div>
+
+<!-- Stats tab -->
+<div id="tab-stats" style="display:none; padding:24px;">
+  <div class="panel-title">Statistics</div>
+  <div style="color:#64748b; margin-top:16px;">Coming soon — Phase 3</div>
+</div>
+
+<!-- Add to Radar modal -->
+<div class="modal-overlay" id="radar-modal">
+  <div class="modal">
+    <h2>+ Add to Radar</h2>
+    <input type="hidden" id="modal-ticker" />
+    <label>Thesis — Why do you like this?</label>
+    <textarea id="modal-thesis" placeholder="e.g. EMA breakout confirmed, volume 2x..."></textarea>
+    <label>Exit Condition — When will you close?</label>
+    <textarea id="modal-exit" placeholder="e.g. If price closes below support..."></textarea>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="modal-cancel">Cancel</button>
+      <button class="btn-save"   id="modal-save">Save to Radar</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import {
+    getFirestore, collection, getDocs, addDoc, query, where, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey:            "AIzaSyBIG3tZFNq_cSAWmEHx2nWsQOKBpD-YE-g",
+    authDomain:        "investment-radar-2c19d.firebaseapp.com",
+    projectId:         "investment-radar-2c19d",
+    storageBucket:     "investment-radar-2c19d.firebasestorage.app",
+    messagingSenderId: "751620919009",
+    appId:             "1:751620919009:web:2ddb9840e1ddb641d8b1a0",
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+
+  const USER_ID = 1;
+  let candidates = [];
+
+  // ── Tabs ──────────────────────────────────────────────────────────────────
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const tab = btn.dataset.tab;
+      document.getElementById("tab-candidates").style.display = tab === "candidates" ? "grid"  : "none";
+      document.getElementById("tab-radar").style.display      = tab === "radar"      ? "block" : "none";
+      document.getElementById("tab-stats").style.display      = tab === "stats"      ? "block" : "none";
+      if (tab === "radar") loadRadar();
+    });
+  });
+
+  // ── Load candidates from Firestore ────────────────────────────────────────
+  async function loadCandidates() {
+    const tbody = document.getElementById("candidates-tbody");
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const snap  = await getDocs(
+        query(collection(db, "daily_candidates"), where("date", "==", today))
+      );
+
+      candidates = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      if (candidates.length === 0) {
+        tbody.innerHTML = `<tr class="status-row"><td colspan="5">No candidates for today yet.<br><small style="color:#64748b">Run: python pipeline.py all</small></td></tr>`;
+        document.getElementById("last-updated").textContent = "No data for today";
+        return;
+      }
+
+      candidates.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+      tbody.innerHTML = candidates.map(renderRow).join("");
+      attachRowEvents();
+      document.getElementById("last-updated").textContent = `Updated: ${today}`;
+      console.log("Loaded", candidates.length, "candidates");
+    } catch (err) {
+      console.error("Firestore error:", err);
+      tbody.innerHTML = `<tr class="status-row"><td colspan="5">
+        Firebase error — check DevTools (F12).<br>
+        <small style="color:#64748b">May need Firestore security rules update.</small>
+      </td></tr>`;
+    }
+  }
+
+  function scoreClass(s) { return s >= 75 ? "score-high" : s >= 65 ? "score-mid" : "score-low"; }
+
+  function renderRow(c) {
+    const score  = c.score ?? 0;
+    const market = (c.market ?? "USA").toLowerCase();
+    return `
+      <tr data-ticker="${c.ticker}">
+        <td class="ticker-cell">${c.ticker}</td>
+        <td><span class="market-badge ${market}">${c.market ?? "USA"}</span></td>
+        <td class="score-cell ${scoreClass(score)}">${score}</td>
+        <td class="why-cell">${c.why_today ?? "-"}</td>
+        <td><button class="action-btn" data-ticker="${c.ticker}">+ Radar</button></td>
+      </tr>`;
+  }
+
+  function attachRowEvents() {
+    document.querySelectorAll("tbody tr[data-ticker]").forEach(row => {
+      row.addEventListener("click", e => {
+        if (e.target.classList.contains("action-btn")) return;
+        document.querySelectorAll("tbody tr").forEach(r => r.classList.remove("selected"));
+        row.classList.add("selected");
+        showDetail(row.dataset.ticker);
+      });
+    });
+    document.querySelectorAll(".action-btn[data-ticker]").forEach(btn => {
+      btn.addEventListener("click", () => openModal(btn.dataset.ticker));
+    });
+  }
+
+  // ── Detail panel ──────────────────────────────────────────────────────────
+  function showDetail(ticker) {
+    const c = candidates.find(x => x.ticker === ticker);
+    if (!c) return;
+    const score = c.score ?? 0;
+
+    const kv = (label, val, cls = "") =>
+      val != null ? `<div class="kv-item"><div class="kv-label">${label}</div><div class="kv-value ${cls}">${val}</div></div>` : "";
+
+    const rrVal  = c.risk_reward   ? parseFloat(c.risk_reward)  : null;
+    const volVal = c.volume_ratio  ? parseFloat(c.volume_ratio) : null;
+
+    document.getElementById("detail-panel").innerHTML = `
+      <div style="margin-bottom:16px;">
+        <div class="detail-ticker">${c.ticker}</div>
+        <div class="detail-score ${scoreClass(score)}">${score}<span style="font-size:14px;color:#64748b;"> / 100</span></div>
+      </div>
+      <div class="detail-why">${c.why_today ?? "No summary available."}</div>
+      <div class="kv-grid">
+        ${kv("Support",    c.support    != null ? Number(c.support).toFixed(2)    : null, "green")}
+        ${kv("Resistance", c.resistance != null ? Number(c.resistance).toFixed(2) : null, "red")}
+        ${rrVal  ? kv("Risk / Reward", `1:${rrVal}`,  rrVal  >= 1.5 ? "green" : "yellow") : ""}
+        ${volVal ? kv("Volume",        `${volVal}x`,  volVal >= 1.5 ? "green" : "yellow") : ""}
+        ${kv("RSI",     c.rsi  != null ? c.rsi     : null, c.rsi >= 70 ? "yellow" : "green")}
+        ${kv("Signals", c.triggers?.length ? c.triggers.length + " triggers" : null)}
+      </div>
+      ${c.signals?.length ? `
+        <div class="detail-section">
+          <h3>Signals</h3>
+          <ul class="signal-list">${c.signals.map(s => `<li>${s}</li>`).join("")}</ul>
+        </div>` : ""}
+      ${c.triggers?.length ? `
+        <div class="detail-section">
+          <h3>Triggered by</h3>
+          <ul class="signal-list">${c.triggers.map(t => `<li>• ${t.replace(/_/g," ")}</li>`).join("")}</ul>
+        </div>` : ""}
+      <button class="action-btn" style="width:100%;padding:10px;margin-top:8px;"
+        onclick="window._openModal('${c.ticker}')">+ Add to Radar</button>`;
+  }
+
+  window._openModal = openModal;
+
+  // ── My Radar ──────────────────────────────────────────────────────────────
+  async function loadRadar() {
+    const container = document.getElementById("radar-list");
+    try {
+      const q    = query(collection(db, "radar_items"), where("user_id", "==", USER_ID));
+      const snap = await getDocs(q);
+      if (snap.empty) {
+        container.innerHTML = `<p>No stocks in your radar yet.</p>`;
+        return;
+      }
+      container.innerHTML = snap.docs.map(d => {
+        const item = d.data();
+        return `<div class="radar-card">
+          <div class="radar-card-ticker">${item.ticker}</div>
+          <div class="radar-card-meta"><b>Thesis:</b> ${item.thesis ?? "-"}</div>
+          <div class="radar-card-meta"><b>Exit:</b> ${item.exit_condition ?? "-"}</div>
+        </div>`;
+      }).join("");
+    } catch (err) {
+      console.error(err);
+      container.innerHTML = `<p style="color:#f87171;">Error loading radar.</p>`;
+    }
+  }
+
+  // ── Modal ─────────────────────────────────────────────────────────────────
+  function openModal(ticker) {
+    document.getElementById("modal-ticker").value = ticker;
+    document.getElementById("modal-thesis").value = "";
+    document.getElementById("modal-exit").value   = "";
+    document.getElementById("radar-modal").classList.add("open");
+  }
+
+  document.getElementById("modal-cancel").addEventListener("click", () => {
+    document.getElementById("radar-modal").classList.remove("open");
+  });
+
+  document.getElementById("modal-save").addEventListener("click", async () => {
+    const ticker = document.getElementById("modal-ticker").value;
+    const thesis = document.getElementById("modal-thesis").value.trim();
+    const exit   = document.getElementById("modal-exit").value.trim();
+    if (!thesis) { alert("Please enter your thesis."); return; }
+    try {
+      await addDoc(collection(db, "radar_items"), {
+        user_id: USER_ID, ticker, thesis, exit_condition: exit,
+        added_at: serverTimestamp(), is_active: true,
+      });
+      document.getElementById("radar-modal").classList.remove("open");
+      alert(`${ticker} added to your radar!`);
+    } catch (err) {
+      console.error(err);
+      alert("Could not save — check Firestore security rules.");
+    }
+  });
+
+  // ── Boot ──────────────────────────────────────────────────────────────────
+  loadCandidates();
+</script>
+
+</body>
+</html>
