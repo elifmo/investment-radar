@@ -45,10 +45,32 @@
       overflow-y: auto; padding: 20px 16px 20px 24px;
       border-right: 1px solid #2d3148;
     }
+    .panel-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px;
+    }
     .panel-title {
       font-size: 12px; font-weight: 600; color: #64748b;
-      text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px;
+      text-transform: uppercase; letter-spacing: 0.08em;
     }
+    .panel-date {
+      font-size: 12px; color: #94a3b8; font-weight: 500;
+    }
+
+    /* Market filter pills */
+    .mf-pills {
+      display: flex; gap: 6px; margin-bottom: 14px;
+    }
+    .mf-pill {
+      background: #1e2130; border: 1px solid #2d3148; border-radius: 20px;
+      color: #94a3b8; cursor: pointer; font-size: 11px; font-weight: 600;
+      padding: 4px 12px; transition: all 0.15s; white-space: nowrap;
+    }
+    .mf-pill:hover { border-color: #6366f1; color: #e2e8f0; }
+    .mf-pill.active { background: #6366f1; border-color: #6366f1; color: #fff; }
+    .mf-pill.usa.active  { background: #1e3a5f; border-color: #60a5fa; color: #60a5fa; }
+    .mf-pill.bist.active { background: #1e3b2b; border-color: #4ade80; color: #4ade80; }
+
     table { width: 100%; border-collapse: collapse; }
     thead th {
       text-align: left; padding: 8px 10px; font-size: 11px; font-weight: 600;
@@ -70,12 +92,14 @@
     .market-badge.usa  { background: #1e3a5f; color: #60a5fa; }
     .market-badge.bist { background: #1e3b2b; color: #4ade80; }
 
+    .close-cell { font-size: 13px; color: #cbd5e1; font-weight: 500; white-space: nowrap; }
+
     .score-cell { font-weight: 700; font-size: 15px; }
     .score-high { color: #4ade80; }
     .score-mid  { color: #facc15; }
     .score-low  { color: #f87171; }
 
-    .why-cell { color: #94a3b8; max-width: 220px; font-size: 12px; line-height: 1.4; }
+    .why-cell { color: #94a3b8; max-width: 200px; font-size: 12px; line-height: 1.4; }
 
     .action-btn {
       background: #6366f1; border: none; border-radius: 5px;
@@ -91,7 +115,8 @@
       height: 100%; color: #4b5563; font-size: 13px; text-align: center; line-height: 1.8;
     }
     .detail-ticker { font-size: 22px; font-weight: 800; color: #fff; }
-    .detail-score  { display: inline-block; font-size: 28px; font-weight: 800; margin: 8px 0; }
+    .detail-close  { font-size: 16px; color: #94a3b8; margin: 2px 0 4px; }
+    .detail-score  { display: inline-block; font-size: 28px; font-weight: 800; margin: 4px 0 8px; }
     .detail-why {
       color: #94a3b8; font-size: 13px; line-height: 1.6; margin-bottom: 16px;
       background: #1a1d27; border-radius: 8px; padding: 12px;
@@ -172,15 +197,23 @@
 <!-- Candidates tab -->
 <div id="tab-candidates" class="layout">
   <div class="panel-left">
-    <div class="panel-title">Daily Candidates</div>
+    <div class="panel-header">
+      <span class="panel-title">Daily Candidates</span>
+      <span class="panel-date" id="panel-date"></span>
+    </div>
+    <div class="mf-pills">
+      <button class="mf-pill active" data-market="all">All Markets</button>
+      <button class="mf-pill usa"  data-market="usa">🇺🇸 USA</button>
+      <button class="mf-pill bist" data-market="bist">🇹🇷 BIST</button>
+    </div>
     <table>
       <thead>
         <tr>
-          <th>Ticker</th><th>Market</th><th>Score</th><th>Why Today</th><th>Action</th>
+          <th>Ticker</th><th>Market</th><th>Close</th><th>Score</th><th>Why Today</th><th>Action</th>
         </tr>
       </thead>
       <tbody id="candidates-tbody">
-        <tr class="status-row"><td colspan="5">Loading candidates...</td></tr>
+        <tr class="status-row"><td colspan="6">Loading candidates...</td></tr>
       </tbody>
     </table>
   </div>
@@ -236,7 +269,8 @@
   const db  = getFirestore(app);
 
   const USER_ID = 1;
-  let candidates = [];
+  let allCandidates = [];
+  let activeMarket  = "all";
 
   // ── Tabs ──────────────────────────────────────────────────────────────────
   document.querySelectorAll(".tab-btn").forEach(btn => {
@@ -251,38 +285,77 @@
     });
   });
 
+  // ── Market filter pills ───────────────────────────────────────────────────
+  document.querySelectorAll(".mf-pill").forEach(pill => {
+    pill.addEventListener("click", () => {
+      document.querySelectorAll(".mf-pill").forEach(p => p.classList.remove("active"));
+      pill.classList.add("active");
+      activeMarket = pill.dataset.market;
+      renderTable();
+      document.getElementById("detail-panel").innerHTML =
+        `<div class="detail-empty">← Select a stock<br>to see details</div>`;
+    });
+  });
+
   // ── Load candidates from Firestore ────────────────────────────────────────
   async function loadCandidates() {
     const tbody = document.getElementById("candidates-tbody");
     try {
-      const today = new Date().toISOString().slice(0, 10);
-      const snap  = await getDocs(
+      const now   = new Date();
+      const today = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
+      const dateLabel = now.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+
+      document.getElementById("panel-date").textContent = dateLabel;
+      document.getElementById("last-updated").textContent = `Close: ${dateLabel}`;
+
+      const snap = await getDocs(
         query(collection(db, "daily_candidates"), where("date", "==", today))
       );
 
-      candidates = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      allCandidates = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      allCandidates.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
 
-      if (candidates.length === 0) {
-        tbody.innerHTML = `<tr class="status-row"><td colspan="5">No candidates for today yet.<br><small style="color:#64748b">Run: python pipeline.py all</small></td></tr>`;
-        document.getElementById("last-updated").textContent = "No data for today";
+      if (allCandidates.length === 0) {
+        tbody.innerHTML = `<tr class="status-row"><td colspan="6">No candidates for today yet.<br><small style="color:#64748b">Run: python pipeline.py all</small></td></tr>`;
+        document.getElementById("last-updated").textContent = `No data — ${dateLabel}`;
         return;
       }
 
-      candidates.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
-      tbody.innerHTML = candidates.map(renderRow).join("");
-      attachRowEvents();
-      document.getElementById("last-updated").textContent = `Updated: ${today}`;
-      console.log("Loaded", candidates.length, "candidates");
+      renderTable();
+      console.log("Loaded", allCandidates.length, "candidates");
     } catch (err) {
       console.error("Firestore error:", err);
-      tbody.innerHTML = `<tr class="status-row"><td colspan="5">
+      tbody.innerHTML = `<tr class="status-row"><td colspan="6">
         Firebase error — check DevTools (F12).<br>
         <small style="color:#64748b">May need Firestore security rules update.</small>
       </td></tr>`;
     }
   }
 
+  function renderTable() {
+    const tbody = document.getElementById("candidates-tbody");
+    const filtered = activeMarket === "all"
+      ? allCandidates
+      : allCandidates.filter(c => (c.market ?? "USA").toUpperCase() === activeMarket.toUpperCase());
+
+    if (filtered.length === 0) {
+      const label = activeMarket === "usa" ? "USA" : "BIST";
+      tbody.innerHTML = `<tr class="status-row"><td colspan="6">No ${label} candidates today.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(renderRow).join("");
+    attachRowEvents();
+  }
+
   function scoreClass(s) { return s >= 75 ? "score-high" : s >= 65 ? "score-mid" : "score-low"; }
+
+  function formatClose(c) {
+    if (c.close == null) return "—";
+    const market = (c.market ?? "USA").toUpperCase();
+    const num = Number(c.close).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return market === "BIST" ? `₺${num}` : `$${num}`;
+  }
 
   function renderRow(c) {
     const score  = c.score ?? 0;
@@ -291,6 +364,7 @@
       <tr data-ticker="${c.ticker}">
         <td class="ticker-cell">${c.ticker}</td>
         <td><span class="market-badge ${market}">${c.market ?? "USA"}</span></td>
+        <td class="close-cell">${formatClose(c)}</td>
         <td class="score-cell ${scoreClass(score)}">${score}</td>
         <td class="why-cell">${c.why_today ?? "-"}</td>
         <td><button class="action-btn" data-ticker="${c.ticker}">+ Radar</button></td>
@@ -313,9 +387,10 @@
 
   // ── Detail panel ──────────────────────────────────────────────────────────
   function showDetail(ticker) {
-    const c = candidates.find(x => x.ticker === ticker);
+    const c = allCandidates.find(x => x.ticker === ticker);
     if (!c) return;
-    const score = c.score ?? 0;
+    const score  = c.score ?? 0;
+    const market = (c.market ?? "USA").toUpperCase();
 
     const kv = (label, val, cls = "") =>
       val != null ? `<div class="kv-item"><div class="kv-label">${label}</div><div class="kv-value ${cls}">${val}</div></div>` : "";
@@ -325,27 +400,29 @@
 
     document.getElementById("detail-panel").innerHTML = `
       <div style="margin-bottom:16px;">
-        <div class="detail-ticker">${c.ticker}</div>
+        <div class="detail-ticker">${c.ticker} <span style="font-size:13px;"><span class="market-badge ${market.toLowerCase()}">${market}</span></span></div>
+        <div class="detail-close">${formatClose(c)}</div>
         <div class="detail-score ${scoreClass(score)}">${score}<span style="font-size:14px;color:#64748b;"> / 100</span></div>
       </div>
       <div class="detail-why">${c.why_today ?? "No summary available."}</div>
       <div class="kv-grid">
-        ${kv("Support",    c.support    != null ? Number(c.support).toFixed(2)    : null, "green")}
-        ${kv("Resistance", c.resistance != null ? Number(c.resistance).toFixed(2) : null, "red")}
+        ${kv("Close",      formatClose(c))}
+        ${kv("Support",    c.support    != null ? (market === "BIST" ? "₺" : "$") + Number(c.support).toFixed(2)    : null, "green")}
+        ${kv("Resistance", c.resistance != null ? (market === "BIST" ? "₺" : "$") + Number(c.resistance).toFixed(2) : null, "red")}
         ${rrVal  ? kv("Risk / Reward", `1:${rrVal}`,  rrVal  >= 1.5 ? "green" : "yellow") : ""}
         ${volVal ? kv("Volume",        `${volVal}x`,  volVal >= 1.5 ? "green" : "yellow") : ""}
         ${kv("RSI",     c.rsi  != null ? c.rsi     : null, c.rsi >= 70 ? "yellow" : "green")}
         ${kv("Signals", c.triggers?.length ? c.triggers.length + " triggers" : null)}
       </div>
-      ${c.signals?.length ? `
-        <div class="detail-section">
-          <h3>Signals</h3>
-          <ul class="signal-list">${c.signals.map(s => `<li>${s}</li>`).join("")}</ul>
-        </div>` : ""}
       ${c.triggers?.length ? `
         <div class="detail-section">
           <h3>Triggered by</h3>
           <ul class="signal-list">${c.triggers.map(t => `<li>• ${t.replace(/_/g," ")}</li>`).join("")}</ul>
+        </div>` : ""}
+      ${c.signals?.length ? `
+        <div class="detail-section">
+          <h3>Signals</h3>
+          <ul class="signal-list">${c.signals.map(s => `<li>${s}</li>`).join("")}</ul>
         </div>` : ""}
       <button class="action-btn" style="width:100%;padding:10px;margin-top:8px;"
         onclick="window._openModal('${c.ticker}')">+ Add to Radar</button>`;

@@ -119,6 +119,7 @@ def score_all(
                 "ticker": ticker,
                 "score": score,
                 "signals": signals,
+                "close":      round(float(df["Close"].iloc[-1]), 2),
                 "support":    ind["support_resistance"]["nearest_support"] if ind else None,
                 "resistance": ind["support_resistance"]["nearest_resistance"] if ind else None,
                 "volume_ratio": round(ind["volume"]["volume_ratio"], 2) if ind else None,
