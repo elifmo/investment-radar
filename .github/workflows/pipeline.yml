@@ -2,7 +2,7 @@ name: Investment Radar Pipeline
 
 on:
   schedule:
-    - cron: "45 14 * * 1-5"   # 17:45 TR (BIST close)
+    - cron: "15 15 * * 1-5"   # 18:15 TR (BIST close 18:00 + 15 min)
     - cron: "15 20 * * 1-5"   # 23:15 TR (USA close)
   workflow_dispatch:
     inputs:
@@ -36,7 +36,7 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "market=${{ github.event.inputs.market }}" >> $GITHUB_OUTPUT
-          elif [ "${{ github.event.schedule }}" = "45 14 * * 1-5" ]; then
+          elif [ "${{ github.event.schedule }}" = "15 15 * * 1-5" ]; then
             echo "market=bist" >> $GITHUB_OUTPUT
           else
             echo "market=usa" >> $GITHUB_OUTPUT
