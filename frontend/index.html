@@ -223,11 +223,18 @@
 
   // ── Market config — add new markets here ──────────────────────────────────
   const MARKETS = [
-    { id: "bist",   label: "🇹🇷 BIST",   market: "BIST",   currency: "₺" },
-    { id: "usa",    label: "🇺🇸 USA",    market: "USA",    currency: "$" },
-    // { id: "crypto", label: "₿ Crypto",  market: "CRYPTO", currency: "$" },
-    // { id: "aex",    label: "🇳🇱 AEX",   market: "AEX",    currency: "€" },
+    { id: "bist", label: "🇹🇷 BIST", market: "BIST", currency: "₺", closeUTC: 14*60+35 }, // 17:35 TR
+    { id: "usa",  label: "🇺🇸 USA",  market: "USA",  currency: "$", closeUTC: 20*60+5  }, // 23:05 TR (EDT)
+    // { id: "crypto", label: "₿ Crypto",  market: "CRYPTO", currency: "$", closeUTC: 0 },
+    // { id: "aex",    label: "🇳🇱 AEX",   market: "AEX",    currency: "€", closeUTC: 15*60+40 },
   ];
+
+  function marketHasClosed(m) {
+    const now = new Date();
+    const day = now.getUTCDay();
+    if (day === 0 || day === 6) return false; // Weekend
+    return (now.getUTCHours() * 60 + now.getUTCMinutes()) >= m.closeUTC;
+  }
 
   // Per-market state
   const state = {};
@@ -343,7 +350,7 @@
       state[mId].date    = result.date;
       state[mId].daysAgo = result.daysAgo;
 
-      setDateLabel(mId, result);
+      setDateLabel(mId, result, mConfig);
       if (activeTab === mId) updateHeader(mId);
       renderTable(mId);
     } catch (err) {
@@ -352,12 +359,14 @@
     }
   }
 
-  function setDateLabel(mId, result) {
+  function setDateLabel(mId, result, m) {
     const el       = document.getElementById(`date-${mId}`);
     const niceDate = new Date(result.date + "T12:00:00").toLocaleDateString("en-US", {
       weekday: "short", month: "short", day: "numeric", year: "numeric"
     });
-    if (result.daysAgo === 0) {
+    if (result.daysAgo === 0 && !marketHasClosed(m)) {
+      el.innerHTML = `<span class="date-stale">⚠️ Piyasa açık — son mevcut veri</span>`;
+    } else if (result.daysAgo === 0) {
       el.innerHTML = `<span class="date-today">${niceDate} · today's close</span>`;
     } else if (result.daysAgo === 1) {
       el.innerHTML = `<span class="date-yesterday">${niceDate} · yesterday's close</span>`;
@@ -371,8 +380,12 @@
     const s = state[mId];
     if (!s.date) return;
     const niceDate = new Date(s.date + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
-    const suffix   = s.daysAgo === 0 ? "today" : s.daysAgo === 1 ? "yesterday" : `${s.daysAgo}d ago`;
-    document.getElementById("last-updated").textContent = `${m.label}: ${niceDate} close · ${suffix}`;
+    let suffix;
+    if (s.daysAgo === 0 && !marketHasClosed(m)) suffix = "piyasa açık";
+    else if (s.daysAgo === 0)                    suffix = "today";
+    else if (s.daysAgo === 1)                    suffix = "yesterday";
+    else                                          suffix = `${s.daysAgo}d ago`;
+    document.getElementById("last-updated").textContent = `${m.label}: ${niceDate} · ${suffix}`;
   }
 
   // ── Render table ──────────────────────────────────────────────────────────
