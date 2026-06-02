@@ -1,24 +1,12 @@
-name: Deploy Dashboard
-
-on:
-  push:
-    branches: [main]
-    paths:
-      - "frontend/**"
-  workflow_dispatch:
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./frontend
-          publish_branch: gh-pages
+# Dashboard deployment is handled by Netlify (connected directly to this GitHub repo).
+# Netlify auto-deploys on every push to main — no workflow needed here.
+#
+# Setup (one-time):
+#   1. netlify.com → "Add new site" → "Import an existing project" → GitHub
+#   2. Select this repo (investment-radar)
+#   3. Build settings:
+#        Base directory:    frontend
+#        Build command:     (leave empty)
+#        Publish directory: frontend
+#   4. Deploy — Netlify gives you a URL like https://investment-radar-xxx.netlify.app
+#   5. Optional: rename site in Netlify settings
