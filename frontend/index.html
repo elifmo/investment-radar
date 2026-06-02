@@ -52,6 +52,11 @@
     .date-today     { color: #4ade80; }
     .date-yesterday { color: #94a3b8; }
     .date-stale     { color: #fb923c; }
+    .market-open-tag {
+      display: inline-block; font-size: 10px; font-weight: 700;
+      background: #3b1f0a; color: #fb923c; border-radius: 4px;
+      padding: 1px 6px; margin-right: 6px; vertical-align: middle;
+    }
 
     table { width: 100%; border-collapse: collapse; }
     thead th {
@@ -223,11 +228,18 @@
 
   // ── Market config — add new markets here ──────────────────────────────────
   const MARKETS = [
-    { id: "bist", label: "🇹🇷 BIST", market: "BIST", currency: "₺" },
-    { id: "usa",  label: "🇺🇸 USA",  market: "USA",  currency: "$" },
-    // { id: "crypto", label: "₿ Crypto", market: "CRYPTO", currency: "$" },
-    // { id: "aex",    label: "🇳🇱 AEX",  market: "AEX",    currency: "€" },
+    { id: "bist", label: "🇹🇷 BIST", market: "BIST", currency: "₺", closeUTC: 14*60+35 }, // 17:35 TR
+    { id: "usa",  label: "🇺🇸 USA",  market: "USA",  currency: "$", closeUTC: 20*60+5  }, // 23:05 TR (EDT)
+    // { id: "crypto", label: "₿ Crypto", market: "CRYPTO", currency: "$", closeUTC: 0 },
+    // { id: "aex",    label: "🇳🇱 AEX",  market: "AEX",    currency: "€", closeUTC: 15*60+40 },
   ];
+
+  function marketHasClosed(m) {
+    const now = new Date();
+    const day = now.getUTCDay();
+    if (day === 0 || day === 6) return false;
+    return (now.getUTCHours() * 60 + now.getUTCMinutes()) >= m.closeUTC;
+  }
 
   // Per-market state
   const state = {};
@@ -295,7 +307,7 @@
     target.style.display = m ? "grid" : "block";
 
     if (m) {
-      if (state[tabId].loaded) updateHeader(tabId);
+      if (state[tabId].loaded) updateHeader(tabId, m);
       // data already loading or loaded — nothing extra needed
     } else if (tabId === "radar") {
       loadRadar();
@@ -307,9 +319,11 @@
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   }
 
-  async function findLatestCandidates(market) {
+  async function findLatestCandidates(market, mConfig) {
     const now = new Date();
-    for (let i = 0; i < 7; i++) {
+    // If market hasn't closed today, skip today's records entirely — show last real close
+    const startFrom = marketHasClosed(mConfig) ? 0 : 1;
+    for (let i = startFrom; i < 7; i++) {
       const d = new Date(now);
       d.setDate(d.getDate() - i);
       const dateStr = localDateStr(d);
@@ -328,7 +342,7 @@
     const mId   = mConfig.id;
     const tbody = document.getElementById(`tbody-${mId}`);
     try {
-      const result = await findLatestCandidates(mConfig.market);
+      const result = await findLatestCandidates(mConfig.market, mConfig);
 
       if (!result) {
         tbody.innerHTML = `<tr class="status-row"><td colspan="6">No data yet.<br>
@@ -343,8 +357,8 @@
       state[mId].date    = result.date;
       state[mId].daysAgo = result.daysAgo;
 
-      setDateLabel(mId, result);
-      if (activeTab === mId) updateHeader(mId);
+      setDateLabel(mId, result, mConfig);
+      if (activeTab === mId) updateHeader(mId, mConfig);
       renderTable(mId);
     } catch (err) {
       console.error(`Error loading ${mId}:`, err);
@@ -352,29 +366,30 @@
     }
   }
 
-  function setDateLabel(mId, result) {
+  function setDateLabel(mId, result, mConfig) {
     const el       = document.getElementById(`date-${mId}`);
     const niceDate = new Date(result.date + "T12:00:00").toLocaleDateString("en-US", {
       weekday: "short", month: "short", day: "numeric", year: "numeric"
     });
-    if (result.daysAgo === 0) {
-      el.innerHTML = `<span class="date-today">Close · ${niceDate}</span>`;
-    } else if (result.daysAgo === 1) {
-      el.innerHTML = `<span class="date-yesterday">Close · ${niceDate}</span>`;
-    } else {
-      el.innerHTML = `<span class="date-stale">Close · ${niceDate} · ${result.daysAgo} days ago</span>`;
-    }
+    const isOpen   = !marketHasClosed(mConfig);
+    const openTag  = isOpen ? `<span class="market-open-tag">⚠ MARKET OPEN</span>` : "";
+    const dateClass = result.daysAgo === 0 ? "date-today" : result.daysAgo === 1 ? "date-yesterday" : "date-stale";
+    const stale     = result.daysAgo >= 2 ? ` · ${result.daysAgo} days ago` : "";
+    el.innerHTML = `${openTag}<span class="${dateClass}">Report from ${niceDate}${stale}</span>`;
   }
 
-  function updateHeader(mId) {
+  function updateHeader(mId, mConfig) {
     const m = MARKETS.find(x => x.id === mId);
     const s = state[mId];
     if (!s.date) return;
     const niceDate = new Date(s.date + "T12:00:00").toLocaleDateString("en-US", {
       month: "short", day: "numeric", year: "numeric"
     });
-    const suffix = s.daysAgo >= 2 ? ` · ${s.daysAgo} days ago` : "";
-    document.getElementById("last-updated").textContent = `${m.label} · Close: ${niceDate}${suffix}`;
+    const isOpen   = !marketHasClosed(mConfig);
+    const openPart = isOpen ? " · ⚠ Open" : "";
+    const stalePart = s.daysAgo >= 2 ? ` · ${s.daysAgo}d ago` : "";
+    document.getElementById("last-updated").textContent =
+      `${m.label}${openPart} · Close: ${niceDate}${stalePart}`;
   }
 
   // ── Render table ──────────────────────────────────────────────────────────
