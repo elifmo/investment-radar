@@ -94,6 +94,16 @@
 
     .close-cell { font-size: 13px; color: #cbd5e1; font-weight: 500; white-space: nowrap; }
 
+    .streak-badge {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-size: 11px; font-weight: 700; padding: 2px 7px;
+      border-radius: 20px; white-space: nowrap;
+    }
+    .streak-1 { background: #1e2130; color: #64748b; }
+    .streak-2 { background: #1e3b2b; color: #4ade80; }
+    .streak-3 { background: #2d3a1a; color: #a3e635; }
+    .streak-hot { background: #3b1f0a; color: #fb923c; }
+
     .score-cell { font-weight: 700; font-size: 15px; }
     .score-high { color: #4ade80; }
     .score-mid  { color: #facc15; }
@@ -209,7 +219,7 @@
     <table>
       <thead>
         <tr>
-          <th>Ticker</th><th>Market</th><th>Close</th><th>Score</th><th>Why Today</th><th>Action</th>
+          <th>Ticker</th><th>Market</th><th>Close</th><th>Score</th><th>Streak</th><th>Why Today</th><th>Action</th>
         </tr>
       </thead>
       <tbody id="candidates-tbody">
@@ -316,7 +326,7 @@
       allCandidates.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
 
       if (allCandidates.length === 0) {
-        tbody.innerHTML = `<tr class="status-row"><td colspan="6">No candidates for today yet.<br><small style="color:#64748b">Run: python pipeline.py all</small></td></tr>`;
+        tbody.innerHTML = `<tr class="status-row"><td colspan="7">No candidates for today yet.<br><small style="color:#64748b">Run: python pipeline.py all</small></td></tr>`;
         document.getElementById("last-updated").textContent = `No data — ${dateLabel}`;
         return;
       }
@@ -340,7 +350,7 @@
 
     if (filtered.length === 0) {
       const label = activeMarket === "usa" ? "USA" : "BIST";
-      tbody.innerHTML = `<tr class="status-row"><td colspan="6">No ${label} candidates today.</td></tr>`;
+      tbody.innerHTML = `<tr class="status-row"><td colspan="7">No ${label} candidates today.</td></tr>`;
       return;
     }
 
@@ -349,6 +359,14 @@
   }
 
   function scoreClass(s) { return s >= 75 ? "score-high" : s >= 65 ? "score-mid" : "score-low"; }
+
+  function streakBadge(streak) {
+    if (!streak || streak < 1) return `<span class="streak-badge streak-1">1d</span>`;
+    if (streak >= 5) return `<span class="streak-badge streak-hot">🔥${streak}d</span>`;
+    if (streak >= 3) return `<span class="streak-badge streak-3">▲${streak}d</span>`;
+    if (streak >= 2) return `<span class="streak-badge streak-2">▲${streak}d</span>`;
+    return `<span class="streak-badge streak-1">1d</span>`;
+  }
 
   function formatClose(c) {
     if (c.close == null) return "—";
@@ -366,6 +384,7 @@
         <td><span class="market-badge ${market}">${c.market ?? "USA"}</span></td>
         <td class="close-cell">${formatClose(c)}</td>
         <td class="score-cell ${scoreClass(score)}">${score}</td>
+        <td>${streakBadge(c.streak)}</td>
         <td class="why-cell">${c.why_today ?? "-"}</td>
         <td><button class="action-btn" data-ticker="${c.ticker}">+ Radar</button></td>
       </tr>`;
@@ -400,7 +419,7 @@
 
     document.getElementById("detail-panel").innerHTML = `
       <div style="margin-bottom:16px;">
-        <div class="detail-ticker">${c.ticker} <span style="font-size:13px;"><span class="market-badge ${market.toLowerCase()}">${market}</span></span></div>
+        <div class="detail-ticker">${c.ticker} <span style="font-size:13px;"><span class="market-badge ${market.toLowerCase()}">${market}</span></span> ${streakBadge(c.streak)}</div>
         <div class="detail-close">${formatClose(c)}</div>
         <div class="detail-score ${scoreClass(score)}">${score}<span style="font-size:14px;color:#64748b;"> / 100</span></div>
       </div>
