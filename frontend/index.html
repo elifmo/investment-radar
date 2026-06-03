@@ -228,17 +228,25 @@
 
   // ── Market config — add new markets here ──────────────────────────────────
   const MARKETS = [
-    { id: "bist", label: "🇹🇷 BIST", market: "BIST", currency: "₺", closeUTC: 15*60+5  }, // 18:05 TR
-    { id: "usa",  label: "🇺🇸 USA",  market: "USA",  currency: "$", closeUTC: 20*60+5  }, // 23:05 TR (EDT)
-    // { id: "crypto", label: "₿ Crypto", market: "CRYPTO", currency: "$", closeUTC: 0 },
-    // { id: "aex",    label: "🇳🇱 AEX",  market: "AEX",    currency: "€", closeUTC: 15*60+40 },
+    { id: "bist", label: "🇹🇷 BIST", market: "BIST", currency: "₺", openUTC: 7*60+0,   closeUTC: 15*60+5  }, // 10:00-18:05 TR
+    { id: "usa",  label: "🇺🇸 USA",  market: "USA",  currency: "$", openUTC: 13*60+30, closeUTC: 20*60+5  }, // 09:30-16:05 ET (EDT)
+    // { id: "crypto", label: "₿ Crypto", market: "CRYPTO", currency: "$", openUTC: 0, closeUTC: 0 },
+    // { id: "aex",    label: "🇳🇱 AEX",  market: "AEX",    currency: "€", openUTC: 8*60+0, closeUTC: 15*60+40 },
   ];
 
   function marketHasClosed(m) {
     const now = new Date();
     const day = now.getUTCDay();
-    if (day === 0 || day === 6) return false;
+    if (day === 0 || day === 6) return true;
     return (now.getUTCHours() * 60 + now.getUTCMinutes()) >= m.closeUTC;
+  }
+
+  function isMarketOpen(m) {
+    const now = new Date();
+    const day = now.getUTCDay();
+    if (day === 0 || day === 6) return false;
+    const mins = now.getUTCHours() * 60 + now.getUTCMinutes();
+    return mins >= m.openUTC && mins < m.closeUTC;
   }
 
   // Per-market state
@@ -371,7 +379,7 @@
     const niceDate = new Date(result.date + "T12:00:00").toLocaleDateString("en-US", {
       weekday: "short", month: "short", day: "numeric", year: "numeric"
     });
-    const isOpen   = !marketHasClosed(mConfig);
+    const isOpen   = isMarketOpen(mConfig);
     const openTag  = isOpen ? `<span class="market-open-tag">⚠ MARKET OPEN</span>` : "";
     const dateClass = result.daysAgo === 0 ? "date-today" : result.daysAgo === 1 ? "date-yesterday" : "date-stale";
     const stale     = result.daysAgo >= 2 ? ` · ${result.daysAgo} days ago` : "";
@@ -385,7 +393,7 @@
     const niceDate = new Date(s.date + "T12:00:00").toLocaleDateString("en-US", {
       month: "short", day: "numeric", year: "numeric"
     });
-    const isOpen   = !marketHasClosed(mConfig);
+    const isOpen   = isMarketOpen(mConfig);
     const openPart = isOpen ? " · ⚠ Open" : "";
     const stalePart = s.daysAgo >= 2 ? ` · ${s.daysAgo}d ago` : "";
     document.getElementById("last-updated").textContent =
