@@ -1,5 +1,19 @@
 usa:
   # S&P 500 + Nasdaq 100 — 150 major tickers
+  # AI Infrastructure & Networking
+  - ARM
+  - MRVL
+  - SMCI
+  - TSM
+  - MPWR
+  - ON
+  - WDC
+  - STX
+  - ANET
+  - CSCO
+  - DELL
+  - DLR
+  - PLTR
   # Tech
   - AAPL
   - MSFT
@@ -121,7 +135,7 @@ usa:
   - MSI
   - ROP
   - TT
-  # Energy
+  # Energy & Nuclear (AI data center power)
   - XOM
   - CVX
   - SLB
@@ -129,6 +143,11 @@ usa:
   - VLO
   - OKE
   - FCX
+  - CEG
+  - VST
+  - CCJ
+  - OKLO
+  - LEU
   # Real Estate & Utilities
   - NEE
   - DUK
