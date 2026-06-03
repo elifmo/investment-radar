@@ -1,5 +1,11 @@
 usa:
   # S&P 500 + Nasdaq 100 — 150 major tickers
+  # Popular & Fintech
+  - COIN
+  - HOOD
+  - CRWD
+  - SNOW
+  - DDOG
   # AI Infrastructure & Networking
   - ARM
   - MRVL
@@ -251,3 +257,29 @@ bist:
   - TMSN.IS
   - VESBE.IS
   - YATAS.IS
+  # BIST 100 ek bileşenler (Ağu 2025 bilgisine göre — resmi liste: borsaistanbul.com)
+  - KOZAL.IS
+  - KOZAA.IS
+  - MPARK.IS
+  - TURSG.IS
+  - AKSA.IS
+  - AGHOL.IS
+  - KONTR.IS
+  - PENTA.IS
+  - AYDEM.IS
+  - ALKIM.IS
+  - QUAGR.IS
+  - REEDR.IS
+  - SMRTG.IS
+  - NETAS.IS
+  - LIDER.IS
+  - ULUFA.IS
+  - BAGFS.IS
+  - BUCIM.IS
+  - IPEKE.IS
+  - EGEEN.IS
+  - RAYSG.IS
+  - GLYHO.IS
+  - JANTS.IS
+  - CEMTS.IS
+  - EUPWR.IS
