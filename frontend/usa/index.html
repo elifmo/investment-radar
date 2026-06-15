@@ -445,16 +445,27 @@
   async function findLatestCandidates() {
     const now = new Date();
     const startFrom = marketHasClosed() ? 0 : 1;
-    for (let i = startFrom; i < 7; i++) {
-      const d = new Date(now);
-      d.setDate(d.getDate() - i);
-      const dateStr = localDateStr(d);
-      const snap = await getDocs(query(
-        collection(db, "daily_candidates"),
-        where("market", "==", "USA"),
-        where("date",   "==", dateStr)
-      ));
-      if (!snap.empty) return { docs: snap.docs, date: dateStr, daysAgo: i };
+
+    // Fetch all USA candidates, filter client-side to avoid composite index issues
+    const snap = await getDocs(query(
+      collection(db, "daily_candidates"),
+      where("market", "==", "USA")
+    ));
+    if (snap.empty) return null;
+
+    const byDate = {};
+    snap.docs.forEach(d => {
+      const dt = d.data().date;
+      if (!byDate[dt]) byDate[dt] = [];
+      byDate[dt].push(d);
+    });
+
+    const sortedDates = Object.keys(byDate).sort().reverse();
+    for (const dateStr of sortedDates) {
+      const d = new Date(dateStr + "T12:00:00");
+      const daysAgo = Math.round((now - d) / (1000 * 60 * 60 * 24));
+      if (daysAgo < startFrom) continue;
+      return { docs: byDate[dateStr], date: dateStr, daysAgo };
     }
     return null;
   }
