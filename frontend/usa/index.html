@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Investment Radar — US Markets</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0f1117; color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px; min-height: 100vh;
+    }
+
+    header {
+      background: #1a1d27; border-bottom: 1px solid #2d3148;
+      padding: 14px 24px; display: flex; align-items: center; justify-content: space-between;
+    }
+    header h1 { font-size: 18px; font-weight: 700; color: #fff; }
+    header h1 span { color: #6366f1; }
+    #last-updated { color: #64748b; font-size: 12px; }
+
+    .tabs {
+      background: #1a1d27; border-bottom: 1px solid #2d3148;
+      display: flex; padding: 0 24px;
+    }
+    .tab-btn {
+      background: none; border: none; color: #94a3b8; cursor: pointer;
+      font-size: 13px; font-weight: 500; padding: 12px 20px;
+      border-bottom: 2px solid transparent; transition: all 0.15s;
+    }
+    .tab-btn:hover { color: #e2e8f0; }
+    .tab-btn.active { color: #6366f1; border-bottom-color: #6366f1; }
+
+    .layout {
+      display: grid; grid-template-columns: 1fr 380px;
+      height: calc(100vh - 97px); overflow: hidden;
+    }
+    .panel-left {
+      overflow-y: auto; padding: 20px 16px 20px 24px;
+      border-right: 1px solid #2d3148;
+    }
+    .panel-header {
+      display: flex; align-items: baseline; justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .panel-title { font-size: 13px; font-weight: 700; color: #e2e8f0; }
+    .panel-date  { font-size: 12px; }
+    .date-today     { color: #4ade80; }
+    .date-yesterday { color: #94a3b8; }
+    .date-stale     { color: #fb923c; }
+    .market-open-tag {
+      display: inline-block; font-size: 10px; font-weight: 700;
+      background: #3b1f0a; color: #fb923c; border-radius: 4px;
+      padding: 1px 6px; margin-right: 6px; vertical-align: middle;
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      text-align: left; padding: 8px 10px; font-size: 11px; font-weight: 600;
+      color: #64748b; text-transform: uppercase; letter-spacing: 0.06em;
+      border-bottom: 1px solid #2d3148; white-space: nowrap;
+    }
+    tbody tr { cursor: pointer; border-bottom: 1px solid #1e2130; transition: background 0.1s; }
+    tbody tr:hover  { background: #1e2130; }
+    tbody tr.selected { background: #1e2338; }
+    tbody td { padding: 10px; vertical-align: middle; }
+
+    .ticker-cell { font-weight: 700; color: #fff; font-size: 14px; }
+    .close-cell  { font-size: 13px; color: #cbd5e1; font-weight: 500; white-space: nowrap; }
+    .score-cell  { font-weight: 700; font-size: 15px; }
+    .score-high  { color: #4ade80; }
+    .score-mid   { color: #facc15; }
+    .score-low   { color: #f87171; }
+    .why-cell    { color: #94a3b8; max-width: 210px; font-size: 12px; line-height: 1.4; }
+
+    .streak-badge {
+      display: inline-flex; align-items: center; gap: 2px;
+      font-size: 11px; font-weight: 700; padding: 2px 7px;
+      border-radius: 20px; white-space: nowrap;
+    }
+    .streak-1   { background: #1e2130; color: #64748b; }
+    .streak-2   { background: #1e3b2b; color: #4ade80; }
+    .streak-3   { background: #2d3a1a; color: #a3e635; }
+    .streak-hot { background: #3b1f0a; color: #fb923c; }
+
+    .action-btn {
+      background: #6366f1; border: none; border-radius: 5px;
+      color: #fff; cursor: pointer; font-size: 11px; font-weight: 600;
+      padding: 5px 10px; white-space: nowrap; transition: background 0.15s;
+    }
+    .action-btn:hover { background: #4f46e5; }
+
+    .panel-right { overflow-y: auto; padding: 20px; background: #131520; }
+    .detail-empty {
+      display: flex; align-items: center; justify-content: center;
+      height: 100%; color: #4b5563; font-size: 13px; text-align: center; line-height: 1.8;
+    }
+    .detail-ticker { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+    .detail-close  { font-size: 16px; color: #94a3b8; margin-bottom: 4px; }
+    .detail-score  { display: inline-block; font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+    .detail-why {
+      color: #94a3b8; font-size: 13px; line-height: 1.6; margin-bottom: 16px;
+      background: #1a1d27; border-radius: 8px; padding: 12px;
+      border-left: 3px solid #6366f1;
+    }
+    .detail-section { margin-bottom: 16px; }
+    .detail-section h3 {
+      font-size: 11px; font-weight: 600; color: #64748b;
+      text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;
+    }
+    .signal-list { list-style: none; }
+    .signal-list li { font-size: 12px; padding: 4px 0; line-height: 1.5; color: #cbd5e1; }
+
+    .kv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+    .kv-item { background: #1a1d27; border-radius: 6px; padding: 10px 12px; }
+    .kv-label { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; }
+    .kv-value { font-size: 15px; font-weight: 700; color: #fff; margin-top: 2px; }
+    .kv-value.green  { color: #4ade80; }
+    .kv-value.red    { color: #f87171; }
+    .kv-value.yellow { color: #facc15; }
+
+    .status-row { text-align: center; padding: 40px; color: #4b5563; font-size: 13px; }
+
+    .radar-card {
+      background: #1a1d27; border: 1px solid #2d3148; border-radius: 8px;
+      padding: 14px; margin-bottom: 10px;
+    }
+    .radar-card-ticker { font-weight: 700; font-size: 16px; margin-bottom: 6px; }
+    .radar-card-meta   { color: #94a3b8; font-size: 12px; margin-bottom: 4px; }
+
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7); z-index: 100;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #1a1d27; border: 1px solid #2d3148; border-radius: 12px;
+      padding: 24px; width: 420px; max-width: 90vw;
+    }
+    .modal h2 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+    .modal label {
+      display: block; font-size: 11px; color: #64748b;
+      text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;
+    }
+    .modal textarea {
+      width: 100%; background: #0f1117; border: 1px solid #2d3148;
+      border-radius: 6px; color: #e2e8f0; font-size: 13px;
+      padding: 10px; resize: vertical; margin-bottom: 14px;
+      min-height: 70px; font-family: inherit;
+    }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .btn-cancel {
+      background: #2d3148; border: none; border-radius: 6px;
+      color: #94a3b8; cursor: pointer; font-size: 13px; padding: 8px 16px;
+    }
+    .btn-save {
+      background: #6366f1; border: none; border-radius: 6px;
+      color: #fff; cursor: pointer; font-size: 13px; font-weight: 600; padding: 8px 16px;
+    }
+
+    .regime-strip {
+      display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+      padding: 9px 12px; border-radius: 8px; margin-bottom: 14px; font-size: 12px;
+    }
+    .regime-strip.risk-on  { background: #0d2b1a; border: 1px solid #14532d; }
+    .regime-strip.risk-off { background: #2b0d0d; border: 1px solid #7f1d1d; }
+    .regime-strip.neutral  { background: #1a1d27; border: 1px solid #2d3148; }
+    .regime-label { font-size: 12px; font-weight: 800; letter-spacing: 0.05em; }
+    .risk-on  .regime-label { color: #4ade80; }
+    .risk-off .regime-label { color: #f87171; }
+    .neutral  .regime-label { color: #94a3b8; }
+    .regime-meta { font-size: 11px; color: #64748b; }
+
+    .badge-row { display: flex; align-items: center; gap: 7px; margin-bottom: 10px; flex-wrap: wrap; }
+    .badge {
+      display: inline-block; font-size: 11px; font-weight: 700;
+      padding: 3px 9px; border-radius: 20px;
+    }
+    .badge-green  { background: #14532d; color: #4ade80; }
+    .badge-amber  { background: #451a03; color: #fb923c; }
+    .badge-red    { background: #450a0a; color: #f87171; }
+    .badge-purple { background: #2e1065; color: #a78bfa; }
+    .badge-blue   { background: #0c1a3b; color: #60a5fa; }
+    .badge-gray   { background: #1e2130; color: #64748b; }
+
+    .rs-bars { margin-bottom: 16px; }
+    .rs-bars h3 {
+      font-size: 11px; font-weight: 600; color: #64748b;
+      text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px;
+    }
+    .rs-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+    .rs-bar-label { font-size: 11px; color: #94a3b8; width: 40px; text-align: right; flex-shrink: 0; }
+    .rs-bar-track {
+      flex: 1; height: 8px; background: #1e2130; border-radius: 4px;
+      position: relative; overflow: hidden;
+    }
+    .rs-bar-fill { position: absolute; top: 0; height: 100%; border-radius: 4px; max-width: 50%; }
+    .rs-bar-fill.pos { background: #4ade80; left: 50%; }
+    .rs-bar-fill.neg { background: #f87171; right: 50%; }
+    .rs-bar-mid { position: absolute; left: 50%; top: 0; width: 1px; height: 100%; background: #2d3148; }
+    .rs-bar-val { font-size: 11px; font-weight: 700; min-width: 50px; }
+    .rs-bar-val.pos { color: #4ade80; }
+    .rs-bar-val.neg { color: #f87171; }
+
+    .decision-banner { border-radius: 8px; padding: 14px; margin-top: 12px; }
+    .decision-banner.buy   { background: #0d2b1a; border: 1px solid #14532d; }
+    .decision-banner.watch { background: #2b1a03; border: 1px solid #7c2d12; }
+    .decision-banner.small { background: #0c1a3b; border: 1px solid #1e3a8a; }
+    .decision-banner-title { font-size: 13px; font-weight: 800; margin-bottom: 5px; }
+    .buy   .decision-banner-title { color: #4ade80; }
+    .watch .decision-banner-title { color: #fb923c; }
+    .small .decision-banner-title { color: #60a5fa; }
+    .decision-banner-reason { font-size: 12px; color: #94a3b8; margin-bottom: 8px; line-height: 1.5; }
+    .decision-banner-size   { font-size: 11px; color: #64748b; margin-bottom: 10px; }
+    .banner-btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-primary {
+      background: #6366f1; border: none; border-radius: 6px;
+      color: #fff; cursor: pointer; font-size: 12px; font-weight: 600;
+      padding: 7px 14px; transition: background 0.15s;
+    }
+    .btn-primary:hover { background: #4f46e5; }
+    .btn-secondary {
+      background: #1e2130; border: 1px solid #2d3148; border-radius: 6px;
+      color: #94a3b8; cursor: pointer; font-size: 12px;
+      padding: 7px 14px; transition: background 0.15s;
+    }
+    .btn-secondary:hover { background: #2d3148; color: #e2e8f0; }
+
+    #tab-opportunities {
+      padding: 24px; overflow-y: auto; height: calc(100vh - 97px);
+    }
+    .opp-header {
+      font-size: 13px; font-weight: 700; color: #e2e8f0;
+      text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 20px;
+    }
+    .opp-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 20px;
+    }
+    .opp-section {
+      background: #1a1d27; border: 1px solid #2d3148;
+      border-radius: 10px; padding: 18px;
+    }
+    .opp-section-title {
+      font-size: 13px; font-weight: 700; color: #fff;
+      margin-bottom: 4px; display: flex; align-items: center; gap: 8px;
+    }
+    .opp-section-desc { font-size: 12px; color: #64748b; margin-bottom: 14px; line-height: 1.5; }
+    .opp-card {
+      background: #131520; border: 1px solid #2d3148; border-radius: 8px;
+      padding: 12px; margin-bottom: 8px; cursor: default;
+    }
+    .opp-card:last-child { margin-bottom: 0; }
+    .opp-card-top { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 3px; }
+    .opp-card-ticker { font-weight: 700; color: #fff; font-size: 15px; }
+    .opp-card-rs     { font-size: 11px; font-weight: 700; }
+    .opp-card-sector { font-size: 11px; color: #6366f1; margin-bottom: 5px; }
+    .opp-card-reason { font-size: 12px; color: #94a3b8; line-height: 1.4; }
+    .opp-empty { color: #4b5563; font-size: 12px; text-align: center; padding: 20px 0; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Investment <span>Radar</span> <span style="font-size:13px;color:#64748b;font-weight:400;">🇺🇸 US Markets</span></h1>
+  <span id="last-updated">Loading...</span>
+</header>
+
+<div class="tabs" id="tabs-bar">
+  <button class="tab-btn active" data-tab="usa">Candidates</button>
+  <button class="tab-btn" data-tab="opportunities">Opportunities</button>
+  <button class="tab-btn" data-tab="radar">My Radar</button>
+  <button class="tab-btn" data-tab="stats">Statistics</button>
+</div>
+
+<div id="tab-usa" class="layout tab-content">
+  <div class="panel-left">
+    <div class="panel-header">
+      <span class="panel-title">🇺🇸 USA</span>
+      <span class="panel-date" id="date-usa">Loading...</span>
+    </div>
+    <div id="regime-usa" style="display:none;"></div>
+    <table>
+      <thead>
+        <tr>
+          <th>Ticker</th><th>Close</th><th>Score</th><th>Streak</th><th>Why Today</th><th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-usa">
+        <tr class="status-row"><td colspan="6">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="panel-right" id="detail-usa">
+    <div class="detail-empty">← Select a stock<br>to see details</div>
+  </div>
+</div>
+
+<div id="tab-opportunities" class="tab-content" style="display:none;">
+  <div class="opp-header">Market Opportunities</div>
+  <div class="opp-grid" id="opp-grid">
+    <div style="color:#64748b;font-size:13px;">Loading...</div>
+  </div>
+</div>
+
+<div id="tab-radar" class="tab-content" style="display:none; padding:24px;">
+  <div style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:16px;">My Radar</div>
+  <div id="radar-list" style="color:#64748b;">Loading...</div>
+</div>
+
+<div id="tab-stats" class="tab-content" style="display:none; padding:24px;">
+  <div style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:16px;">Statistics</div>
+  <div style="color:#64748b;">Coming soon — Phase 3</div>
+</div>
+
+<div class="modal-overlay" id="radar-modal">
+  <div class="modal">
+    <h2>+ Add to Radar</h2>
+    <input type="hidden" id="modal-ticker" />
+    <label>Thesis — Why do you like this?</label>
+    <textarea id="modal-thesis" placeholder="e.g. EMA breakout confirmed, volume 2x..."></textarea>
+    <label>Exit Condition — When will you close?</label>
+    <textarea id="modal-exit" placeholder="e.g. If price closes below support..."></textarea>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="modal-cancel">Cancel</button>
+      <button class="btn-save"   id="modal-save">Save to Radar</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import {
+    getFirestore, collection, getDocs, getDoc, doc, addDoc, query, where, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey:            "AIzaSyBIG3tZFNq_cSAWmEHx2nWsQOKBpD-YE-g",
+    authDomain:        "investment-radar-2c19d.firebaseapp.com",
+    projectId:         "investment-radar-2c19d",
+    storageBucket:     "investment-radar-2c19d.firebasestorage.app",
+    messagingSenderId: "751620919009",
+    appId:             "1:751620919009:web:2ddb9840e1ddb641d8b1a0",
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+  const USER_ID = 1;
+  const RS_THRESHOLD = 70;
+
+  const MARKET = { id: "usa", label: "🇺🇸 USA", market: "USA", currency: "$", openUTC: 13*60+30, closeUTC: 20*60+5 };
+
+  function marketHasClosed() {
+    const now = new Date();
+    const day = now.getUTCDay();
+    if (day === 0 || day === 6) return true;
+    return (now.getUTCHours() * 60 + now.getUTCMinutes()) >= MARKET.closeUTC;
+  }
+
+  function isMarketOpen() {
+    const now = new Date();
+    const day = now.getUTCDay();
+    if (day === 0 || day === 6) return false;
+    const mins = now.getUTCHours() * 60 + now.getUTCMinutes();
+    return mins >= MARKET.openUTC && mins < MARKET.closeUTC;
+  }
+
+  let macroData = null;
+  let sectorData = {};
+  let sectorHistData = {};
+  let oppRendered = false;
+  let candidates = [];
+  let dataLoaded = false;
+  let dataDate = null;
+  let dataDaysAgo = null;
+
+  async function loadMacroAndSector() {
+    try {
+      const snap = await getDoc(doc(db, "macro_regime", "current"));
+      if (snap.exists()) macroData = snap.data();
+    } catch (e) { console.warn("Macro load failed:", e); }
+
+    try {
+      const snap = await getDocs(collection(db, "sector_status"));
+      snap.docs.forEach(d => { const data = d.data(); if (data.etf) sectorData[data.etf] = data; });
+    } catch (e) { console.warn("Sector status load failed:", e); }
+
+    if (dataLoaded) renderRegimeStrip();
+  }
+
+  async function loadSectorHistory() {
+    const twoWeeksAgo = new Date();
+    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+    const weekKey = pythonWeekKey(twoWeeksAgo);
+    const prevWeekKey = pythonWeekKey(new Date(twoWeeksAgo.getTime() - 7 * 86400000));
+    try {
+      const snap = await getDocs(collection(db, "sector_status_history"));
+      snap.docs.forEach(d => {
+        const data = d.data();
+        if ((data.week === weekKey || data.week === prevWeekKey) && data.etf && !sectorHistData[data.etf])
+          sectorHistData[data.etf] = data;
+      });
+    } catch (e) { console.warn("Sector history load failed:", e); }
+  }
+
+  function pythonWeekKey(d) {
+    const year = d.getFullYear();
+    const jan1 = new Date(year, 0, 1);
+    const jan1Dow = jan1.getDay();
+    const jan1Offset = jan1Dow === 0 ? 6 : jan1Dow - 1;
+    const dayOfYear = Math.round((new Date(year, d.getMonth(), d.getDate()) - jan1) / 86400000);
+    const weekNum = Math.floor((dayOfYear + jan1Offset) / 7);
+    return `${year}-W${String(weekNum).padStart(2, "0")}`;
+  }
+
+  // ── Tab switching ─────────────────────────────────────────────────────────
+  let activeTab = "usa";
+
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      switchTab(btn.dataset.tab);
+    });
+  });
+
+  function switchTab(tabId) {
+    document.querySelectorAll(".tab-content").forEach(el => el.style.display = "none");
+    activeTab = tabId;
+    const target = document.getElementById(`tab-${tabId}`);
+    if (!target) return;
+    target.style.display = tabId === "usa" ? "grid" : "block";
+    if (tabId === "radar") loadRadar();
+    else if (tabId === "opportunities") renderOpportunities();
+  }
+
+  // ── Firestore helpers ─────────────────────────────────────────────────────
+  function localDateStr(d) {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  }
+
+  async function findLatestCandidates() {
+    const now = new Date();
+    const startFrom = marketHasClosed() ? 0 : 1;
+    for (let i = startFrom; i < 7; i++) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const dateStr = localDateStr(d);
+      const snap = await getDocs(query(
+        collection(db, "daily_candidates"),
+        where("market", "==", "USA"),
+        where("date",   "==", dateStr)
+      ));
+      if (!snap.empty) return { docs: snap.docs, date: dateStr, daysAgo: i };
+    }
+    return null;
+  }
+
+  // ── Load candidates ───────────────────────────────────────────────────────
+  async function loadUSA() {
+    const tbody = document.getElementById("tbody-usa");
+    try {
+      const result = await findLatestCandidates();
+      if (!result) {
+        tbody.innerHTML = `<tr class="status-row"><td colspan="6">No data yet.<br>
+          <small style="color:#64748b">Run: python pipeline.py usa</small></td></tr>`;
+        document.getElementById("date-usa").textContent = "No data";
+        return;
+      }
+
+      candidates = result.docs.map(d => ({ id: d.id, ...d.data() }));
+      candidates.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+      dataLoaded  = true;
+      dataDate    = result.date;
+      dataDaysAgo = result.daysAgo;
+
+      setDateLabel(result);
+      updateHeader();
+      renderTable();
+      renderRegimeStrip();
+    } catch (err) {
+      console.error("Error loading USA:", err);
+      tbody.innerHTML = `<tr class="status-row"><td colspan="6">Firebase error — check DevTools (F12).</td></tr>`;
+    }
+  }
+
+  function setDateLabel(result) {
+    const el = document.getElementById("date-usa");
+    const niceDate = new Date(result.date + "T12:00:00").toLocaleDateString("en-US", {
+      weekday: "short", month: "short", day: "numeric", year: "numeric"
+    });
+    const openTag  = isMarketOpen() ? `<span class="market-open-tag">⚠ MARKET OPEN</span>` : "";
+    const dateClass = result.daysAgo === 0 ? "date-today" : result.daysAgo === 1 ? "date-yesterday" : "date-stale";
+    const stale     = result.daysAgo >= 2 ? ` · ${result.daysAgo} days ago` : "";
+    el.innerHTML = `${openTag}<span class="${dateClass}">Report from ${niceDate}${stale}</span>`;
+  }
+
+  function updateHeader() {
+    if (!dataDate) return;
+    const niceDate = new Date(dataDate + "T12:00:00").toLocaleDateString("en-US", {
+      month: "short", day: "numeric", year: "numeric"
+    });
+    const openPart  = isMarketOpen() ? " · ⚠ Open" : "";
+    const stalePart = dataDaysAgo >= 2 ? ` · ${dataDaysAgo}d ago` : "";
+    document.getElementById("last-updated").textContent =
+      `🇺🇸 USA${openPart} · Close: ${niceDate}${stalePart}`;
+  }
+
+  // ── Macro regime strip ────────────────────────────────────────────────────
+  function renderRegimeStrip() {
+    const el = document.getElementById("regime-usa");
+    if (!el || !macroData) { if (el) el.style.display = "none"; return; }
+    const r      = macroData.regime || "NEUTRAL";
+    const tnx    = macroData.tnx_trend_20d ?? 0;
+    const dxy    = macroData.dxy_trend_20d ?? 0;
+    const cls    = r === "RISK_ON" ? "risk-on" : r === "RISK_OFF" ? "risk-off" : "neutral";
+    const label  = r === "RISK_ON" ? "RISK ON" : r === "RISK_OFF" ? "RISK OFF" : "NEUTRAL";
+    el.innerHTML = `
+      <div class="regime-strip ${cls}">
+        <span class="regime-label">${label}</span>
+        <span class="regime-meta">10Y Yield 20d: ${(tnx >= 0 ? "+" : "") + tnx.toFixed(2)}</span>
+        <span class="regime-meta">DXY 20d: ${(dxy >= 0 ? "+" : "") + dxy.toFixed(2)}</span>
+      </div>`;
+    el.style.display = "block";
+  }
+
+  // ── Table ─────────────────────────────────────────────────────────────────
+  function renderTable() {
+    const tbody = document.getElementById("tbody-usa");
+    let visible = candidates;
+    const hasDecisions = candidates.some(c => c.decision);
+    if (hasDecisions) visible = candidates.filter(c => c.decision !== "SKIP");
+    if (visible.length === 0) {
+      tbody.innerHTML = `<tr class="status-row"><td colspan="6">No candidates found.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = visible.map(c => renderRow(c)).join("");
+    attachRowEvents();
+  }
+
+  function scoreClass(s) { return s >= 75 ? "score-high" : s >= 65 ? "score-mid" : "score-low"; }
+
+  function streakBadge(streak) {
+    if (!streak || streak < 2) return `<span class="streak-badge streak-1">1d</span>`;
+    if (streak >= 5)           return `<span class="streak-badge streak-hot">🔥${streak}d</span>`;
+    if (streak >= 3)           return `<span class="streak-badge streak-3">▲${streak}d</span>`;
+    return                            `<span class="streak-badge streak-2">▲${streak}d</span>`;
+  }
+
+  function fmtClose(c) {
+    if (c.close == null) return "—";
+    return "$" + Number(c.close).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function renderRow(c) {
+    const score = c.score ?? 0;
+    return `
+      <tr data-ticker="${c.ticker}">
+        <td class="ticker-cell">${c.ticker}</td>
+        <td class="close-cell">${fmtClose(c)}</td>
+        <td class="score-cell ${scoreClass(score)}">${score}</td>
+        <td>${streakBadge(c.streak)}</td>
+        <td class="why-cell">${c.why_today ?? "-"}</td>
+        <td><button class="action-btn" data-ticker="${c.ticker}">+ Radar</button></td>
+      </tr>`;
+  }
+
+  function attachRowEvents() {
+    document.querySelectorAll("#tbody-usa tr[data-ticker]").forEach(row => {
+      row.addEventListener("click", e => {
+        if (e.target.classList.contains("action-btn")) return;
+        document.querySelectorAll("#tbody-usa tr").forEach(r => r.classList.remove("selected"));
+        row.classList.add("selected");
+        showDetail(row.dataset.ticker);
+      });
+    });
+    document.querySelectorAll("#tbody-usa .action-btn").forEach(btn => {
+      btn.addEventListener("click", () => openModal(btn.dataset.ticker));
+    });
+  }
+
+  // ── Detail panel ──────────────────────────────────────────────────────────
+  function rsBar(label, value) {
+    if (value == null) return "";
+    const pct = Math.min(Math.abs(value) * 100, 50);
+    const isPos = value >= 0;
+    const cls = isPos ? "pos" : "neg";
+    return `
+      <div class="rs-bar-row">
+        <span class="rs-bar-label">${label}</span>
+        <div class="rs-bar-track">
+          <div class="rs-bar-mid"></div>
+          <div class="rs-bar-fill ${cls}" style="width:${pct}%;"></div>
+        </div>
+        <span class="rs-bar-val ${cls}">${isPos ? "+" : ""}${(value * 100).toFixed(1)}%</span>
+      </div>`;
+  }
+
+  function gradeBadge(grade) {
+    if (!grade) return "";
+    const cls = grade === "A" || grade === "B" ? "badge-green" : grade === "C" ? "badge-amber" : "badge-red";
+    return `<span class="badge ${cls}">Grade ${grade}</span>`;
+  }
+
+  function rsBadge(rs) {
+    if (rs == null) return "";
+    return `<span class="badge ${rs >= RS_THRESHOLD ? "badge-green" : "badge-amber"}">RS ${rs}</span>`;
+  }
+
+  function sectorBadge(status) {
+    if (!status) return "";
+    const cls = status === "LEADING" ? "badge-green" : status === "IMPROVING" ? "badge-blue"
+              : status === "WEAKENING" ? "badge-amber" : "badge-gray";
+    return `<span class="badge ${cls}">${status}</span>`;
+  }
+
+  function decisionBanner(c) {
+    const d = c.decision;
+    const r = c.reason ?? "";
+    const size = c.position_size_multiplier;
+    if (!d || d === "SKIP") return "";
+    const sizeStr = size != null ? `Position size: ${Math.round(size * 100)}%` : "";
+    if (d === "BUY") return `
+      <div class="decision-banner buy">
+        <div class="decision-banner-title">Confirmed — All layers aligned</div>
+        ${r ? `<div class="decision-banner-reason">${r}</div>` : ""}
+        ${sizeStr ? `<div class="decision-banner-size">${sizeStr}</div>` : ""}
+        <div class="banner-btn-row">
+          <button class="btn-primary" onclick="window._openModal('${c.ticker}')">+ Add to Radar</button>
+        </div>
+      </div>`;
+    if (d === "WATCH") return `
+      <div class="decision-banner watch">
+        <div class="decision-banner-title">Watch — Waiting for confirmation</div>
+        ${r ? `<div class="decision-banner-reason">${r}</div>` : ""}
+        <div class="banner-btn-row">
+          <button class="btn-secondary" onclick="window._openModal('${c.ticker}')">Add to watchlist</button>
+          <button class="btn-primary"   onclick="window._openModal('${c.ticker}')">Add to radar anyway</button>
+        </div>
+      </div>`;
+    if (d === "BUY_SMALL") return `
+      <div class="decision-banner small">
+        <div class="decision-banner-title">Contrarian opportunity (small position)</div>
+        ${r ? `<div class="decision-banner-reason">${r}</div>` : ""}
+        ${sizeStr ? `<div class="decision-banner-size">${sizeStr}</div>` : ""}
+        <div class="banner-btn-row">
+          <button class="btn-primary" onclick="window._openModal('${c.ticker}')">+ Add to Radar</button>
+        </div>
+      </div>`;
+    return "";
+  }
+
+  function showDetail(ticker) {
+    const c = candidates.find(x => x.ticker === ticker);
+    if (!c) return;
+    const score = c.score ?? 0;
+    const kv = (label, val, cls = "") =>
+      val != null ? `<div class="kv-item"><div class="kv-label">${label}</div><div class="kv-value ${cls}">${val}</div></div>` : "";
+    const hasLayers = c.rs_rating != null || c.quality_grade != null;
+    const badgeRow = hasLayers ? `
+      <div class="badge-row">
+        ${rsBadge(c.rs_rating)}
+        ${gradeBadge(c.quality_grade)}
+        ${c.sector_short_status ? sectorBadge(c.sector_short_status) : ""}
+        ${c.days_to_earnings != null ? `<span class="badge badge-purple">Earnings in ${c.days_to_earnings}d</span>` : ""}
+      </div>` : "";
+    const rsBarsHtml = hasLayers && (c.return_30d != null || c.spy_return_30d != null) ? `
+      <div class="rs-bars">
+        <h3>30-Day Returns</h3>
+        ${rsBar(c.ticker, c.return_30d)}
+        ${rsBar("SPY", c.spy_return_30d)}
+      </div>` : "";
+    const rrVal  = c.risk_reward  ? parseFloat(c.risk_reward)  : null;
+    const volVal = c.volume_ratio ? parseFloat(c.volume_ratio) : null;
+    document.getElementById("detail-usa").innerHTML = `
+      <div style="margin-bottom:12px;">
+        <div class="detail-ticker">${c.ticker} ${streakBadge(c.streak)}</div>
+        <div class="detail-close">${fmtClose(c)}</div>
+        <div class="detail-score ${scoreClass(score)}">${score}<span style="font-size:14px;color:#64748b;"> / 100</span></div>
+        ${badgeRow}
+      </div>
+      <div class="detail-why">${c.why_today ?? "No summary available."}</div>
+      ${rsBarsHtml}
+      <div class="kv-grid">
+        ${kv("Close",      fmtClose(c))}
+        ${kv("Support",    c.support    != null ? "$" + Number(c.support).toFixed(2)    : null, "green")}
+        ${kv("Resistance", c.resistance != null ? "$" + Number(c.resistance).toFixed(2) : null, "red")}
+        ${rrVal  ? kv("Risk / Reward", `1:${rrVal}`,  rrVal  >= 1.5 ? "green" : "yellow") : ""}
+        ${volVal ? kv("Volume",        `${volVal}x`,  volVal >= 1.5 ? "green" : "yellow") : ""}
+        ${kv("RSI", c.rsi != null ? c.rsi : null, c.rsi >= 70 ? "yellow" : "green")}
+        ${kv("Signals", c.triggers?.length ? c.triggers.length + " triggers" : null)}
+      </div>
+      ${c.triggers?.length ? `
+        <div class="detail-section">
+          <h3>Triggered by</h3>
+          <ul class="signal-list">${c.triggers.map(t => `<li>• ${t.replace(/_/g," ")}</li>`).join("")}</ul>
+        </div>` : ""}
+      ${decisionBanner(c) || `<button class="action-btn" style="width:100%;padding:10px;margin-top:8px;"
+        onclick="window._openModal('${c.ticker}')">+ Add to Radar</button>`}`;
+  }
+
+  window._openModal = openModal;
+
+  // ── Opportunities tab ─────────────────────────────────────────────────────
+  async function renderOpportunities() {
+    if (!oppRendered) { await loadSectorHistory(); oppRendered = true; }
+    const grid = document.getElementById("opp-grid");
+    if (!dataLoaded) {
+      grid.innerHTML = `<div style="color:#64748b;font-size:13px;">Waiting for market data…</div>`;
+      return;
+    }
+    const continuation = candidates.filter(c => {
+      if (!["BUY", "WATCH"].includes(c.decision)) return false;
+      if (c.sector_short_status !== "LEADING") return false;
+      if ((c.rs_rating ?? 0) < RS_THRESHOLD) return false;
+      if (c.return_5d != null && (c.return_5d < -0.10 || c.return_5d > -0.03)) return false;
+      return true;
+    });
+    const rotationSectors = Object.values(sectorData).filter(s => {
+      if (s.short_status !== "IMPROVING") return false;
+      const hist = sectorHistData[s.etf];
+      return !hist || hist.short_status === "LAGGING" || hist.short_status === "WEAKENING";
+    });
+    const rotationSectorNames = new Set(rotationSectors.map(s => s.sector));
+    const earlyRotation = candidates.filter(c =>
+      rotationSectorNames.has(c.sector) && (c.quality_grade === "A" || c.quality_grade === "B" || !c.quality_grade)
+    );
+    const contrarian = candidates.filter(c => c.decision === "BUY_SMALL");
+
+    function oppCard(c, reasonOverride) {
+      const rs = c.rs_rating;
+      const rsColor = rs != null ? (rs >= RS_THRESHOLD ? "#4ade80" : "#fb923c") : "#64748b";
+      return `<div class="opp-card">
+        <div class="opp-card-top">
+          <span class="opp-card-ticker">${c.ticker}</span>
+          ${rs != null ? `<span class="opp-card-rs" style="color:${rsColor}">RS ${rs}</span>` : ""}
+        </div>
+        ${c.sector ? `<div class="opp-card-sector">${c.sector}</div>` : ""}
+        <div class="opp-card-reason">${reasonOverride ?? c.reason ?? c.why_today ?? ""}</div>
+      </div>`;
+    }
+    function section(icon, title, desc, items, emptyMsg) {
+      return `<div class="opp-section">
+        <div class="opp-section-title">${icon} ${title}</div>
+        <div class="opp-section-desc">${desc}</div>
+        ${items.length ? items.map(c => oppCard(c, null)).join("") : `<div class="opp-empty">${emptyMsg}</div>`}
+      </div>`;
+    }
+    grid.innerHTML =
+      section("▲", "Continuation",
+        "Strong RS + leading sector + small recent pullback — potential buy-the-dip entry.",
+        continuation, "No continuation setups today") +
+      section("↻", "Early Rotation",
+        "Sector just turned Improving after being Lagging/Weakening — early movers with quality fundamentals.",
+        earlyRotation.map(c => ({ ...c })), "No early rotation sectors today") +
+      section("↓", "Contrarian Dip",
+        "Large drop in quality stocks with healthy long-term sector outlook — small position opportunity.",
+        contrarian, "No contrarian dip setups today");
+
+    if (earlyRotation.length) {
+      const rotSection = grid.children[1];
+      const rotCards = rotSection.querySelectorAll(".opp-card");
+      earlyRotation.forEach((c, i) => {
+        const el = rotCards[i]?.querySelector(".opp-card-reason");
+        if (el) el.textContent = "Sector turned Improving this week — watch for individual confirmation";
+      });
+    }
+  }
+
+  // ── My Radar ──────────────────────────────────────────────────────────────
+  async function loadRadar() {
+    const container = document.getElementById("radar-list");
+    try {
+      const snap = await getDocs(query(collection(db, "radar_items"), where("user_id", "==", USER_ID)));
+      if (snap.empty) { container.innerHTML = `<p>No stocks in your radar yet.</p>`; return; }
+      container.innerHTML = snap.docs.map(d => {
+        const item = d.data();
+        return `<div class="radar-card">
+          <div class="radar-card-ticker">${item.ticker}</div>
+          <div class="radar-card-meta"><b>Thesis:</b> ${item.thesis ?? "-"}</div>
+          <div class="radar-card-meta"><b>Exit:</b> ${item.exit_condition ?? "-"}</div>
+        </div>`;
+      }).join("");
+    } catch (err) { container.innerHTML = `<p style="color:#f87171;">Error loading radar.</p>`; }
+  }
+
+  // ── Modal ─────────────────────────────────────────────────────────────────
+  function openModal(ticker) {
+    document.getElementById("modal-ticker").value = ticker;
+    document.getElementById("modal-thesis").value = "";
+    document.getElementById("modal-exit").value   = "";
+    document.getElementById("radar-modal").classList.add("open");
+  }
+  document.getElementById("modal-cancel").addEventListener("click", () =>
+    document.getElementById("radar-modal").classList.remove("open"));
+  document.getElementById("modal-save").addEventListener("click", async () => {
+    const ticker = document.getElementById("modal-ticker").value;
+    const thesis = document.getElementById("modal-thesis").value.trim();
+    const exit   = document.getElementById("modal-exit").value.trim();
+    if (!thesis) { alert("Please enter your thesis."); return; }
+    try {
+      await addDoc(collection(db, "radar_items"), {
+        user_id: USER_ID, ticker, thesis, exit_condition: exit,
+        added_at: serverTimestamp(), is_active: true,
+      });
+      document.getElementById("radar-modal").classList.remove("open");
+      alert(`${ticker} added to your radar!`);
+    } catch (err) { alert("Could not save — check Firestore security rules."); }
+  });
+
+  // ── Boot ──────────────────────────────────────────────────────────────────
+  loadMacroAndSector();
+  loadUSA();
+</script>
+</body>
+</html>

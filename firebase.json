@@ -1,0 +1,14 @@
+{
+  "hosting": [
+    {
+      "site": "investment-radar-usa",
+      "public": "frontend/usa",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+    },
+    {
+      "site": "investment-radar-bist",
+      "public": "frontend/bist",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+    }
+  ]
+}
