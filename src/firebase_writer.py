@@ -89,6 +89,46 @@ def write_daily_candidates(db: firestore.client, candidates: list[dict], market:
     return written
 
 
+def write_macro_regime(db: firestore.client, regime: dict) -> None:
+    """Write macro regime to macro_regime/current (single document, overwrite)."""
+    db.collection("macro_regime").document("current").set(regime)
+    logger.info("Macro regime written: %s", regime.get("regime"))
+
+
+def write_quality_grades(db: firestore.client, grades: dict[str, dict]) -> None:
+    """Upsert one document per ticker in quality_grades/{ticker}."""
+    col = db.collection("quality_grades")
+    batch = db.batch()
+    for ticker, data in grades.items():
+        batch.set(col.document(ticker), data)
+    if grades:
+        batch.commit()
+    logger.info("Quality grades written: %d tickers", len(grades))
+
+
+def write_sector_status(db: firestore.client, sector_data: dict[str, dict]) -> None:
+    """
+    Upsert sector_status/{etf} for each sector.
+    Also appends this week's snapshot to sector_status_history (keyed by ISO week).
+    """
+    from datetime import date as _date
+
+    col     = db.collection("sector_status")
+    hist    = db.collection("sector_status_history")
+    week_key = _date.today().strftime("%Y-W%W")
+
+    batch = db.batch()
+    for sector, data in sector_data.items():
+        etf = data.get("etf", sector)
+        batch.set(col.document(etf), data)
+        # History: one doc per sector per week
+        hist_doc = hist.document(f"{week_key}_{etf}")
+        batch.set(hist_doc, {**data, "week": week_key})
+    if sector_data:
+        batch.commit()
+    logger.info("Sector status written: %d sectors (week=%s)", len(sector_data), week_key)
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 

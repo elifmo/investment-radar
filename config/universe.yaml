@@ -1,194 +1,209 @@
 usa:
-  # S&P 500 + Nasdaq 100 — 150 major tickers
-  # Popular & Fintech
-  - COIN
-  - HOOD
-  - CRWD
-  - SNOW
-  - DDOG
-  # AI Infrastructure & Networking
-  - ARM
-  - MRVL
-  - SMCI
-  - TSM
-  - MPWR
-  - ON
-  - WDC
-  - STX
-  - ANET
-  - CSCO
-  - DELL
-  - DLR
-  - PLTR
-  # Tech
-  - AAPL
-  - MSFT
-  - NVDA
-  - GOOGL
-  - GOOG
-  - META
-  - AMZN
-  - TSLA
-  - AVGO
-  - AMD
-  - ORCL
-  - CRM
-  - ADBE
-  - INTC
-  - QCOM
-  - TXN
-  - AMAT
-  - LRCX
-  - KLAC
-  - MCHP
-  - NXPI
-  - ADI
-  - SNPS
-  - CDNS
-  - MU
-  - FTNT
-  - PANW
-  - NOW
-  - WDAY
-  - INTU
-  # Finance
-  - JPM
-  - BAC
-  - GS
-  - MS
-  - V
-  - MA
-  - AXP
-  - BLK
-  - SPGI
-  - MCO
-  - CME
-  - ICE
-  - CB
-  - PGR
-  - AIG
-  - AON
-  - USB
-  - C
-  - KKR
-  # Healthcare
-  - UNH
-  - JNJ
-  - LLY
-  - ABBV
-  - MRK
-  - TMO
-  - DHR
-  - ABT
-  - BMY
-  - AMGN
-  - GILD
-  - VRTX
-  - ISRG
-  - SYK
-  - BSX
-  - BDX
-  - ELV
-  - CI
-  - HCA
-  - DXCM
-  - IDXX
-  - EW
-  # Consumer
-  - WMT
-  - COST
-  - HD
-  - MCD
-  - SBUX
-  - PG
-  - PEP
-  - KO
-  - PM
-  - MO
-  - MDLZ
-  - KMB
-  - CL
-  - KR
-  - TJX
-  - ORLY
-  - AZO
-  - MAR
-  - BKNG
-  - ABNB
-  - UBER
-  - LOW
-  - MNST
-  - STZ
-  # Industrial
-  - CAT
-  - HON
-  - RTX
-  - GE
-  - DE
-  - ETN
-  - EMR
-  - ITW
-  - PH
-  - CARR
-  - TDG
-  - GD
-  - NSC
-  - CSX
-  - UNP
-  - PCAR
-  - CTAS
-  - FAST
-  - MSI
-  - ROP
-  - TT
-  # Energy & Nuclear (AI data center power)
-  - XOM
-  - CVX
-  - SLB
-  - EOG
-  - VLO
-  - OKE
-  - FCX
-  - CEG
-  - VST
-  - CCJ
-  - OKLO
-  - LEU
-  # Real Estate & Utilities
-  - NEE
-  - DUK
-  - SO
-  - EXC
-  - PCG
-  - PLD
-  - EQIX
-  - SPG
-  - PSA
-  - WELL
-  # Communication
-  - T
-  - NFLX
-  - APH
-  - TEL
-  # Other
-  - LIN
-  - ACN
-  - IBM
-  - CPRT
-  - WM
-  - ECL
-  - SHW
-  - ZTS
-  - CTVA
-  - F
-  - GM
-  - GEHC
-  - PAYX
-  - A
-  - BRK-B
+  # Each entry: {ticker, sector} using GICS sector names mapped to the 11 SPDR sector ETFs
+  # Sector ETF map: Technology=XLK, Financials=XLF, Health Care=XLV,
+  #   Consumer Discretionary=XLY, Consumer Staples=XLP, Industrials=XLI,
+  #   Energy=XLE, Materials=XLB, Utilities=XLU, Real Estate=XLRE,
+  #   Communication Services=XLC
+
+  # Financials (XLF)
+  - {ticker: COIN,  sector: Financials}
+  - {ticker: HOOD,  sector: Financials}
+  - {ticker: JPM,   sector: Financials}
+  - {ticker: BAC,   sector: Financials}
+  - {ticker: GS,    sector: Financials}
+  - {ticker: MS,    sector: Financials}
+  - {ticker: V,     sector: Financials}
+  - {ticker: MA,    sector: Financials}
+  - {ticker: AXP,   sector: Financials}
+  - {ticker: BLK,   sector: Financials}
+  - {ticker: SPGI,  sector: Financials}
+  - {ticker: MCO,   sector: Financials}
+  - {ticker: CME,   sector: Financials}
+  - {ticker: ICE,   sector: Financials}
+  - {ticker: CB,    sector: Financials}
+  - {ticker: PGR,   sector: Financials}
+  - {ticker: AIG,   sector: Financials}
+  - {ticker: AON,   sector: Financials}
+  - {ticker: USB,   sector: Financials}
+  - {ticker: C,     sector: Financials}
+  - {ticker: KKR,   sector: Financials}
+  - {ticker: BRK-B, sector: Financials}
+
+  # Technology (XLK)
+  - {ticker: CRWD,  sector: Technology}
+  - {ticker: SNOW,  sector: Technology}
+  - {ticker: DDOG,  sector: Technology}
+  - {ticker: ARM,   sector: Technology}
+  - {ticker: MRVL,  sector: Technology}
+  - {ticker: SMCI,  sector: Technology}
+  - {ticker: TSM,   sector: Technology}
+  - {ticker: MPWR,  sector: Technology}
+  - {ticker: "ON",  sector: Technology}
+  - {ticker: WDC,   sector: Technology}
+  - {ticker: STX,   sector: Technology}
+  - {ticker: ANET,  sector: Technology}
+  - {ticker: CSCO,  sector: Technology}
+  - {ticker: DELL,  sector: Technology}
+  - {ticker: PLTR,  sector: Technology}
+  - {ticker: AAPL,  sector: Technology}
+  - {ticker: MSFT,  sector: Technology}
+  - {ticker: NVDA,  sector: Technology}
+  - {ticker: AVGO,  sector: Technology}
+  - {ticker: AMD,   sector: Technology}
+  - {ticker: ORCL,  sector: Technology}
+  - {ticker: CRM,   sector: Technology}
+  - {ticker: ADBE,  sector: Technology}
+  - {ticker: INTC,  sector: Technology}
+  - {ticker: QCOM,  sector: Technology}
+  - {ticker: TXN,   sector: Technology}
+  - {ticker: AMAT,  sector: Technology}
+  - {ticker: LRCX,  sector: Technology}
+  - {ticker: KLAC,  sector: Technology}
+  - {ticker: MCHP,  sector: Technology}
+  - {ticker: NXPI,  sector: Technology}
+  - {ticker: ADI,   sector: Technology}
+  - {ticker: SNPS,  sector: Technology}
+  - {ticker: CDNS,  sector: Technology}
+  - {ticker: MU,    sector: Technology}
+  - {ticker: FTNT,  sector: Technology}
+  - {ticker: PANW,  sector: Technology}
+  - {ticker: NOW,   sector: Technology}
+  - {ticker: WDAY,  sector: Technology}
+  - {ticker: INTU,  sector: Technology}
+  - {ticker: ACN,   sector: Technology}
+  - {ticker: IBM,   sector: Technology}
+  - {ticker: APH,   sector: Technology}
+  - {ticker: TEL,   sector: Technology}
+
+  # Health Care (XLV)
+  - {ticker: UNH,   sector: "Health Care"}
+  - {ticker: JNJ,   sector: "Health Care"}
+  - {ticker: LLY,   sector: "Health Care"}
+  - {ticker: ABBV,  sector: "Health Care"}
+  - {ticker: MRK,   sector: "Health Care"}
+  - {ticker: TMO,   sector: "Health Care"}
+  - {ticker: DHR,   sector: "Health Care"}
+  - {ticker: ABT,   sector: "Health Care"}
+  - {ticker: BMY,   sector: "Health Care"}
+  - {ticker: AMGN,  sector: "Health Care"}
+  - {ticker: GILD,  sector: "Health Care"}
+  - {ticker: VRTX,  sector: "Health Care"}
+  - {ticker: ISRG,  sector: "Health Care"}
+  - {ticker: SYK,   sector: "Health Care"}
+  - {ticker: BSX,   sector: "Health Care"}
+  - {ticker: BDX,   sector: "Health Care"}
+  - {ticker: ELV,   sector: "Health Care"}
+  - {ticker: CI,    sector: "Health Care"}
+  - {ticker: HCA,   sector: "Health Care"}
+  - {ticker: DXCM,  sector: "Health Care"}
+  - {ticker: IDXX,  sector: "Health Care"}
+  - {ticker: EW,    sector: "Health Care"}
+  - {ticker: ZTS,   sector: "Health Care"}
+  - {ticker: GEHC,  sector: "Health Care"}
+  - {ticker: A,     sector: "Health Care"}
+
+  # Consumer Discretionary (XLY)
+  - {ticker: TSLA,  sector: "Consumer Discretionary"}
+  - {ticker: AMZN,  sector: "Consumer Discretionary"}
+  - {ticker: HD,    sector: "Consumer Discretionary"}
+  - {ticker: MCD,   sector: "Consumer Discretionary"}
+  - {ticker: SBUX,  sector: "Consumer Discretionary"}
+  - {ticker: TJX,   sector: "Consumer Discretionary"}
+  - {ticker: ORLY,  sector: "Consumer Discretionary"}
+  - {ticker: AZO,   sector: "Consumer Discretionary"}
+  - {ticker: MAR,   sector: "Consumer Discretionary"}
+  - {ticker: BKNG,  sector: "Consumer Discretionary"}
+  - {ticker: ABNB,  sector: "Consumer Discretionary"}
+  - {ticker: UBER,  sector: "Consumer Discretionary"}
+  - {ticker: LOW,   sector: "Consumer Discretionary"}
+  - {ticker: F,     sector: "Consumer Discretionary"}
+  - {ticker: GM,    sector: "Consumer Discretionary"}
+
+  # Consumer Staples (XLP)
+  - {ticker: WMT,   sector: "Consumer Staples"}
+  - {ticker: COST,  sector: "Consumer Staples"}
+  - {ticker: PG,    sector: "Consumer Staples"}
+  - {ticker: PEP,   sector: "Consumer Staples"}
+  - {ticker: KO,    sector: "Consumer Staples"}
+  - {ticker: PM,    sector: "Consumer Staples"}
+  - {ticker: MO,    sector: "Consumer Staples"}
+  - {ticker: MDLZ,  sector: "Consumer Staples"}
+  - {ticker: KMB,   sector: "Consumer Staples"}
+  - {ticker: CL,    sector: "Consumer Staples"}
+  - {ticker: KR,    sector: "Consumer Staples"}
+  - {ticker: MNST,  sector: "Consumer Staples"}
+  - {ticker: STZ,   sector: "Consumer Staples"}
+
+  # Industrials (XLI)
+  - {ticker: CAT,   sector: Industrials}
+  - {ticker: HON,   sector: Industrials}
+  - {ticker: RTX,   sector: Industrials}
+  - {ticker: GE,    sector: Industrials}
+  - {ticker: DE,    sector: Industrials}
+  - {ticker: ETN,   sector: Industrials}
+  - {ticker: EMR,   sector: Industrials}
+  - {ticker: ITW,   sector: Industrials}
+  - {ticker: PH,    sector: Industrials}
+  - {ticker: CARR,  sector: Industrials}
+  - {ticker: TDG,   sector: Industrials}
+  - {ticker: GD,    sector: Industrials}
+  - {ticker: NSC,   sector: Industrials}
+  - {ticker: CSX,   sector: Industrials}
+  - {ticker: UNP,   sector: Industrials}
+  - {ticker: PCAR,  sector: Industrials}
+  - {ticker: CTAS,  sector: Industrials}
+  - {ticker: FAST,  sector: Industrials}
+  - {ticker: MSI,   sector: Industrials}
+  - {ticker: ROP,   sector: Industrials}
+  - {ticker: TT,    sector: Industrials}
+  - {ticker: CPRT,  sector: Industrials}
+  - {ticker: WM,    sector: Industrials}
+  - {ticker: PAYX,  sector: Industrials}
+
+  # Energy (XLE)
+  - {ticker: XOM,   sector: Energy}
+  - {ticker: CVX,   sector: Energy}
+  - {ticker: SLB,   sector: Energy}
+  - {ticker: EOG,   sector: Energy}
+  - {ticker: VLO,   sector: Energy}
+  - {ticker: OKE,   sector: Energy}
+  - {ticker: CCJ,   sector: Energy}
+  - {ticker: LEU,   sector: Energy}
+
+  # Materials (XLB)
+  - {ticker: FCX,   sector: Materials}
+  - {ticker: LIN,   sector: Materials}
+  - {ticker: ECL,   sector: Materials}
+  - {ticker: SHW,   sector: Materials}
+  - {ticker: CTVA,  sector: Materials}
+
+  # Utilities (XLU)
+  - {ticker: NEE,   sector: Utilities}
+  - {ticker: DUK,   sector: Utilities}
+  - {ticker: SO,    sector: Utilities}
+  - {ticker: EXC,   sector: Utilities}
+  - {ticker: PCG,   sector: Utilities}
+  - {ticker: CEG,   sector: Utilities}
+  - {ticker: VST,   sector: Utilities}
+  - {ticker: OKLO,  sector: Utilities}
+
+  # Real Estate (XLRE)
+  - {ticker: PLD,   sector: "Real Estate"}
+  - {ticker: EQIX,  sector: "Real Estate"}
+  - {ticker: SPG,   sector: "Real Estate"}
+  - {ticker: PSA,   sector: "Real Estate"}
+  - {ticker: WELL,  sector: "Real Estate"}
+  - {ticker: DLR,   sector: "Real Estate"}
+
+  # Communication Services (XLC)
+  - {ticker: GOOGL, sector: "Communication Services"}
+  - {ticker: GOOG,  sector: "Communication Services"}
+  - {ticker: META,  sector: "Communication Services"}
+  - {ticker: T,     sector: "Communication Services"}
+  - {ticker: NFLX,  sector: "Communication Services"}
 
 bist:
-  # BIST 100 — major components
+  # BIST 100 — major components (Phase 2: sector mapping deferred)
   - AKBNK.IS
   - AKSEN.IS
   - ALARK.IS
@@ -257,7 +272,6 @@ bist:
   - TMSN.IS
   - VESBE.IS
   - YATAS.IS
-  # BIST 100 ek bileşenler (Ağu 2025 bilgisine göre — resmi liste: borsaistanbul.com)
   - KOZAL.IS
   - KOZAA.IS
   - MPARK.IS

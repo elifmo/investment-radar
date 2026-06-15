@@ -19,3 +19,15 @@ thresholds:
   rsi_bounce_lookback: 5   # bars to look back for RSI < oversold
   support_proximity_pct: 2.0
   high_52w_buffer_pct: 1.0
+
+# Decision engine thresholds (Task 0 backtest will refine these)
+decision:
+  rs_threshold: 70          # RS Rating minimum for the "high RS" path
+  drop_threshold: -0.20     # 30d return threshold for contrarian dip path (negative)
+  sector_long_window: 126   # trading days for long-term sector window (~6 months)
+  sector_short_window: 20   # trading days for short-term sector RS
+  sector_short_mom_window: 10  # days for short-term momentum delta
+  sector_long_mom_window: 20   # days for long-term momentum delta
+  macro_trend_window: 20    # days for TNX/DXY trend calculation
+  macro_smooth_window: 5    # days for smoothing the trend signal
+  rs_window: 30             # trading days for RS rating return calculation
