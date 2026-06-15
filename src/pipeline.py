@@ -276,6 +276,14 @@ def run(market_arg: str) -> None:
 
         candidates, daily_data = run_market(market, tickers, factors)
 
+        # Derive last trading date from price data (handles weekend/holiday runs)
+        trade_date = None
+        if daily_data:
+            sample_df = next(iter(daily_data.values()))
+            if not sample_df.empty:
+                trade_date = str(sample_df.index[-1].date())
+                logger.info("Last trading date for %s: %s", market.upper(), trade_date)
+
         if market == "usa" and candidates:
             logger.info("[USA] Running enrichment layers + decision engine...")
             candidates = _enrich_usa_candidates(
@@ -283,7 +291,7 @@ def run(market_arg: str) -> None:
                 factors.get("decision", {}),
             )
 
-        write_daily_candidates(db, candidates, market)
+        write_daily_candidates(db, candidates, market, trade_date=trade_date)
 
     logger.info("Pipeline complete.")
 

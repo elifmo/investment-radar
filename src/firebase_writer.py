@@ -43,14 +43,21 @@ def _build_streak_map(db: firestore.client, market: str, today: str) -> dict[str
     return streak_map
 
 
-def write_daily_candidates(db: firestore.client, candidates: list[dict], market: str) -> int:
-    """Write today's candidates to Firestore daily_candidates collection.
+def write_daily_candidates(
+    db: firestore.client,
+    candidates: list[dict],
+    market: str,
+    trade_date: str | None = None,
+) -> int:
+    """Write candidates to Firestore daily_candidates collection.
 
-    Deletes existing records for today + market before writing new ones.
+    Uses trade_date (last market close date) rather than today's date so
+    weekend/holiday runs correctly tag data to the actual trading day.
+    Deletes existing records for that date + market before writing new ones.
     Adds a `streak` field: consecutive days this ticker appeared in top 10.
     Returns number of documents written.
     """
-    today = date.today().isoformat()
+    today = trade_date or date.today().isoformat()
     col = db.collection("daily_candidates")
 
     # Build streak map from most recent past run
