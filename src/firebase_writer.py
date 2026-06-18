@@ -1,5 +1,5 @@
 import logging
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 import firebase_admin
@@ -43,6 +43,26 @@ def _build_streak_map(db: firestore.client, market: str, today: str) -> dict[str
     return streak_map
 
 
+def _session_window(market: str) -> str:
+    """Return the 4-hour session window label based on current UTC time."""
+    utc = datetime.now(timezone.utc)
+    mins = utc.hour * 60 + utc.minute
+    if market.upper() == "BIST":
+        if mins < 11 * 60:
+            return "10:00 – 14:00"
+        elif mins < 15 * 60:
+            return "14:00 – 18:00"
+        else:
+            return "Kapanış · 18:00"
+    else:  # USA
+        if mins < 17 * 60 + 30:
+            return "09:30 – 13:30 ET"
+        elif mins < 20 * 60:
+            return "13:30 – 16:00 ET"
+        else:
+            return "Kapanış · 16:00 ET"
+
+
 def write_daily_candidates(
     db: firestore.client,
     candidates: list[dict],
@@ -82,7 +102,10 @@ def write_daily_candidates(
         streak = streak_map.get(ticker, 0) + 1
         doc_id = f"{today}_{ticker}"
         ref = col.document(doc_id)
-        batch.set(ref, {**c, "date": today, "streak": streak})
+        evaluated_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        session      = _session_window(market)
+        batch.set(ref, {**c, "date": today, "streak": streak,
+                        "evaluated_at": evaluated_at, "session_window": session})
         if streak > 1:
             logger.info("  %s streak=%d", ticker, streak)
         written += 1

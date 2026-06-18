@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- v3 -->
   <title>Investment Radar — US Markets</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -503,10 +504,18 @@
     const niceDate = new Date(result.date + "T12:00:00").toLocaleDateString("en-US", {
       weekday: "short", month: "short", day: "numeric", year: "numeric"
     });
+    const sample   = candidates[0] || {};
+    const sessionW = sample.session_window || "";
+    const evalAt   = sample.evaluated_at
+      ? new Date(sample.evaluated_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", timeZone: "America/New_York" })
+      : "";
+    const sessionTag = sessionW
+      ? `<span style="font-size:11px;color:#94a3b8;margin-left:6px;">⏱ ${sessionW}${evalAt ? " · " + evalAt + " ET" : ""}</span>`
+      : "";
     const openTag  = isMarketOpen() ? `<span class="market-open-tag">⚠ MARKET OPEN</span>` : "";
     const dateClass = result.daysAgo === 0 ? "date-today" : result.daysAgo === 1 ? "date-yesterday" : "date-stale";
     const stale     = result.daysAgo >= 2 ? ` · ${result.daysAgo} days ago` : "";
-    el.innerHTML = `${openTag}<span class="${dateClass}">Report from ${niceDate}${stale}</span>`;
+    el.innerHTML = `${openTag}<span class="${dateClass}">Report from ${niceDate}${stale}</span>${sessionTag}`;
   }
 
   function updateHeader() {

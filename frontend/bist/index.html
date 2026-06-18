@@ -204,19 +204,27 @@
       candidates = result.docs.map(d => ({ id: d.id, ...d.data() }));
       candidates.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
 
-      const niceDate = new Date(result.date + "T12:00:00").toLocaleDateString("en-US", {
+      const niceDate = new Date(result.date + "T12:00:00").toLocaleDateString("tr-TR", {
         weekday: "short", month: "short", day: "numeric", year: "numeric"
       });
-      const openTag   = isMarketOpen() ? `<span class="market-open-tag">⚠ MARKET OPEN</span>` : "";
+      const sample    = candidates[0] || {};
+      const sessionW  = sample.session_window || "";
+      const evalAt    = sample.evaluated_at
+        ? new Date(sample.evaluated_at).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul" })
+        : "";
+      const sessionTag = sessionW
+        ? `<span style="font-size:11px;color:#94a3b8;margin-left:6px;">⏱ ${sessionW}${evalAt ? " · " + evalAt : ""}</span>`
+        : "";
+      const openTag   = isMarketOpen() ? `<span class="market-open-tag">⚠ AÇIK</span>` : "";
       const dateClass = result.daysAgo === 0 ? "date-today" : result.daysAgo === 1 ? "date-yesterday" : "date-stale";
-      const stale     = result.daysAgo >= 2 ? ` · ${result.daysAgo} days ago` : "";
+      const stale     = result.daysAgo >= 2 ? ` · ${result.daysAgo} gün önce` : "";
       document.getElementById("date-bist").innerHTML =
-        `${openTag}<span class="${dateClass}">Report from ${niceDate}${stale}</span>`;
+        `${openTag}<span class="${dateClass}">${niceDate}${stale}</span>${sessionTag}`;
 
-      const openPart  = isMarketOpen() ? " · ⚠ Open" : "";
-      const stalePart = result.daysAgo >= 2 ? ` · ${result.daysAgo}d ago` : "";
+      const openPart  = isMarketOpen() ? " · ⚠ Açık" : "";
+      const stalePart = result.daysAgo >= 2 ? ` · ${result.daysAgo}g önce` : "";
       document.getElementById("last-updated").textContent =
-        `🇹🇷 BIST${openPart} · Close: ${niceDate}${stalePart}`;
+        `🇹🇷 BIST${openPart} · ${niceDate}${stalePart}${sessionW ? " · " + sessionW : ""}`;
 
       renderTable();
     } catch (err) {

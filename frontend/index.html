@@ -45,10 +45,8 @@
       display: flex; align-items: baseline; justify-content: space-between;
       margin-bottom: 14px;
     }
-    .panel-title {
-      font-size: 13px; font-weight: 700; color: #e2e8f0;
-    }
-    .panel-date { font-size: 12px; }
+    .panel-title { font-size: 13px; font-weight: 700; color: #e2e8f0; }
+    .panel-date  { font-size: 12px; }
     .date-today     { color: #4ade80; }
     .date-yesterday { color: #94a3b8; }
     .date-stale     { color: #fb923c; }
@@ -64,10 +62,8 @@
       color: #64748b; text-transform: uppercase; letter-spacing: 0.06em;
       border-bottom: 1px solid #2d3148; white-space: nowrap;
     }
-    tbody tr {
-      cursor: pointer; border-bottom: 1px solid #1e2130; transition: background 0.1s;
-    }
-    tbody tr:hover { background: #1e2130; }
+    tbody tr { cursor: pointer; border-bottom: 1px solid #1e2130; transition: background 0.1s; }
+    tbody tr:hover  { background: #1e2130; }
     tbody tr.selected { background: #1e2338; }
     tbody td { padding: 10px; vertical-align: middle; }
 
@@ -103,7 +99,7 @@
     }
     .detail-ticker { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 4px; }
     .detail-close  { font-size: 16px; color: #94a3b8; margin-bottom: 4px; }
-    .detail-score  { display: inline-block; font-size: 28px; font-weight: 800; margin-bottom: 12px; }
+    .detail-score  { display: inline-block; font-size: 28px; font-weight: 800; margin-bottom: 8px; }
     .detail-why {
       color: #94a3b8; font-size: 13px; line-height: 1.6; margin-bottom: 16px;
       background: #1a1d27; border-radius: 8px; padding: 12px;
@@ -164,6 +160,120 @@
       background: #6366f1; border: none; border-radius: 6px;
       color: #fff; cursor: pointer; font-size: 13px; font-weight: 600; padding: 8px 16px;
     }
+
+    /* ── Task 7: Macro regime strip ───────────────────────────────────────── */
+    .regime-strip {
+      display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+      padding: 9px 12px; border-radius: 8px; margin-bottom: 14px; font-size: 12px;
+    }
+    .regime-strip.risk-on  { background: #0d2b1a; border: 1px solid #14532d; }
+    .regime-strip.risk-off { background: #2b0d0d; border: 1px solid #7f1d1d; }
+    .regime-strip.neutral  { background: #1a1d27; border: 1px solid #2d3148; }
+    .regime-label {
+      font-size: 12px; font-weight: 800; letter-spacing: 0.05em;
+    }
+    .risk-on  .regime-label { color: #4ade80; }
+    .risk-off .regime-label { color: #f87171; }
+    .neutral  .regime-label { color: #94a3b8; }
+    .regime-meta { font-size: 11px; color: #64748b; }
+
+    /* ── Task 7: Badges ───────────────────────────────────────────────────── */
+    .badge-row { display: flex; align-items: center; gap: 7px; margin-bottom: 10px; flex-wrap: wrap; }
+    .badge {
+      display: inline-block; font-size: 11px; font-weight: 700;
+      padding: 3px 9px; border-radius: 20px;
+    }
+    .badge-green  { background: #14532d; color: #4ade80; }
+    .badge-amber  { background: #451a03; color: #fb923c; }
+    .badge-red    { background: #450a0a; color: #f87171; }
+    .badge-purple { background: #2e1065; color: #a78bfa; }
+    .badge-blue   { background: #0c1a3b; color: #60a5fa; }
+    .badge-gray   { background: #1e2130; color: #64748b; }
+
+    /* ── Task 7: RS return bars ───────────────────────────────────────────── */
+    .rs-bars { margin-bottom: 16px; }
+    .rs-bars h3 {
+      font-size: 11px; font-weight: 600; color: #64748b;
+      text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px;
+    }
+    .rs-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+    .rs-bar-label { font-size: 11px; color: #94a3b8; width: 40px; text-align: right; flex-shrink: 0; }
+    .rs-bar-track {
+      flex: 1; height: 8px; background: #1e2130; border-radius: 4px;
+      position: relative; overflow: hidden;
+    }
+    .rs-bar-fill {
+      position: absolute; top: 0; height: 100%; border-radius: 4px;
+      max-width: 50%;
+    }
+    .rs-bar-fill.pos { background: #4ade80; left: 50%; }
+    .rs-bar-fill.neg { background: #f87171; right: 50%; }
+    .rs-bar-mid {
+      position: absolute; left: 50%; top: 0; width: 1px; height: 100%;
+      background: #2d3148;
+    }
+    .rs-bar-val { font-size: 11px; font-weight: 700; min-width: 50px; }
+    .rs-bar-val.pos { color: #4ade80; }
+    .rs-bar-val.neg { color: #f87171; }
+
+    /* ── Task 7: Decision banner ──────────────────────────────────────────── */
+    .decision-banner { border-radius: 8px; padding: 14px; margin-top: 12px; }
+    .decision-banner.buy   { background: #0d2b1a; border: 1px solid #14532d; }
+    .decision-banner.watch { background: #2b1a03; border: 1px solid #7c2d12; }
+    .decision-banner.small { background: #0c1a3b; border: 1px solid #1e3a8a; }
+    .decision-banner-title { font-size: 13px; font-weight: 800; margin-bottom: 5px; }
+    .buy   .decision-banner-title { color: #4ade80; }
+    .watch .decision-banner-title { color: #fb923c; }
+    .small .decision-banner-title { color: #60a5fa; }
+    .decision-banner-reason { font-size: 12px; color: #94a3b8; margin-bottom: 8px; line-height: 1.5; }
+    .decision-banner-size   { font-size: 11px; color: #64748b; margin-bottom: 10px; }
+    .banner-btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-primary {
+      background: #6366f1; border: none; border-radius: 6px;
+      color: #fff; cursor: pointer; font-size: 12px; font-weight: 600;
+      padding: 7px 14px; transition: background 0.15s;
+    }
+    .btn-primary:hover { background: #4f46e5; }
+    .btn-secondary {
+      background: #1e2130; border: 1px solid #2d3148; border-radius: 6px;
+      color: #94a3b8; cursor: pointer; font-size: 12px;
+      padding: 7px 14px; transition: background 0.15s;
+    }
+    .btn-secondary:hover { background: #2d3148; color: #e2e8f0; }
+
+    /* ── Task 8: Opportunities tab ────────────────────────────────────────── */
+    #tab-opportunities {
+      padding: 24px; overflow-y: auto; height: calc(100vh - 97px);
+    }
+    .opp-header {
+      font-size: 13px; font-weight: 700; color: #e2e8f0;
+      text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 20px;
+    }
+    .opp-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 20px;
+    }
+    .opp-section {
+      background: #1a1d27; border: 1px solid #2d3148;
+      border-radius: 10px; padding: 18px;
+    }
+    .opp-section-title {
+      font-size: 13px; font-weight: 700; color: #fff;
+      margin-bottom: 4px; display: flex; align-items: center; gap: 8px;
+    }
+    .opp-section-desc { font-size: 12px; color: #64748b; margin-bottom: 14px; line-height: 1.5; }
+    .opp-card {
+      background: #131520; border: 1px solid #2d3148; border-radius: 8px;
+      padding: 12px; margin-bottom: 8px; cursor: default;
+    }
+    .opp-card:last-child { margin-bottom: 0; }
+    .opp-card-top { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 3px; }
+    .opp-card-ticker { font-weight: 700; color: #fff; font-size: 15px; }
+    .opp-card-rs     { font-size: 11px; font-weight: 700; }
+    .opp-card-sector { font-size: 11px; color: #6366f1; margin-bottom: 5px; }
+    .opp-card-reason { font-size: 12px; color: #94a3b8; line-height: 1.4; }
+    .opp-empty { color: #4b5563; font-size: 12px; text-align: center; padding: 20px 0; }
   </style>
 </head>
 <body>
@@ -175,12 +285,20 @@
 
 <div class="tabs" id="tabs-bar">
   <!-- market tabs injected by JS from MARKETS array -->
+  <button class="tab-btn" data-tab="opportunities">Opportunities</button>
   <button class="tab-btn" data-tab="radar">My Radar</button>
   <button class="tab-btn" data-tab="stats">Statistics</button>
 </div>
 
 <!-- market tab panels injected by JS -->
 <div id="market-tabs-content"></div>
+
+<div id="tab-opportunities" class="tab-content" style="display:none;">
+  <div class="opp-header">Market Opportunities</div>
+  <div class="opp-grid" id="opp-grid">
+    <div style="color:#64748b;font-size:13px;">Loading...</div>
+  </div>
+</div>
 
 <div id="tab-radar" class="tab-content" style="display:none; padding:24px;">
   <div style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:16px;">My Radar</div>
@@ -210,7 +328,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
   import {
-    getFirestore, collection, getDocs, addDoc, query, where, serverTimestamp
+    getFirestore, collection, getDocs, getDoc, doc, addDoc, query, where, serverTimestamp
   } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -225,13 +343,12 @@
   const app = initializeApp(firebaseConfig);
   const db  = getFirestore(app);
   const USER_ID = 1;
+  const RS_THRESHOLD = 70;
 
-  // ── Market config — add new markets here ──────────────────────────────────
+  // ── Market config ─────────────────────────────────────────────────────────
   const MARKETS = [
-    { id: "bist", label: "🇹🇷 BIST", market: "BIST", currency: "₺", openUTC: 7*60+0,   closeUTC: 15*60+5  }, // 10:00-18:05 TR
-    { id: "usa",  label: "🇺🇸 USA",  market: "USA",  currency: "$", openUTC: 13*60+30, closeUTC: 20*60+5  }, // 09:30-16:05 ET (EDT)
-    // { id: "crypto", label: "₿ Crypto", market: "CRYPTO", currency: "$", openUTC: 0, closeUTC: 0 },
-    // { id: "aex",    label: "🇳🇱 AEX",  market: "AEX",    currency: "€", openUTC: 8*60+0, closeUTC: 15*60+40 },
+    { id: "bist", label: "🇹🇷 BIST", market: "BIST", currency: "₺", openUTC: 7*60+0,   closeUTC: 15*60+5  },
+    { id: "usa",  label: "🇺🇸 USA",  market: "USA",  currency: "$", openUTC: 13*60+30, closeUTC: 20*60+5  },
   ];
 
   function marketHasClosed(m) {
@@ -249,11 +366,65 @@
     return mins >= m.openUTC && mins < m.closeUTC;
   }
 
-  // Per-market state
+  // ── Global enrichment state ───────────────────────────────────────────────
+  let macroData = null;     // macro_regime/current
+  let sectorData = {};      // etf -> sector doc
+  let sectorHistData = {};  // etf -> 2-weeks-ago doc (for Early Rotation)
+  let oppRendered = false;
+
+  async function loadMacroAndSector() {
+    try {
+      const snap = await getDoc(doc(db, "macro_regime", "current"));
+      if (snap.exists()) macroData = snap.data();
+    } catch (e) { console.warn("Macro regime load failed:", e); }
+
+    try {
+      const snap = await getDocs(collection(db, "sector_status"));
+      snap.docs.forEach(d => {
+        const data = d.data();
+        if (data.etf) sectorData[data.etf] = data;
+      });
+    } catch (e) { console.warn("Sector status load failed:", e); }
+
+    // Re-render regime strip if USA tab is already loaded
+    const usaState = state["usa"];
+    if (usaState?.loaded) renderRegimeStrip("usa");
+  }
+
+  async function loadSectorHistory() {
+    const twoWeeksAgo = new Date();
+    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+    const weekKey = pythonWeekKey(twoWeeksAgo);
+    const prevWeekKey = pythonWeekKey(new Date(twoWeeksAgo.getTime() - 7 * 86400000));
+
+    try {
+      const snap = await getDocs(collection(db, "sector_status_history"));
+      snap.docs.forEach(d => {
+        const data = d.data();
+        if (data.week === weekKey || data.week === prevWeekKey) {
+          if (data.etf && !sectorHistData[data.etf]) {
+            sectorHistData[data.etf] = data;
+          }
+        }
+      });
+    } catch (e) { console.warn("Sector history load failed:", e); }
+  }
+
+  function pythonWeekKey(d) {
+    const year = d.getFullYear();
+    const jan1 = new Date(year, 0, 1);
+    const jan1Dow = jan1.getDay();
+    const jan1Offset = jan1Dow === 0 ? 6 : jan1Dow - 1;
+    const dayOfYear = Math.round((new Date(year, d.getMonth(), d.getDate()) - jan1) / 86400000);
+    const weekNum = Math.floor((dayOfYear + jan1Offset) / 7);
+    return `${year}-W${String(weekNum).padStart(2, "0")}`;
+  }
+
+  // ── Per-market state ──────────────────────────────────────────────────────
   const state = {};
   MARKETS.forEach(m => { state[m.id] = { candidates: [], loaded: false, date: null, daysAgo: null }; });
 
-  // ── Build tab buttons (prepend market tabs before Radar/Stats) ─────────────
+  // ── Build tab buttons ─────────────────────────────────────────────────────
   const tabsBar = document.getElementById("tabs-bar");
   MARKETS.slice().reverse().forEach((m, ri) => {
     const btn = document.createElement("button");
@@ -276,6 +447,7 @@
           <span class="panel-title">${m.label}</span>
           <span class="panel-date" id="date-${m.id}">Loading...</span>
         </div>
+        <div id="regime-${m.id}" style="display:none;"></div>
         <table>
           <thead>
             <tr>
@@ -307,7 +479,6 @@
   function switchTab(tabId) {
     document.querySelectorAll(".tab-content").forEach(el => el.style.display = "none");
     activeTab = tabId;
-
     const target = document.getElementById(`tab-${tabId}`);
     if (!target) return;
 
@@ -316,20 +487,20 @@
 
     if (m) {
       if (state[tabId].loaded) updateHeader(tabId, m);
-      // data already loading or loaded — nothing extra needed
     } else if (tabId === "radar") {
       loadRadar();
+    } else if (tabId === "opportunities") {
+      renderOpportunities();
     }
   }
 
-  // ── Firestore: find most recent date for a market (up to 7 days back) ─────
+  // ── Firestore helpers ─────────────────────────────────────────────────────
   function localDateStr(d) {
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   }
 
   async function findLatestCandidates(market, mConfig) {
     const now = new Date();
-    // If market hasn't closed today, skip today's records entirely — show last real close
     const startFrom = marketHasClosed(mConfig) ? 0 : 1;
     for (let i = startFrom; i < 7; i++) {
       const d = new Date(now);
@@ -351,7 +522,6 @@
     const tbody = document.getElementById(`tbody-${mId}`);
     try {
       const result = await findLatestCandidates(mConfig.market, mConfig);
-
       if (!result) {
         tbody.innerHTML = `<tr class="status-row"><td colspan="6">No data yet.<br>
           <small style="color:#64748b">Run: python pipeline.py ${mId}</small></td></tr>`;
@@ -368,6 +538,8 @@
       setDateLabel(mId, result, mConfig);
       if (activeTab === mId) updateHeader(mId, mConfig);
       renderTable(mId);
+
+      if (mId === "usa") renderRegimeStrip("usa");
     } catch (err) {
       console.error(`Error loading ${mId}:`, err);
       tbody.innerHTML = `<tr class="status-row"><td colspan="6">Firebase error — check DevTools (F12).</td></tr>`;
@@ -393,22 +565,52 @@
     const niceDate = new Date(s.date + "T12:00:00").toLocaleDateString("en-US", {
       month: "short", day: "numeric", year: "numeric"
     });
-    const isOpen   = isMarketOpen(mConfig);
-    const openPart = isOpen ? " · ⚠ Open" : "";
+    const openPart  = isMarketOpen(mConfig) ? " · ⚠ Open" : "";
     const stalePart = s.daysAgo >= 2 ? ` · ${s.daysAgo}d ago` : "";
     document.getElementById("last-updated").textContent =
       `${m.label}${openPart} · Close: ${niceDate}${stalePart}`;
   }
 
-  // ── Render table ──────────────────────────────────────────────────────────
+  // ── Task 7: Macro regime strip ────────────────────────────────────────────
+  function renderRegimeStrip(mId) {
+    const el = document.getElementById(`regime-${mId}`);
+    if (!el) return;
+    if (!macroData) { el.style.display = "none"; return; }
+
+    const r        = macroData.regime || "NEUTRAL";
+    const tnx      = macroData.tnx_trend_20d ?? 0;
+    const dxy      = macroData.dxy_trend_20d ?? 0;
+    const cls      = r === "RISK_ON" ? "risk-on" : r === "RISK_OFF" ? "risk-off" : "neutral";
+    const label    = r === "RISK_ON" ? "RISK ON" : r === "RISK_OFF" ? "RISK OFF" : "NEUTRAL";
+    const tnxStr   = (tnx >= 0 ? "+" : "") + tnx.toFixed(2);
+    const dxyStr   = (dxy >= 0 ? "+" : "") + dxy.toFixed(2);
+
+    el.innerHTML = `
+      <div class="regime-strip ${cls}">
+        <span class="regime-label">${label}</span>
+        <span class="regime-meta">10Y Yield 20d: ${tnxStr}</span>
+        <span class="regime-meta">DXY 20d: ${dxyStr}</span>
+      </div>`;
+    el.style.display = "block";
+  }
+
+  // ── Render table (filters SKIP for USA) ───────────────────────────────────
   function renderTable(mId) {
     const m     = MARKETS.find(x => x.id === mId);
     const tbody = document.getElementById(`tbody-${mId}`);
-    if (state[mId].candidates.length === 0) {
+    let candidates = state[mId].candidates;
+
+    // Filter SKIP decisions for USA (decision engine output)
+    if (mId === "usa") {
+      const hasDecisions = candidates.some(c => c.decision);
+      if (hasDecisions) candidates = candidates.filter(c => c.decision !== "SKIP");
+    }
+
+    if (candidates.length === 0) {
       tbody.innerHTML = `<tr class="status-row"><td colspan="6">No candidates found.</td></tr>`;
       return;
     }
-    tbody.innerHTML = state[mId].candidates.map(c => renderRow(c, m)).join("");
+    tbody.innerHTML = candidates.map(c => renderRow(c, m)).join("");
     attachRowEvents(mId);
   }
 
@@ -453,6 +655,92 @@
     });
   }
 
+  // ── Task 7: RS return bar ─────────────────────────────────────────────────
+  function rsBar(label, value) {
+    if (value == null) return "";
+    const pct   = Math.min(Math.abs(value) * 100, 50); // cap at 50% of half-track
+    const isPos = value >= 0;
+    const cls   = isPos ? "pos" : "neg";
+    const sign  = isPos ? "+" : "";
+    return `
+      <div class="rs-bar-row">
+        <span class="rs-bar-label">${label}</span>
+        <div class="rs-bar-track">
+          <div class="rs-bar-mid"></div>
+          <div class="rs-bar-fill ${cls}" style="width:${pct}%;"></div>
+        </div>
+        <span class="rs-bar-val ${cls}">${sign}${(value * 100).toFixed(1)}%</span>
+      </div>`;
+  }
+
+  // ── Task 7: Grade badge ───────────────────────────────────────────────────
+  function gradeBadge(grade) {
+    if (!grade) return "";
+    const cls = grade === "A" || grade === "B" ? "badge-green"
+              : grade === "C" ? "badge-amber" : "badge-red";
+    return `<span class="badge ${cls}">Grade ${grade}</span>`;
+  }
+
+  function rsBadge(rs) {
+    if (rs == null) return "";
+    const cls = rs >= RS_THRESHOLD ? "badge-green" : "badge-amber";
+    return `<span class="badge ${cls}">RS ${rs}</span>`;
+  }
+
+  function sectorBadge(status) {
+    if (!status) return "";
+    const cls = status === "LEADING"   ? "badge-green"
+              : status === "IMPROVING" ? "badge-blue"
+              : status === "WEAKENING" ? "badge-amber" : "badge-gray";
+    return `<span class="badge ${cls}">${status}</span>`;
+  }
+
+  // ── Task 7: Decision banner ───────────────────────────────────────────────
+  function decisionBanner(c) {
+    const d    = c.decision;
+    const r    = c.reason ?? "";
+    const size = c.position_size_multiplier;
+
+    if (!d || d === "SKIP") return "";
+
+    const sizeStr = size != null ? `Position size: ${Math.round(size * 100)}%` : "";
+
+    if (d === "BUY") {
+      return `
+        <div class="decision-banner buy">
+          <div class="decision-banner-title">Confirmed — All layers aligned</div>
+          ${r ? `<div class="decision-banner-reason">${r}</div>` : ""}
+          ${sizeStr ? `<div class="decision-banner-size">${sizeStr}</div>` : ""}
+          <div class="banner-btn-row">
+            <button class="btn-primary" onclick="window._openModal('${c.ticker}')">+ Add to Radar</button>
+          </div>
+        </div>`;
+    }
+    if (d === "WATCH") {
+      return `
+        <div class="decision-banner watch">
+          <div class="decision-banner-title">Watch — Waiting for confirmation</div>
+          ${r ? `<div class="decision-banner-reason">${r}</div>` : ""}
+          <div class="banner-btn-row">
+            <button class="btn-secondary" onclick="window._openModal('${c.ticker}')">Add to watchlist</button>
+            <button class="btn-primary"   onclick="window._openModal('${c.ticker}')">Add to radar anyway</button>
+          </div>
+        </div>`;
+    }
+    if (d === "BUY_SMALL") {
+      return `
+        <div class="decision-banner small">
+          <div class="decision-banner-title">Contrarian opportunity (small position)</div>
+          ${r ? `<div class="decision-banner-reason">${r}</div>` : ""}
+          ${sizeStr ? `<div class="decision-banner-size">${sizeStr}</div>` : ""}
+          <div class="banner-btn-row">
+            <button class="btn-primary" onclick="window._openModal('${c.ticker}')">+ Add to Radar</button>
+          </div>
+        </div>`;
+    }
+    return "";
+  }
+
   // ── Detail panel ──────────────────────────────────────────────────────────
   function showDetail(mId, ticker) {
     const m = MARKETS.find(x => x.id === mId);
@@ -469,13 +757,35 @@
     const rrVal  = c.risk_reward  ? parseFloat(c.risk_reward)  : null;
     const volVal = c.volume_ratio ? parseFloat(c.volume_ratio) : null;
 
+    // Task 7 enrichment — only when decision engine fields present
+    const hasLayers = c.rs_rating != null || c.quality_grade != null;
+
+    const badgeRow = hasLayers ? `
+      <div class="badge-row">
+        ${rsBadge(c.rs_rating)}
+        ${gradeBadge(c.quality_grade)}
+        ${c.sector_short_status ? sectorBadge(c.sector_short_status) : ""}
+        ${c.days_to_earnings != null ? `<span class="badge badge-purple">Earnings in ${c.days_to_earnings}d</span>` : ""}
+      </div>` : "";
+
+    const rsBarsHtml = hasLayers && (c.return_30d != null || c.spy_return_30d != null) ? `
+      <div class="rs-bars">
+        <h3>30-Day Returns</h3>
+        ${rsBar(c.ticker, c.return_30d)}
+        ${rsBar("SPY", c.spy_return_30d)}
+      </div>` : "";
+
+    const bannerHtml = mId === "usa" ? decisionBanner(c) : "";
+
     document.getElementById(`detail-${mId}`).innerHTML = `
-      <div style="margin-bottom:16px;">
+      <div style="margin-bottom:12px;">
         <div class="detail-ticker">${c.ticker} ${streakBadge(c.streak)}</div>
         <div class="detail-close">${fmtClose(c, cur)}</div>
         <div class="detail-score ${scoreClass(score)}">${score}<span style="font-size:14px;color:#64748b;"> / 100</span></div>
+        ${badgeRow}
       </div>
       <div class="detail-why">${c.why_today ?? "No summary available."}</div>
+      ${rsBarsHtml}
       <div class="kv-grid">
         ${kv("Close",      fmtClose(c, cur))}
         ${kv("Support",    c.support    != null ? cur + Number(c.support).toFixed(2)    : null, "green")}
@@ -495,11 +805,111 @@
           <h3>Signals</h3>
           <ul class="signal-list">${c.signals.map(s => `<li>${s}</li>`).join("")}</ul>
         </div>` : ""}
-      <button class="action-btn" style="width:100%;padding:10px;margin-top:8px;"
-        onclick="window._openModal('${c.ticker}')">+ Add to Radar</button>`;
+      ${bannerHtml || `<button class="action-btn" style="width:100%;padding:10px;margin-top:8px;"
+        onclick="window._openModal('${c.ticker}')">+ Add to Radar</button>`}`;
   }
 
   window._openModal = openModal;
+
+  // ── Task 8: Opportunities tab ─────────────────────────────────────────────
+  async function renderOpportunities() {
+    if (!oppRendered) {
+      await loadSectorHistory();
+      oppRendered = true;
+    }
+
+    const grid = document.getElementById("opp-grid");
+    const usaCandidates = state["usa"]?.candidates ?? [];
+
+    if (!state["usa"]?.loaded) {
+      grid.innerHTML = `<div style="color:#64748b;font-size:13px;">Waiting for USA market data…</div>`;
+      return;
+    }
+
+    // ── CONTINUATION ─────────────────────────────────────────────────────────
+    const continuation = usaCandidates.filter(c => {
+      if (!["BUY", "WATCH"].includes(c.decision)) return false;
+      if (c.sector_short_status !== "LEADING") return false;
+      if ((c.rs_rating ?? 0) < RS_THRESHOLD) return false;
+      // Optional: small recent pullback
+      if (c.return_5d != null && (c.return_5d < -0.10 || c.return_5d > -0.03)) return false;
+      return true;
+    });
+
+    // ── EARLY ROTATION ────────────────────────────────────────────────────────
+    // Find sectors now IMPROVING that were LAGGING/WEAKENING 2 weeks ago
+    const rotationSectors = Object.values(sectorData).filter(s => {
+      if (s.short_status !== "IMPROVING") return false;
+      const hist = sectorHistData[s.etf];
+      if (!hist) return true; // include if no history (could be new rotation)
+      return hist.short_status === "LAGGING" || hist.short_status === "WEAKENING";
+    });
+
+    const rotationSectorNames = new Set(rotationSectors.map(s => s.sector));
+    const earlyRotation = usaCandidates.filter(c =>
+      rotationSectorNames.has(c.sector) &&
+      (c.quality_grade === "A" || c.quality_grade === "B" || !c.quality_grade)
+    );
+
+    // ── CONTRARIAN DIP ────────────────────────────────────────────────────────
+    const contrarian = usaCandidates.filter(c => c.decision === "BUY_SMALL");
+
+    function oppCard(c, reasonOverride) {
+      const rs = c.rs_rating;
+      const rsColor = rs != null ? (rs >= RS_THRESHOLD ? "#4ade80" : "#fb923c") : "#64748b";
+      return `
+        <div class="opp-card">
+          <div class="opp-card-top">
+            <span class="opp-card-ticker">${c.ticker}</span>
+            ${rs != null ? `<span class="opp-card-rs" style="color:${rsColor}">RS ${rs}</span>` : ""}
+          </div>
+          ${c.sector ? `<div class="opp-card-sector">${c.sector}</div>` : ""}
+          <div class="opp-card-reason">${reasonOverride ?? c.reason ?? c.why_today ?? ""}</div>
+        </div>`;
+    }
+
+    function section(icon, title, desc, items, emptyMsg) {
+      const cards = items.map(c => oppCard(c, null)).join("");
+      return `
+        <div class="opp-section">
+          <div class="opp-section-title">${icon} ${title}</div>
+          <div class="opp-section-desc">${desc}</div>
+          ${items.length ? cards : `<div class="opp-empty">${emptyMsg}</div>`}
+        </div>`;
+    }
+
+    function rotationCard(c) {
+      const sec = sectorData[Object.keys(sectorData).find(etf => sectorData[etf].sector === c.sector)] ?? {};
+      const reason = `Sector turned Improving this week — watch for individual confirmation`;
+      return oppCard(c, reason);
+    }
+
+    grid.innerHTML =
+      section("▲", "Continuation",
+        "Strong RS + leading sector + small recent pullback — potential buy-the-dip entry.",
+        continuation,
+        "No continuation setups today") +
+
+      section("↻", "Early Rotation",
+        "Sector just turned Improving after being Lagging/Weakening — early movers with quality fundamentals.",
+        earlyRotation.map(c => ({ ...c, _rotCard: true })),
+        "No early rotation sectors today") +
+
+      section("↓", "Contrarian Dip",
+        "Large drop in quality stocks with healthy long-term sector outlook — small position opportunity.",
+        contrarian,
+        "No contrarian dip setups today");
+
+    // Re-render rotation cards with override reason
+    if (earlyRotation.length) {
+      const rotSection = grid.children[1];
+      const rotCards = rotSection.querySelectorAll(".opp-card");
+      earlyRotation.forEach((c, i) => {
+        const reasonEl = rotCards[i]?.querySelector(".opp-card-reason");
+        if (reasonEl) reasonEl.textContent = "Sector turned Improving this week — watch for individual confirmation";
+      });
+    }
+  }
 
   // ── My Radar ──────────────────────────────────────────────────────────────
   async function loadRadar() {
@@ -551,7 +961,8 @@
     }
   });
 
-  // ── Boot: load all markets in parallel ────────────────────────────────────
+  // ── Boot ──────────────────────────────────────────────────────────────────
+  loadMacroAndSector();
   MARKETS.forEach(m => loadMarket(m));
 </script>
 
