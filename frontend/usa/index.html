@@ -499,13 +499,22 @@
     }
   }
 
+  function usaSessionFallback(daysAgo) {
+    if (daysAgo >= 1) return "Close · 16:00 ET";
+    const now = new Date();
+    const mins = now.getUTCHours() * 60 + now.getUTCMinutes();
+    if (mins < 17 * 60 + 30) return "09:30 – 13:30 ET";
+    if (mins < 20 * 60) return "13:30 – 16:00 ET";
+    return "Close · 16:00 ET";
+  }
+
   function setDateLabel(result) {
     const el = document.getElementById("date-usa");
     const niceDate = new Date(result.date + "T12:00:00").toLocaleDateString("en-US", {
       weekday: "short", month: "short", day: "numeric", year: "numeric"
     });
     const sample   = candidates[0] || {};
-    const sessionW = sample.session_window || "";
+    const sessionW = sample.session_window || usaSessionFallback(result.daysAgo);
     const evalAt   = sample.evaluated_at
       ? new Date(sample.evaluated_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", timeZone: "America/New_York" })
       : "";

@@ -190,6 +190,15 @@
     return null;
   }
 
+  function bistSessionFallback(daysAgo) {
+    if (daysAgo >= 1) return "Kapanış · 18:00";
+    const now = new Date();
+    const mins = now.getUTCHours() * 60 + now.getUTCMinutes();
+    if (mins < 11 * 60) return "10:00 – 14:00";
+    if (mins < 15 * 60) return "14:00 – 18:00";
+    return "Kapanış · 18:00";
+  }
+
   async function loadBIST() {
     const tbody = document.getElementById("tbody-bist");
     try {
@@ -208,7 +217,7 @@
         weekday: "short", month: "short", day: "numeric", year: "numeric"
       });
       const sample    = candidates[0] || {};
-      const sessionW  = sample.session_window || "";
+      const sessionW  = sample.session_window || bistSessionFallback(result.daysAgo);
       const evalAt    = sample.evaluated_at
         ? new Date(sample.evaluated_at).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul" })
         : "";
