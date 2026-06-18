@@ -39,6 +39,19 @@ logger = logging.getLogger(__name__)
 _CONFIG_DIR = Path(__file__).parent.parent / "config"
 
 
+def _market_open_now(market: str) -> bool:
+    from datetime import datetime, timezone
+    utc = datetime.now(timezone.utc)
+    day = utc.weekday()  # 0=Mon … 4=Fri
+    if day >= 5:
+        return False
+    mins = utc.hour * 60 + utc.minute
+    if market.upper() == "BIST":
+        return 7 * 60 <= mins < 15 * 60 + 5
+    else:  # USA
+        return 13 * 60 + 30 <= mins < 20 * 60
+
+
 def load_config() -> tuple[dict, dict]:
     universe = yaml.safe_load((_CONFIG_DIR / "universe.yaml").read_text())
     factors  = yaml.safe_load((_CONFIG_DIR / "factors.yaml").read_text())
@@ -276,13 +289,17 @@ def run(market_arg: str) -> None:
 
         candidates, daily_data = run_market(market, tickers, factors)
 
-        # Derive last trading date from price data (handles weekend/holiday runs)
+        # Use today's date when market is open (intraday runs); fall back to
+        # last bar date so weekend/holiday runs still tag the correct trading day.
+        from datetime import date, datetime, timezone
+        today_utc = date.today().isoformat()
         trade_date = None
         if daily_data:
             sample_df = next(iter(daily_data.values()))
             if not sample_df.empty:
-                trade_date = str(sample_df.index[-1].date())
-                logger.info("Last trading date for %s: %s", market.upper(), trade_date)
+                last_bar = str(sample_df.index[-1].date())
+                trade_date = today_utc if last_bar == today_utc or _market_open_now(market) else last_bar
+                logger.info("Trade date for %s: %s (last_bar=%s)", market.upper(), trade_date, last_bar)
 
         if market == "usa" and candidates:
             logger.info("[USA] Running enrichment layers + decision engine...")
