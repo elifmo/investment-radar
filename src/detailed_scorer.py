@@ -2,7 +2,7 @@ import logging
 
 import pandas as pd
 
-from ta_engine import analyze_ticker
+from ta_engine import Timeframe, analyze_ticker
 
 logger = logging.getLogger(__name__)
 
@@ -16,26 +16,31 @@ _DEFAULT_WEIGHTS = {
     "breakout": 10,
 }
 
+# Minimum bar-over-bar gain to award price_momentum points
+_MOMENTUM_PCT = {"daily": 1.0, "4h": 0.75, "1h": 0.5}
+
 
 def score_ticker(
     ticker: str,
     df: pd.DataFrame,
     weights: dict | None = None,
+    timeframe: Timeframe = "daily",
 ) -> tuple[int, list[str]]:
     """Score a ticker 0-100 based on TA indicators.
 
     Returns (score, signals_list).
     """
     w = weights or _DEFAULT_WEIGHTS
-    analysis = analyze_ticker(ticker, df, "daily")
+    analysis = analyze_ticker(ticker, df, timeframe)
 
     if analysis["error"] or not analysis["indicators"]:
-        logger.warning("Cannot score %s: %s", ticker, analysis.get("error"))
+        logger.warning("Cannot score %s (%s): %s", ticker, timeframe, analysis.get("error"))
         return 0, []
 
     ind = analysis["indicators"]
     score = 0
     signals: list[str] = []
+    bar_label = "4H bar" if timeframe == "4h" else "bar" if timeframe == "1h" else "today"
 
     # EMA alignment
     ema = ind["ema"]
@@ -46,7 +51,7 @@ def score_ticker(
         score += w["ema_alignment"] // 2
         signals.append("✅ EMA5 > EMA20 (short-term momentum)")
 
-    # RSI health
+    # RSI health (daily and 4h only)
     rsi = ind["rsi"]
     if rsi:
         rv = rsi["value"]
@@ -67,16 +72,17 @@ def score_ticker(
         score += w["volume_spike"] // 2
         signals.append(f"⚠️ Volume {vol['volume_ratio']:.1f}x (moderate)")
 
-    # Price momentum (today's candle)
+    # Price momentum (last bar vs previous bar)
     close = ind["latest_close"]
     prev_close = float(df["Close"].iloc[-2])
+    mom_pct = _MOMENTUM_PCT.get(timeframe, 1.0)
     if prev_close > 0:
-        daily_chg = (close - prev_close) / prev_close * 100
-        if daily_chg >= 1.0:
+        bar_chg = (close - prev_close) / prev_close * 100
+        if bar_chg >= mom_pct:
             score += w["price_momentum"]
-            signals.append(f"✅ Price +{daily_chg:.1f}% today")
-        elif daily_chg <= -1.5:
-            signals.append(f"❌ Price {daily_chg:.1f}% today")
+            signals.append(f"✅ Price +{bar_chg:.1f}% ({bar_label})")
+        elif bar_chg <= -1.5:
+            signals.append(f"❌ Price {bar_chg:.1f}% ({bar_label})")
 
     # Bollinger position
     bb = ind["bollinger"]
@@ -103,18 +109,19 @@ def score_ticker(
 
 def score_all(
     triggered_tickers: list[str],
-    daily_data: dict[str, pd.DataFrame],
+    ohlcv_data: dict[str, pd.DataFrame],
     weights: dict | None = None,
+    timeframe: Timeframe = "daily",
 ) -> list[dict]:
     """Score all triggered tickers. Returns list sorted by score descending."""
     scored = []
     for ticker in triggered_tickers:
-        df = daily_data.get(ticker)
+        df = ohlcv_data.get(ticker)
         if df is None:
             continue
         try:
-            score, signals = score_ticker(ticker, df, weights)
-            ind = analyze_ticker(ticker, df, "daily")["indicators"]
+            score, signals = score_ticker(ticker, df, weights, timeframe)
+            ind = analyze_ticker(ticker, df, timeframe)["indicators"]
             scored.append({
                 "ticker": ticker,
                 "score": score,
@@ -124,8 +131,9 @@ def score_all(
                 "resistance": ind["support_resistance"]["nearest_resistance"] if ind else None,
                 "volume_ratio": round(ind["volume"]["volume_ratio"], 2) if ind else None,
                 "rsi": round(ind["rsi"]["value"], 1) if ind and ind["rsi"] else None,
+                "timeframe": timeframe,
             })
         except Exception as exc:
-            logger.error("Scoring failed for %s: %s", ticker, exc)
+            logger.error("Scoring failed for %s (%s): %s", ticker, timeframe, exc)
 
     return sorted(scored, key=lambda x: x["score"], reverse=True)

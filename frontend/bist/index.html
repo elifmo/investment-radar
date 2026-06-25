@@ -41,6 +41,22 @@
       background: #3b1f0a; color: #fb923c; border-radius: 4px;
       padding: 1px 6px; margin-right: 6px; vertical-align: middle;
     }
+    .timeframe-badge {
+      display: inline-block; font-size: 10px; font-weight: 700;
+      background: #1e2a4a; color: #93c5fd; border-radius: 4px;
+      padding: 1px 6px; margin-right: 6px; vertical-align: middle;
+    }
+    .scan-meta {
+      display: inline; font-size: 11px; color: #94a3b8; margin-left: 6px;
+    }
+    .scan-meta .window { color: #cbd5e1; font-weight: 600; }
+
+    .scan-warning {
+      background: #3b1f0a; border: 1px solid #92400e; border-radius: 8px;
+      padding: 10px 14px; margin-bottom: 12px; font-size: 12px;
+      color: #fdba74; line-height: 1.5;
+    }
+    .scan-warning strong { color: #fb923c; }
 
     table { width: 100%; border-collapse: collapse; }
     thead th {
@@ -116,14 +132,15 @@
       <span class="panel-title">🇹🇷 BIST 100</span>
       <span class="panel-date" id="date-bist">Loading...</span>
     </div>
+    <div id="scan-warning" class="scan-warning" hidden></div>
     <table>
       <thead>
         <tr>
-          <th>Ticker</th><th>Close</th><th>Score</th><th>Streak</th><th>Why Today</th>
+          <th>Ticker</th><th>Sektör</th><th>Close</th><th>Score</th><th>Streak</th><th>Why Today</th>
         </tr>
       </thead>
       <tbody id="tbody-bist">
-        <tr class="status-row"><td colspan="5">Loading...</td></tr>
+        <tr class="status-row"><td colspan="6">Loading...</td></tr>
       </tbody>
     </table>
   </div>
@@ -135,7 +152,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
   import {
-    getFirestore, collection, getDocs, query, where
+    getFirestore, collection, getDocs, getDoc, doc, query, where
   } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -151,6 +168,64 @@
   const db  = getFirestore(app);
 
   const MARKET = { openUTC: 7*60+0, closeUTC: 15*60+5 };
+
+  const BIST_COMPANIES = {
+    AKBNK:"Akbank",AKSEN:"Aksa Enerji",ALARK:"Alarko Holding",ARCLK:"Arçelik",
+    ASELS:"Aselsan",ASTOR:"Astor Enerji",BIMAS:"BİM Mağazalar",BRISA:"Brisa Bridgestone",
+    CCOLA:"Coca-Cola İçecek",CIMSA:"Çimsa",DOAS:"Doğuş Otomotiv",DOHOL:"Doğan Holding",
+    EKGYO:"Emlak Konut GYO",ENKAI:"Enka İnşaat",EREGL:"Ereğli Demir Çelik",FROTO:"Ford Otosan",
+    GARAN:"Garanti BBVA",GUBRF:"Gübre Fabrikaları",HALKB:"Halkbank",HEKTS:"Hektaş",
+    ISCTR:"İş Bankası",ISGYO:"İş GYO",KCHOL:"Koç Holding",KORDS:"Kordsa",
+    KRDMD:"Kardemir",LOGO:"Logo Yazılım",MGROS:"Migros",ODAS:"Odaş Elektrik",
+    OTKAR:"Otokar",OYAKC:"Oyak Çimento",PETKM:"Petkim",PGSUS:"Pegasus",
+    SAHOL:"Sabancı Holding",SASA:"Sasa Polyester",SISE:"Şişe Cam",SKBNK:"Şekerbank",
+    TAVHL:"TAV Havalimanları",TCELL:"Turkcell",THYAO:"Türk Hava Yolları",TKFEN:"Tekfen Holding",
+    TOASO:"Tofaş",TTKOM:"Türk Telekom",TTRAK:"Türk Traktör",TUPRS:"Tüpraş",
+    ULKER:"Ülker",VAKBN:"Vakıfbank",VESTL:"Vestel",YKBNK:"Yapı Kredi",
+    AKGRT:"Aksigorta",AEFES:"Anadolu Efes",BERA:"Bera Holding",CWENE:"Cw Enerji",
+    ENJSA:"Enerjisa Enerji",FENER:"Fenerbahçe",FRIGO:"Frigo-Pak",GESAN:"Gesan",
+    INDES:"İndeks Bilgisayar",ISDMR:"İskenderun Demir",KAREL:"Karel Elektronik",
+    MAVI:"Mavi Giyim",NTHOL:"Net Holding",PARSN:"Parsan",SELEC:"Selçuk Ecza",
+    SOKM:"Şok Marketler",TKNSA:"Teknosa",TMSN:"Tümosan",VESBE:"Vestel Beyaz Eşya",
+    YATAS:"Yataş",KOZAL:"Koza Altın",KOZAA:"Koza Anadolu",MPARK:"MedicalPark",
+    TURSG:"Türkiye Sigorta",AKSA:"Aksa Akrilik",AGHOL:"AG Anadolu Grubu",
+    KONTR:"Kontrolmatik",PENTA:"Penta Teknoloji",AYDEM:"Aydem Enerji",
+    ALKIM:"Alkim Alkali",QUAGR:"Quaranta Agri",REEDR:"Reeder Teknoloji",
+    SMRTG:"Smart Güneş",NETAS:"Netaş Telekomünikasyon",LIDER:"Lider Faktoring",
+    ULUFA:"Ulusal Faktoring",BAGFS:"Bagfaş",BUCIM:"Bursa Çimento",IPEKE:"İpek Doğal Enerji",
+    EGEEN:"Ege Endüstri",RAYSG:"Ray Sigorta",GLYHO:"Global Yatırım Holding",
+    JANTS:"Jantsa",CEMTS:"Çemaş",EUPWR:"Europower Enerji",
+  };
+
+  const BIST_SECTORS = {
+    AKBNK:"Bankacılık",GARAN:"Bankacılık",HALKB:"Bankacılık",ISCTR:"Bankacılık",
+    SKBNK:"Bankacılık",VAKBN:"Bankacılık",YKBNK:"Bankacılık",
+    AKSEN:"Enerji",ASTOR:"Enerji",ODAS:"Enerji",AYDEM:"Enerji",CWENE:"Enerji",
+    ENJSA:"Enerji",EUPWR:"Enerji",SMRTG:"Enerji",IPEKE:"Enerji",EGEEN:"Enerji",
+    ALARK:"Holding",DOHOL:"Holding",KCHOL:"Holding",SAHOL:"Holding",TKFEN:"Holding",
+    AGHOL:"Holding",GLYHO:"Holding",NTHOL:"Holding",
+    ARCLK:"Tüketim",DOAS:"Otomotiv",FROTO:"Otomotiv",OTKAR:"Otomotiv",TOASO:"Otomotiv",
+    TTRAK:"Otomotiv",TMSN:"Otomotiv",
+    ASELS:"Savunma",
+    BIMAS:"Perakende",MGROS:"Perakende",SOKM:"Perakende",TKNSA:"Perakende",
+    ULKER:"Gıda",CCOLA:"İçecek",AEFES:"İçecek",
+    EKGYO:"GYO",ISGYO:"GYO",SMRTG:"GYO",
+    EREGL:"Demir-Çelik",KRDMD:"Demir-Çelik",ISDMR:"Demir-Çelik",
+    PETKM:"Petrokimya",SASA:"Petrokimya",TUPRS:"Petrokimya",
+    CIMSA:"Çimento",OYAKC:"Çimento",BUCIM:"Çimento",CEMTS:"Çimento",
+    LOGO:"Teknoloji",KAREL:"Teknoloji",INDES:"Teknoloji",PENTA:"Teknoloji",
+    NETAS:"Teknoloji",REEDR:"Teknoloji",
+    TCELL:"Telekom",TTKOM:"Telekom",
+    PGSUS:"Havacılık",TAVHL:"Havacılık",THYAO:"Havacılık",TURSG:"Havacılık",
+    FENER:"Spor",
+    ENKAI:"İnşaat",KONTR:"İnşaat",
+    SISE:"Cam",BRISA:"Lastik",GUBRF:"Gübre",BAGFS:"Gübre",ALKIM:"Kimya",
+    HEKTS:"Tarım",KORDS:"Tekstil",MAVI:"Tekstil",YATAS:"Tekstil",VESTL:"Elektronik",
+    VESBE:"Elektronik",AKGRT:"Sigorta",TURSG:"Sigorta",RAYSG:"Sigorta",
+    KOZAL:"Madencilik",KOZAA:"Madencilik",
+    MPARK:"Sağlık",SELEC:"Sağlık",FRIGO:"Gıda",PARSN:"Makine",GESAN:"Elektrik",
+    LIDER:"Faktoring",ULUFA:"Faktoring",
+  };
 
   function marketHasClosed() {
     const now = new Date();
@@ -169,13 +244,38 @@
 
   let candidates = [];
 
+  const IST = "Europe/Istanbul";
+
   function localDateStr(d) {
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  }
+
+  function marketTodayStr(tz) {
+    return new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
   }
 
   async function findLatest() {
     const now = new Date();
     const startFrom = marketHasClosed() ? 0 : 1;
+    const metaByDate = {};
+    try {
+      const metaSnap = await getDocs(query(collection(db, "scan_meta"), where("market", "==", "BIST")));
+      metaSnap.docs.forEach(d => { metaByDate[d.data().date] = d.data(); });
+    } catch (e) { console.warn("scan_meta load failed:", e); }
+
+    const todayStr = marketTodayStr(IST);
+    let todayEmptyScan = false;
+    if (isMarketOpen()) {
+      const todaySnap = await getDocs(query(
+        collection(db, "daily_candidates"),
+        where("market", "==", "BIST"),
+        where("date", "==", todayStr)
+      ));
+      todayEmptyScan = !!metaByDate[todayStr] && todaySnap.empty;
+    }
+
+    let metaOnly = null;
+
     for (let i = startFrom; i < 7; i++) {
       const d = new Date(now);
       d.setDate(d.getDate() - i);
@@ -185,18 +285,75 @@
         where("market", "==", "BIST"),
         where("date",   "==", dateStr)
       ));
-      if (!snap.empty) return { docs: snap.docs, date: dateStr, daysAgo: i };
+      if (!snap.empty) {
+        return { docs: snap.docs, date: dateStr, daysAgo: i, meta: metaByDate[dateStr] || null, todayEmptyScan };
+      }
+      if (metaByDate[dateStr] && !metaOnly) {
+        metaOnly = { docs: [], date: dateStr, daysAgo: i, meta: metaByDate[dateStr] };
+      }
     }
+    if (metaOnly) return { ...metaOnly, todayEmptyScan };
     return null;
   }
 
+  function localMins(iso, tz) {
+    const p = new Intl.DateTimeFormat("en-US", {
+      hour: "2-digit", minute: "2-digit", hour12: false, timeZone: tz,
+    }).formatToParts(new Date(iso));
+    return Number(p.find(x => x.type === "hour").value) * 60 + Number(p.find(x => x.type === "minute").value);
+  }
+
+  function deriveBistWindowFromEval(iso) {
+    const mins = localMins(iso, IST);
+    if (mins >= 18 * 60 + 15 || mins < 10 * 60 + 15) return "Kapanış · İstanbul";
+    if (mins < 14 * 60 + 15) return "10:00 – 14:00 · İstanbul";
+    return "14:00 – 18:00 · İstanbul";
+  }
+
+  function bistWindowLabel(raw, daysAgo, evaluatedAt) {
+    if (evaluatedAt) return deriveBistWindowFromEval(evaluatedAt);
+    const s = (raw || "").toLowerCase();
+    if (s.includes("10:00") && s.includes("14:00")) return "10:00 – 14:00 · İstanbul";
+    if (s.includes("14:00") && s.includes("18:00")) return "14:00 – 18:00 · İstanbul";
+    if (s.includes("kapanış") || s.includes("close")) return "Kapanış · İstanbul";
+    return bistSessionFallback(daysAgo);
+  }
+
   function bistSessionFallback(daysAgo) {
-    if (daysAgo >= 1) return "Kapanış · 18:00";
+    if (daysAgo >= 1) return "Kapanış · İstanbul";
     const now = new Date();
-    const mins = now.getUTCHours() * 60 + now.getUTCMinutes();
-    if (mins < 11 * 60) return "10:00 – 14:00";
-    if (mins < 15 * 60) return "14:00 – 18:00";
-    return "Kapanış · 18:00";
+    const tr = new Intl.DateTimeFormat("tr-TR", {
+      hour: "2-digit", minute: "2-digit", hour12: false, timeZone: IST,
+    }).formatToParts(now);
+    const h = Number(tr.find(p => p.type === "hour").value);
+    const m = Number(tr.find(p => p.type === "minute").value);
+    const mins = h * 60 + m;
+    if (mins < 14 * 60 + 30) return "10:00 – 14:00 · İstanbul";
+    if (mins < 18 * 60 + 30) return "14:00 – 18:00 · İstanbul";
+    return "Kapanış · İstanbul";
+  }
+
+  function fmtUpdatedIST(iso) {
+    if (!iso) return "";
+    return new Date(iso).toLocaleString("tr-TR", {
+      day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: IST,
+    });
+  }
+
+  function renderScanWarning(result) {
+    const el = document.getElementById("scan-warning");
+    if (!el) return;
+    if (!result?.todayEmptyScan) {
+      el.hidden = true;
+      el.innerHTML = "";
+      return;
+    }
+    el.hidden = false;
+    if (result.daysAgo > 0) {
+      el.innerHTML = `<strong>⚠ Bugün piyasa açık</strong> — bu taramada yeterli aday yok. Alttaki liste önceki oturuma ait.`;
+    } else {
+      el.innerHTML = `<strong>⚠ Bugün piyasa açık</strong> — yeterli aday bulunamadı.`;
+    }
   }
 
   async function loadBIST() {
@@ -207,6 +364,7 @@
         tbody.innerHTML = `<tr class="status-row"><td colspan="5">No data yet.<br>
           <small style="color:#64748b">Run: python pipeline.py bist</small></td></tr>`;
         document.getElementById("date-bist").textContent = "No data";
+        renderScanWarning(null);
         return;
       }
 
@@ -214,27 +372,26 @@
       candidates.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
 
       const niceDate = new Date(result.date + "T12:00:00").toLocaleDateString("tr-TR", {
-        weekday: "short", month: "short", day: "numeric", year: "numeric"
+        weekday: "short", month: "short", day: "numeric", year: "numeric", timeZone: IST,
       });
-      const sample    = candidates[0] || {};
-      const sessionW  = sample.session_window || bistSessionFallback(result.daysAgo);
-      const evalAt    = sample.evaluated_at
-        ? new Date(sample.evaluated_at).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul" })
-        : "";
-      const sessionTag = sessionW
-        ? `<span style="font-size:11px;color:#94a3b8;margin-left:6px;">⏱ ${sessionW}${evalAt ? " · " + evalAt : ""}</span>`
-        : "";
+      const sample    = candidates[0] || result.meta || {};
+      const is4h      = sample.timeframe === "4h" || !!result.meta;
+      const tfBadge   = is4h ? `<span class="timeframe-badge">4H ANALİZ</span>` : "";
+      const window    = bistWindowLabel(sample.session_window, result.daysAgo, sample.evaluated_at);
+      const updated   = fmtUpdatedIST(sample.evaluated_at);
       const openTag   = isMarketOpen() ? `<span class="market-open-tag">⚠ AÇIK</span>` : "";
       const dateClass = result.daysAgo === 0 ? "date-today" : result.daysAgo === 1 ? "date-yesterday" : "date-stale";
       const stale     = result.daysAgo >= 2 ? ` · ${result.daysAgo} gün önce` : "";
+      const meta = `<span class="scan-meta" title="Bu 4 saatlik dilim için hesaplanan skorlar">⏱ <span class="window">${window}</span>${updated ? ` · güncellendi ${updated}` : ""}</span>`;
       document.getElementById("date-bist").innerHTML =
-        `${openTag}<span class="${dateClass}">${niceDate}${stale}</span>${sessionTag}`;
+        `${openTag}${tfBadge}<span class="${dateClass}">${niceDate}${stale}</span>${meta}`;
 
       const openPart  = isMarketOpen() ? " · ⚠ Açık" : "";
       const stalePart = result.daysAgo >= 2 ? ` · ${result.daysAgo}g önce` : "";
       document.getElementById("last-updated").textContent =
-        `🇹🇷 BIST${openPart} · ${niceDate}${stalePart}${sessionW ? " · " + sessionW : ""}`;
+        `🇹🇷 BIST${openPart} · ${niceDate}${stalePart} · ${window}`;
 
+      renderScanWarning(result);
       renderTable();
     } catch (err) {
       console.error("Error loading BIST:", err);
@@ -259,7 +416,10 @@
   function renderTable() {
     const tbody = document.getElementById("tbody-bist");
     if (candidates.length === 0) {
-      tbody.innerHTML = `<tr class="status-row"><td colspan="5">No candidates found.</td></tr>`;
+      tbody.innerHTML = `<tr class="status-row"><td colspan="5">Bugün aday yok (min skor 65).<br>
+        <small style="color:#64748b">Son tarama tamamlandı; kriterleri geçen hisse bulunamadı.</small></td></tr>`;
+      document.getElementById("detail-bist").innerHTML =
+        `<div class="detail-empty">Bugün aday çıkmadı.<br><small style="color:#64748b">Pipeline çalıştı, liste boş.</small></div>`;
       return;
     }
     tbody.innerHTML = candidates.map(c => {
@@ -267,6 +427,7 @@
       return `
         <tr data-ticker="${c.ticker}">
           <td class="ticker-cell">${c.ticker.replace(".IS", "")}</td>
+          <td style="font-size:11px;color:#64748b;">${BIST_SECTORS[c.ticker.replace(".IS","")] ?? "-"}</td>
           <td class="close-cell">${fmtClose(c)}</td>
           <td class="score-cell ${scoreClass(score)}">${score}</td>
           <td>${streakBadge(c.streak)}</td>
@@ -294,6 +455,8 @@
     document.getElementById("detail-bist").innerHTML = `
       <div style="margin-bottom:12px;">
         <div class="detail-ticker">${c.ticker.replace(".IS", "")} ${streakBadge(c.streak)}</div>
+        ${BIST_COMPANIES[c.ticker.replace(".IS","")] ? `<div style="font-size:12px;color:#94a3b8;margin-bottom:2px;">${BIST_COMPANIES[c.ticker.replace(".IS","")]}</div>` : ""}
+        ${BIST_SECTORS[c.ticker.replace(".IS","")] ? `<div style="font-size:11px;color:#6366f1;font-weight:600;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;">${BIST_SECTORS[c.ticker.replace(".IS","")]}</div>` : ""}
         <div class="detail-close">${fmtClose(c)}</div>
         <div class="detail-score ${scoreClass(score)}">${score}<span style="font-size:14px;color:#64748b;"> / 100</span></div>
       </div>

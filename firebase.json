@@ -1,4 +1,11 @@
 {
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "runtime": "python313"
+    }
+  ],
   "hosting": [
     {
       "site": "investment-radar-usa",

@@ -13,9 +13,10 @@ from pathlib import Path
 
 import yaml
 
-from data_fetcher import fetch_batch_daily
+from data_fetcher import fetch_batch_daily, fetch_batch_4h
 from event_filter import run_event_filter
 from detailed_scorer import score_all
+from ta_engine import Timeframe
 from firebase_writer import (
     init_firebase,
     write_daily_candidates,
@@ -58,66 +59,89 @@ def load_config() -> tuple[dict, dict]:
     return universe, factors
 
 
+def _scan_timeframe(factors: dict) -> Timeframe:
+    tf = (factors.get("scan") or {}).get("timeframe", "daily")
+    return "4h" if tf == "4h" else "daily"
+
+
+def _event_thresholds(factors: dict, timeframe: Timeframe) -> dict:
+    key = "thresholds_4h" if timeframe == "4h" else "thresholds"
+    base = factors.get(key) or factors.get("thresholds", {})
+    return {
+        "volume_threshold": base.get("volume_spike_ratio", 1.5),
+        "price_move_pct": base.get("price_move_pct", 2.0),
+        "rsi_oversold": base.get("rsi_oversold", 35),
+        "rsi_lookback": base.get("rsi_bounce_lookback", 5),
+        "support_prox_pct": base.get("support_proximity_pct", 2.0),
+    }
+
+
 def run_market(market: str, tickers: list[str], factors: dict) -> tuple[list[dict], dict]:
     """
     Run core pipeline (fetch → event filter → score) for a market.
 
     Returns:
-        (candidates, daily_data) — daily_data exposed so USA enrichment can reuse it.
+        (candidates, daily_data) — daily_data for USA enrichment layers.
     """
     min_score = factors.get("min_score", 65)
     weights   = factors.get("weights", {})
-    thresh    = factors.get("thresholds", {})
+    timeframe = _scan_timeframe(factors)
+    thresh    = _event_thresholds(factors, timeframe)
 
-    logger.info("── %s pipeline: %d tickers ──", market.upper(), len(tickers))
+    logger.info("── %s pipeline: %d tickers (scan=%s) ──", market.upper(), len(tickers), timeframe)
 
-    logger.info("[1/3] Fetching daily data...")
-    daily_data = fetch_batch_daily(tickers)
-    logger.info("  Fetched: %d / %d tickers", len(daily_data), len(tickers))
+    logger.info("[1/3] Fetching %s scan data...", timeframe)
+    if timeframe == "4h":
+        scan_data = fetch_batch_4h(tickers)
+    else:
+        scan_data = fetch_batch_daily(tickers)
+    logger.info("  Fetched: %d / %d tickers", len(scan_data), len(tickers))
 
-    logger.info("[2/3] Running event filter...")
+    logger.info("[2/3] Running event filter (%s)...", timeframe)
     events = run_event_filter(
-        daily_data,
+        scan_data,
         market=market.upper(),
-        volume_threshold=thresh.get("volume_spike_ratio", 1.5),
-        price_move_pct=thresh.get("price_move_pct", 2.0),
-        rsi_oversold=thresh.get("rsi_oversold", 35),
-        rsi_lookback=thresh.get("rsi_bounce_lookback", 5),
-        support_prox_pct=thresh.get("support_proximity_pct", 2.0),
+        **thresh,
     )
     triggered_tickers = [e["ticker"] for e in events]
     trigger_map       = {e["ticker"]: e["triggers"] for e in events}
-    logger.info("  Triggered: %d / %d", len(triggered_tickers), len(daily_data))
+    logger.info("  Triggered: %d / %d", len(triggered_tickers), len(scan_data))
 
     if not triggered_tickers:
-        logger.info("  No events detected for %s today.", market.upper())
+        logger.info("  No events detected for %s (%s).", market.upper(), timeframe)
+        daily_data = fetch_batch_daily(tickers) if timeframe == "4h" else scan_data
         return [], daily_data
 
-    logger.info("[3/3] Scoring %d triggered tickers...", len(triggered_tickers))
-    scored = score_all(triggered_tickers, daily_data, weights)
+    logger.info("[3/3] Scoring %d triggered tickers (%s)...", len(triggered_tickers), timeframe)
+    scored = score_all(triggered_tickers, scan_data, weights, timeframe=timeframe)
 
     candidates = [
         {
             **c,
             "market":    market.upper(),
             "triggers":  trigger_map.get(c["ticker"], []),
-            "why_today": _build_why(c, trigger_map.get(c["ticker"], [])),
+            "why_today": _build_why(c, trigger_map.get(c["ticker"], []), timeframe),
+            "timeframe": timeframe,
         }
         for c in scored
         if c["score"] >= min_score
     ][:10]
 
-    logger.info("  Final candidates: %d (min_score=%d)", len(candidates), min_score)
+    logger.info("  Final candidates: %d (min_score=%d, %s)", len(candidates), min_score, timeframe)
     for c in candidates:
         logger.info("  %s — score=%d  why=%s", c["ticker"], c["score"], c["why_today"])
 
+    # USA enrichment layers (RS, sector) still need daily OHLCV
+    daily_data = fetch_batch_daily(tickers) if timeframe == "4h" else scan_data
     return candidates, daily_data
 
 
-def _build_why(candidate: dict, triggers: list[str]) -> str:
+def _build_why(candidate: dict, triggers: list[str], timeframe: Timeframe = "daily") -> str:
     parts = []
     if candidate.get("score", 0) >= 80:
         parts.append("Strong setup")
+    if timeframe == "4h":
+        parts.append("4H scan")
     if "volume_spike" in triggers:
         ratio = candidate.get("volume_ratio")
         parts.append(f"Volume {ratio:.1f}x" if ratio else "Volume spike")

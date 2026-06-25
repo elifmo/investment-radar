@@ -55,6 +55,22 @@
       background: #3b1f0a; color: #fb923c; border-radius: 4px;
       padding: 1px 6px; margin-right: 6px; vertical-align: middle;
     }
+    .timeframe-badge {
+      display: inline-block; font-size: 10px; font-weight: 700;
+      background: #1e2a4a; color: #93c5fd; border-radius: 4px;
+      padding: 1px 6px; margin-right: 6px; vertical-align: middle;
+    }
+    .scan-meta {
+      display: inline; font-size: 11px; color: #94a3b8; margin-left: 6px;
+    }
+    .scan-meta .window { color: #cbd5e1; font-weight: 600; }
+
+    .scan-warning {
+      background: #3b1f0a; border: 1px solid #92400e; border-radius: 8px;
+      padding: 10px 14px; margin-bottom: 12px; font-size: 12px;
+      color: #fdba74; line-height: 1.5;
+    }
+    .scan-warning strong { color: #fb923c; }
 
     table { width: 100%; border-collapse: collapse; }
     thead th {
@@ -261,6 +277,125 @@
     .opp-card-sector { font-size: 11px; color: #6366f1; margin-bottom: 5px; }
     .opp-card-reason { font-size: 12px; color: #94a3b8; line-height: 1.4; }
     .opp-empty { color: #4b5563; font-size: 12px; text-align: center; padding: 20px 0; }
+
+    /* ── Deep Dive ─────────────────────────────────────────────────── */
+    #tab-deepdive {
+      padding: 32px 24px; overflow-y: auto; height: calc(100vh - 97px);
+      max-width: 860px; margin: 0 auto;
+    }
+    .dd-search-wrap {
+      display: flex; gap: 10px; margin-bottom: 32px;
+    }
+    .dd-search-input {
+      flex: 1; background: #1a1d27; border: 1px solid #2d3148;
+      border-radius: 8px; color: #e2e8f0; font-size: 16px; font-weight: 600;
+      padding: 12px 16px; outline: none; text-transform: uppercase;
+      letter-spacing: 0.05em; transition: border-color 0.15s;
+    }
+    .dd-search-input::placeholder { color: #4b5563; font-weight: 400; letter-spacing: 0; text-transform: none; }
+    .dd-search-input:focus { border-color: #6366f1; }
+    .dd-search-btn {
+      background: #6366f1; border: none; border-radius: 8px;
+      color: #fff; cursor: pointer; font-size: 14px; font-weight: 700;
+      padding: 12px 24px; transition: background 0.15s; white-space: nowrap;
+    }
+    .dd-search-btn:hover { background: #4f46e5; }
+    .dd-search-btn:disabled { background: #374151; cursor: not-allowed; }
+
+    .dd-status { text-align: center; color: #4b5563; font-size: 13px; padding: 60px 0; line-height: 1.8; }
+    .dd-loading { text-align: center; padding: 60px 0; color: #6366f1; font-size: 14px; }
+    .dd-error   { background: #2b0d0d; border: 1px solid #7f1d1d; border-radius: 8px;
+                  padding: 16px; color: #f87171; font-size: 13px; margin-bottom: 16px; }
+
+    .dd-header { margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid #2d3148; }
+    .dd-title { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+    .dd-subtitle { font-size: 12px; color: #64748b; margin-bottom: 12px; }
+    .dd-stats { display: flex; gap: 20px; flex-wrap: wrap; font-size: 13px; color: #94a3b8; }
+    .dd-stats span b { color: #e2e8f0; }
+
+    .dd-snapshot {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px;
+    }
+    .dd-snap-item {
+      background: #1a1d27; border-radius: 8px; padding: 12px 14px;
+    }
+    .dd-snap-label { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 4px; }
+    .dd-snap-val   { font-size: 13px; color: #e2e8f0; line-height: 1.4; }
+
+    .dd-situation {
+      background: #1a1d27; border-left: 3px solid #6366f1;
+      border-radius: 0 8px 8px 0; padding: 16px; margin-bottom: 24px;
+      font-size: 14px; line-height: 1.7; color: #cbd5e1;
+    }
+
+    .dd-decision {
+      border-radius: 10px; padding: 18px; margin-bottom: 24px;
+    }
+    .dd-decision.buy   { background: #0d2b1a; border: 1px solid #14532d; }
+    .dd-decision.watch { background: #2b1a03; border: 1px solid #7c2d12; }
+    .dd-decision.avoid { background: #2b0d0d; border: 1px solid #7f1d1d; }
+    .dd-decision-label {
+      font-size: 18px; font-weight: 800; margin-bottom: 6px; letter-spacing: 0.03em;
+    }
+    .dd-decision.buy   .dd-decision-label { color: #4ade80; }
+    .dd-decision.watch .dd-decision-label { color: #fb923c; }
+    .dd-decision.avoid .dd-decision-label { color: #f87171; }
+    .dd-decision-reason { font-size: 13px; color: #94a3b8; margin-bottom: 14px; line-height: 1.5; }
+    .dd-levels { display: flex; gap: 10px; flex-wrap: wrap; }
+    .dd-level {
+      background: rgba(0,0,0,0.2); border-radius: 6px; padding: 8px 12px; flex: 1; min-width: 140px;
+    }
+    .dd-level-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: #64748b; margin-bottom: 3px; }
+    .dd-level-price { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+    .dd-level-note  { font-size: 11px; color: #64748b; line-height: 1.4; }
+    .dd-level.entry     .dd-level-price { color: #4ade80; }
+    .dd-level.breakout  .dd-level-price { color: #60a5fa; }
+    .dd-level.stop      .dd-level-price { color: #f87171; }
+
+    .dd-section { margin-bottom: 24px; }
+    .dd-section-title {
+      font-size: 11px; font-weight: 700; color: #64748b;
+      text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px;
+    }
+    .dd-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .dd-bull-bear {
+      background: #1a1d27; border-radius: 8px; padding: 14px;
+    }
+    .dd-bull-bear h4 { font-size: 12px; font-weight: 700; margin-bottom: 10px; }
+    .dd-bull-bear.bull h4 { color: #4ade80; }
+    .dd-bull-bear.bear h4 { color: #f87171; }
+    .dd-bull-bear ul { list-style: none; }
+    .dd-bull-bear li { font-size: 12px; color: #94a3b8; padding: 4px 0; line-height: 1.5; padding-left: 14px; position: relative; }
+    .dd-bull-bear li::before { content: "•"; position: absolute; left: 0; }
+    .dd-bull-bear.bull li::before { color: #4ade80; }
+    .dd-bull-bear.bear li::before { color: #f87171; }
+
+    .dd-news-item {
+      display: flex; align-items: baseline; gap: 10px; padding: 8px 0;
+      border-bottom: 1px solid #1e2130; font-size: 12px;
+    }
+    .dd-news-item:last-child { border-bottom: none; }
+    .dd-news-emoji { font-size: 14px; flex-shrink: 0; }
+    .dd-news-title { color: #cbd5e1; flex: 1; line-height: 1.4; }
+    .dd-news-sent  { font-size: 10px; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
+    .dd-news-sent.pos { color: #4ade80; }
+    .dd-news-sent.neg { color: #f87171; }
+    .dd-news-sent.neu { color: #94a3b8; }
+
+    .dd-fund-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .dd-fund-item { background: #1a1d27; border-radius: 8px; padding: 12px 14px; }
+    .dd-fund-label { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 4px; }
+    .dd-fund-val   { font-size: 13px; color: #e2e8f0; line-height: 1.4; }
+
+    .dd-risks ul { list-style: none; }
+    .dd-risks li {
+      font-size: 13px; color: #94a3b8; padding: 8px 0 8px 20px;
+      border-bottom: 1px solid #1e2130; line-height: 1.5; position: relative;
+    }
+    .dd-risks li:last-child { border-bottom: none; }
+    .dd-risks li::before { content: "⚠"; position: absolute; left: 0; font-size: 12px; color: #fb923c; }
+
+    .dd-cache-note { font-size: 11px; color: #374151; text-align: center; margin-top: 24px; }
   </style>
 </head>
 <body>
@@ -275,6 +410,7 @@
   <button class="tab-btn" data-tab="opportunities">Opportunities</button>
   <button class="tab-btn" data-tab="radar">My Radar</button>
   <button class="tab-btn" data-tab="stats">Statistics</button>
+  <button class="tab-btn" data-tab="deepdive">🔍 Deep Dive</button>
 </div>
 
 <div id="tab-usa" class="layout tab-content">
@@ -284,14 +420,15 @@
       <span class="panel-date" id="date-usa">Loading...</span>
     </div>
     <div id="regime-usa" style="display:none;"></div>
+    <div id="scan-warning" class="scan-warning" hidden></div>
     <table>
       <thead>
         <tr>
-          <th>Ticker</th><th>Close</th><th>Score</th><th>Streak</th><th>Why Today</th><th>Action</th>
+          <th>Ticker</th><th>Sector</th><th>Close</th><th>Score</th><th>Streak</th><th>Why Today</th><th>Action</th>
         </tr>
       </thead>
       <tbody id="tbody-usa">
-        <tr class="status-row"><td colspan="6">Loading...</td></tr>
+        <tr class="status-row"><td colspan="7">Loading...</td></tr>
       </tbody>
     </table>
   </div>
@@ -315,6 +452,16 @@
 <div id="tab-stats" class="tab-content" style="display:none; padding:24px;">
   <div style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:16px;">Statistics</div>
   <div style="color:#64748b;">Coming soon — Phase 3</div>
+</div>
+
+<div id="tab-deepdive" class="tab-content" style="display:none;">
+  <div class="dd-search-wrap">
+    <input id="dd-input" class="dd-search-input" type="text" placeholder="Type a ticker — e.g. NVDA, AAPL, META" maxlength="10" />
+    <button id="dd-btn" class="dd-search-btn">Analyze</button>
+  </div>
+  <div id="dd-result">
+    <div class="dd-status">Type a US ticker above and click Analyze.<br>Analysis is cached for 24 hours — results come back in ~10 seconds.</div>
+  </div>
 </div>
 
 <div class="modal-overlay" id="radar-modal">
@@ -353,6 +500,47 @@
   const RS_THRESHOLD = 70;
 
   const MARKET = { id: "usa", label: "🇺🇸 USA", market: "USA", currency: "$", openUTC: 13*60+30, closeUTC: 20*60+5 };
+
+  const COMPANY_NAMES = {
+    COIN:"Coinbase",HOOD:"Robinhood",JPM:"JPMorgan Chase",BAC:"Bank of America",GS:"Goldman Sachs",
+    MS:"Morgan Stanley",V:"Visa",MA:"Mastercard",AXP:"American Express",BLK:"BlackRock",
+    SPGI:"S&P Global",MCO:"Moody's",CME:"CME Group",ICE:"Intercontinental Exchange",CB:"Chubb",
+    PGR:"Progressive",AIG:"AIG",AON:"Aon",USB:"U.S. Bancorp",C:"Citigroup",KKR:"KKR","BRK-B":"Berkshire Hathaway",
+    CRWD:"CrowdStrike",SNOW:"Snowflake",DDOG:"Datadog",ARM:"ARM Holdings",MRVL:"Marvell",
+    SMCI:"Super Micro Computer",TSM:"TSMC",MPWR:"Monolithic Power",ON:"ON Semiconductor",
+    WDC:"Western Digital",STX:"Seagate",ANET:"Arista Networks",CSCO:"Cisco",DELL:"Dell",
+    PLTR:"Palantir",AAPL:"Apple",MSFT:"Microsoft",NVDA:"NVIDIA",AVGO:"Broadcom",AMD:"AMD",
+    ORCL:"Oracle",CRM:"Salesforce",ADBE:"Adobe",INTC:"Intel",QCOM:"Qualcomm",TXN:"Texas Instruments",
+    AMAT:"Applied Materials",LRCX:"Lam Research",KLAC:"KLA Corp",MCHP:"Microchip Technology",
+    NXPI:"NXP Semiconductors",ADI:"Analog Devices",SNPS:"Synopsys",CDNS:"Cadence Design",
+    MU:"Micron Technology",FTNT:"Fortinet",PANW:"Palo Alto Networks",NOW:"ServiceNow",
+    WDAY:"Workday",INTU:"Intuit",ACN:"Accenture",IBM:"IBM",APH:"Amphenol",TEL:"TE Connectivity",
+    UNH:"UnitedHealth",JNJ:"Johnson & Johnson",LLY:"Eli Lilly",ABBV:"AbbVie",MRK:"Merck",
+    TMO:"Thermo Fisher",DHR:"Danaher",ABT:"Abbott",BMY:"Bristol-Myers Squibb",AMGN:"Amgen",
+    GILD:"Gilead Sciences",VRTX:"Vertex Pharmaceuticals",ISRG:"Intuitive Surgical",SYK:"Stryker",
+    BSX:"Boston Scientific",BDX:"BD",ELV:"Elevance Health",CI:"Cigna",HCA:"HCA Healthcare",
+    DXCM:"Dexcom",IDXX:"IDEXX Laboratories",EW:"Edwards Lifesciences",ZTS:"Zoetis",GEHC:"GE HealthCare",A:"Agilent",
+    TSLA:"Tesla",AMZN:"Amazon",HD:"Home Depot",MCD:"McDonald's",SBUX:"Starbucks",TJX:"TJX Companies",
+    ORLY:"O'Reilly Auto Parts",AZO:"AutoZone",MAR:"Marriott",BKNG:"Booking Holdings",
+    ABNB:"Airbnb",UBER:"Uber",LOW:"Lowe's",F:"Ford",GM:"General Motors",
+    WMT:"Walmart",COST:"Costco",PG:"Procter & Gamble",PEP:"PepsiCo",KO:"Coca-Cola",
+    PM:"Philip Morris",MO:"Altria",MDLZ:"Mondelez",KMB:"Kimberly-Clark",CL:"Colgate-Palmolive",
+    KR:"Kroger",MNST:"Monster Beverage",STZ:"Constellation Brands",
+    CAT:"Caterpillar",HON:"Honeywell",RTX:"RTX Corp",GE:"GE Aerospace",DE:"John Deere",
+    ETN:"Eaton",EMR:"Emerson Electric",ITW:"Illinois Tool Works",PH:"Parker Hannifin",
+    CARR:"Carrier",TDG:"TransDigm",GD:"General Dynamics",NSC:"Norfolk Southern",
+    CSX:"CSX",UNP:"Union Pacific",PCAR:"PACCAR",CTAS:"Cintas",FAST:"Fastenal",
+    MSI:"Motorola Solutions",ROP:"Roper Technologies",TT:"Trane Technologies",
+    CPRT:"Copart",WM:"Waste Management",PAYX:"Paychex",
+    XOM:"ExxonMobil",CVX:"Chevron",SLB:"SLB",EOG:"EOG Resources",VLO:"Valero Energy",
+    OKE:"ONEOK",CCJ:"Cameco",LEU:"Centrus Energy",
+    FCX:"Freeport-McMoRan",LIN:"Linde",ECL:"Ecolab",SHW:"Sherwin-Williams",CTVA:"Corteva",
+    NEE:"NextEra Energy",DUK:"Duke Energy",SO:"Southern Company",EXC:"Exelon",
+    PCG:"PG&E",CEG:"Constellation Energy",VST:"Vistra",OKLO:"Oklo",
+    PLD:"Prologis",EQIX:"Equinix",SPG:"Simon Property Group",PSA:"Public Storage",
+    WELL:"Welltower",DLR:"Digital Realty",
+    GOOGL:"Alphabet (A)",GOOG:"Alphabet (C)",META:"Meta Platforms",T:"AT&T",NFLX:"Netflix",
+  };
 
   function marketHasClosed() {
     const now = new Date();
@@ -436,6 +624,146 @@
     target.style.display = tabId === "usa" ? "grid" : "block";
     if (tabId === "radar") loadRadar();
     else if (tabId === "opportunities") renderOpportunities();
+    else if (tabId === "deepdive") initDeepDive();
+  }
+
+  // ── Deep Dive ─────────────────────────────────────────────────────────────
+  const DEEP_DIVE_URL = "https://us-central1-investment-radar-2c19d.cloudfunctions.net/deep_dive";
+  let ddInitialized = false;
+
+  function initDeepDive() {
+    if (ddInitialized) return;
+    ddInitialized = true;
+    const btn   = document.getElementById("dd-btn");
+    const input = document.getElementById("dd-input");
+    btn.addEventListener("click", runDeepDive);
+    input.addEventListener("keydown", e => { if (e.key === "Enter") runDeepDive(); });
+  }
+
+  async function runDeepDive() {
+    const input  = document.getElementById("dd-input");
+    const btn    = document.getElementById("dd-btn");
+    const result = document.getElementById("dd-result");
+    const ticker = input.value.trim().toUpperCase();
+    if (!ticker) return;
+
+    btn.disabled = true;
+    btn.textContent = "Analyzing...";
+    result.innerHTML = `<div class="dd-loading">⏳ Fetching data and running AI analysis for <b>${ticker}</b>...<br><small style="color:#4b5563">This takes ~10 seconds on first run</small></div>`;
+
+    try {
+      const resp = await fetch(`${DEEP_DIVE_URL}?ticker=${encodeURIComponent(ticker)}`);
+      const json = await resp.json();
+      if (json.error) throw new Error(json.error);
+      renderDeepDive(json.result, json.cached, json.cached_at);
+    } catch (err) {
+      result.innerHTML = `<div class="dd-error">❌ ${err.message}</div>`;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Analyze";
+    }
+  }
+
+  function renderDeepDive(r, cached, cachedAt) {
+    const a = r.analysis;
+    const decisionClass = (a.decision || "watch").toLowerCase();
+    const decisionEmoji = decisionClass === "buy" ? "✅ BUY" : decisionClass === "avoid" ? "🚫 AVOID" : "⏳ WATCH";
+
+    const sentClass = s => s === "Pozitif" ? "pos" : s === "Negatif" ? "neg" : "neu";
+    const newsHtml = (r.news || []).map(n =>
+      `<div class="dd-news-item">
+        <span class="dd-news-emoji">${n.emoji}</span>
+        <span class="dd-news-title">${n.title}</span>
+        <span class="dd-news-sent ${sentClass(n.sentiment)}">${n.sentiment}</span>
+      </div>`).join("") || `<div style="color:#4b5563;font-size:12px;">No news available</div>`;
+
+    const bullHtml = (a.bull_points || []).map(p => `<li>${p}</li>`).join("");
+    const bearHtml = (a.bear_points || []).map(p => `<li>${p}</li>`).join("");
+    const riskHtml = (a.risks || []).map(p => `<li>${p}</li>`).join("");
+
+    const fmtPrice = p => p ? `$${Number(p).toFixed(2)}` : "—";
+    const cachedNote = cached
+      ? `Cached · last updated ${new Date(cachedAt).toLocaleString("en-US", {month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})}`
+      : `Fresh analysis · cached for 24 hours`;
+
+    document.getElementById("dd-result").innerHTML = `
+      <div class="dd-header">
+        <div class="dd-title">${r.company_name} · ${r.ticker} · $${Number(r.price).toFixed(2)}</div>
+        <div class="dd-subtitle">${r.sector} — ${r.industry} · ${r.exchange}</div>
+        <div class="dd-stats">
+          <span><b>Market Cap</b> ${r.market_cap}</span>
+          <span><b>52W Range</b> $${r.week52_low?.toFixed(2)} – $${r.week52_high?.toFixed(2)}</span>
+          <span><b>Avg Volume</b> ${r.avg_volume}</span>
+          <span><b>RSI</b> ${r.rsi}</span>
+          ${r.inst_pct ? `<span><b>Institutional</b> ${r.inst_pct}%</span>` : ""}
+        </div>
+        ${a.one_line ? `<div style="margin-top:10px;font-size:13px;color:#64748b;font-style:italic;">${a.one_line}</div>` : ""}
+      </div>
+
+      <div class="dd-section">
+        <div class="dd-section-title">At a Glance</div>
+        <div class="dd-snapshot">
+          <div class="dd-snap-item"><div class="dd-snap-label">Price Position</div><div class="dd-snap-val">${a.snapshot_price || "—"}</div></div>
+          <div class="dd-snap-item"><div class="dd-snap-label">Momentum</div><div class="dd-snap-val">${a.snapshot_momentum || "—"}</div></div>
+          <div class="dd-snap-item"><div class="dd-snap-label">Volume</div><div class="dd-snap-val">${a.snapshot_volume || "—"}</div></div>
+          <div class="dd-snap-item"><div class="dd-snap-label">Institutional</div><div class="dd-snap-val">${a.snapshot_strength || "—"}</div></div>
+        </div>
+      </div>
+
+      <div class="dd-situation">${a.situation || ""}</div>
+
+      <div class="dd-decision ${decisionClass}">
+        <div class="dd-decision-label">${decisionEmoji}</div>
+        <div class="dd-decision-reason">${a.decision_reason || ""}</div>
+        <div class="dd-levels">
+          <div class="dd-level entry">
+            <div class="dd-level-label">Entry / Dip</div>
+            <div class="dd-level-price">${fmtPrice(a.level_entry?.price)}</div>
+            <div class="dd-level-note">${a.level_entry?.note || ""}</div>
+          </div>
+          <div class="dd-level breakout">
+            <div class="dd-level-label">Breakout</div>
+            <div class="dd-level-price">${fmtPrice(a.level_breakout?.price)}</div>
+            <div class="dd-level-note">${a.level_breakout?.note || ""}</div>
+          </div>
+          <div class="dd-level stop">
+            <div class="dd-level-label">Stop / Exit</div>
+            <div class="dd-level-price">${fmtPrice(a.level_stop?.price)}</div>
+            <div class="dd-level-note">${a.level_stop?.note || ""}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dd-section">
+        <div class="dd-section-title">Bull vs Bear</div>
+        <div class="dd-two-col">
+          <div class="dd-bull-bear bull"><h4>🐂 Bull Case</h4><ul>${bullHtml}</ul></div>
+          <div class="dd-bull-bear bear"><h4>🐻 Bear Case</h4><ul>${bearHtml}</ul></div>
+        </div>
+      </div>
+
+      <div class="dd-section">
+        <div class="dd-section-title">Recent News</div>
+        ${newsHtml}
+      </div>
+
+      <div class="dd-section">
+        <div class="dd-section-title">Company Health</div>
+        <div class="dd-fund-grid">
+          <div class="dd-fund-item"><div class="dd-fund-label">Valuation (P/E)</div><div class="dd-fund-val">${a.fundamentals_pe || "—"}</div></div>
+          <div class="dd-fund-item"><div class="dd-fund-label">Revenue Growth</div><div class="dd-fund-val">${a.fundamentals_growth || "—"}</div></div>
+          <div class="dd-fund-item"><div class="dd-fund-label">Profit Margins</div><div class="dd-fund-val">${a.fundamentals_margins || "—"}</div></div>
+          <div class="dd-fund-item"><div class="dd-fund-label">Debt</div><div class="dd-fund-val">${a.fundamentals_debt || "—"}</div></div>
+        </div>
+      </div>
+
+      <div class="dd-section dd-risks">
+        <div class="dd-section-title">Risks — If These Happen, Plan Changes</div>
+        <ul>${riskHtml}</ul>
+      </div>
+
+      <div class="dd-cache-note">${cachedNote}</div>
+    `;
   }
 
   // ── Firestore helpers ─────────────────────────────────────────────────────
@@ -443,16 +771,25 @@
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   }
 
+  function marketTodayStr(tz) {
+    return new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  }
+
   async function findLatestCandidates() {
     const now = new Date();
     const startFrom = marketHasClosed() ? 0 : 1;
+    const nyTz = "America/New_York";
 
     // Fetch all USA candidates, filter client-side to avoid composite index issues
     const snap = await getDocs(query(
       collection(db, "daily_candidates"),
       where("market", "==", "USA")
     ));
-    if (snap.empty) return null;
+    const metaByDate = {};
+    try {
+      const metaSnap = await getDocs(query(collection(db, "scan_meta"), where("market", "==", "USA")));
+      metaSnap.docs.forEach(d => { metaByDate[d.data().date] = d.data(); });
+    } catch (e) { console.warn("scan_meta load failed:", e); }
 
     const byDate = {};
     snap.docs.forEach(d => {
@@ -460,15 +797,46 @@
       if (!byDate[dt]) byDate[dt] = [];
       byDate[dt].push(d);
     });
+    Object.keys(metaByDate).forEach(dt => { if (!byDate[dt]) byDate[dt] = []; });
+
+    if (Object.keys(byDate).length === 0) return null;
+
+    const todayStr = marketTodayStr(nyTz);
+    const todayEmptyScan = isMarketOpen() && !!metaByDate[todayStr] && byDate[todayStr].length === 0;
 
     const sortedDates = Object.keys(byDate).sort().reverse();
     for (const dateStr of sortedDates) {
+      if (byDate[dateStr].length === 0) continue;
       const d = new Date(dateStr + "T12:00:00");
       const daysAgo = Math.round((now - d) / (1000 * 60 * 60 * 24));
       if (daysAgo < startFrom) continue;
-      return { docs: byDate[dateStr], date: dateStr, daysAgo };
+      return { docs: byDate[dateStr], date: dateStr, daysAgo, meta: metaByDate[dateStr] || null, todayEmptyScan };
+    }
+    for (const dateStr of sortedDates) {
+      if (byDate[dateStr].length > 0) continue;
+      if (!metaByDate[dateStr]) continue;
+      const d = new Date(dateStr + "T12:00:00");
+      const daysAgo = Math.round((now - d) / (1000 * 60 * 60 * 24));
+      if (daysAgo < startFrom) continue;
+      return { docs: [], date: dateStr, daysAgo, meta: metaByDate[dateStr], todayEmptyScan };
     }
     return null;
+  }
+
+  function renderScanWarning(result) {
+    const el = document.getElementById("scan-warning");
+    if (!el) return;
+    if (!result?.todayEmptyScan) {
+      el.hidden = true;
+      el.innerHTML = "";
+      return;
+    }
+    el.hidden = false;
+    if (result.daysAgo > 0) {
+      el.innerHTML = `<strong>⚠ Market open today</strong> — not enough candidates passed this session. List below is from the previous session.`;
+    } else {
+      el.innerHTML = `<strong>⚠ Market open today</strong> — not enough candidates met the threshold.`;
+    }
   }
 
   // ── Load candidates ───────────────────────────────────────────────────────
@@ -480,6 +848,7 @@
         tbody.innerHTML = `<tr class="status-row"><td colspan="6">No data yet.<br>
           <small style="color:#64748b">Run: python pipeline.py usa</small></td></tr>`;
         document.getElementById("date-usa").textContent = "No data";
+        renderScanWarning(null);
         return;
       }
 
@@ -491,6 +860,7 @@
 
       setDateLabel(result);
       updateHeader();
+      renderScanWarning(result);
       renderTable();
       renderRegimeStrip();
     } catch (err) {
@@ -499,32 +869,67 @@
     }
   }
 
+  const NY = "America/New_York";
+
+  function localMins(iso, tz) {
+    const p = new Intl.DateTimeFormat("en-US", {
+      hour: "2-digit", minute: "2-digit", hour12: false, timeZone: tz,
+    }).formatToParts(new Date(iso));
+    return Number(p.find(x => x.type === "hour").value) * 60 + Number(p.find(x => x.type === "minute").value);
+  }
+
+  function deriveUsaWindowFromEval(iso) {
+    const mins = localMins(iso, NY);
+    if (mins >= 16 * 60 + 15 || mins < 9 * 60 + 30) return "After close · New York";
+    if (mins < 13 * 60 + 30) return "9:30 AM – 1:30 PM · New York";
+    return "1:30 PM – 4:00 PM · New York";
+  }
+
+  function usaWindowLabel(raw, daysAgo, evaluatedAt) {
+    if (evaluatedAt) return deriveUsaWindowFromEval(evaluatedAt);
+    const s = (raw || "").toLowerCase();
+    if (s.includes("09:30") && s.includes("13:30")) return "9:30 AM – 1:30 PM · New York";
+    if (s.includes("13:30") && s.includes("16:00")) return "1:30 PM – 4:00 PM · New York";
+    if (s.includes("close") || s.includes("kapanış")) return "After close · New York";
+    return usaSessionFallback(daysAgo);
+  }
+
   function usaSessionFallback(daysAgo) {
-    if (daysAgo >= 1) return "Close · 16:00 ET";
+    if (daysAgo >= 1) return "After close · New York";
     const now = new Date();
-    const mins = now.getUTCHours() * 60 + now.getUTCMinutes();
-    if (mins < 17 * 60 + 30) return "09:30 – 13:30 ET";
-    if (mins < 20 * 60) return "13:30 – 16:00 ET";
-    return "Close · 16:00 ET";
+    const et = new Intl.DateTimeFormat("en-US", {
+      hour: "2-digit", minute: "2-digit", hour12: false, timeZone: NY,
+    }).formatToParts(now);
+    const h = Number(et.find(p => p.type === "hour").value);
+    const m = Number(et.find(p => p.type === "minute").value);
+    const mins = h * 60 + m;
+    if (mins < 13 * 60 + 30) return "9:30 AM – 1:30 PM · New York";
+    if (mins < 16 * 60 + 30) return "1:30 PM – 4:00 PM · New York";
+    return "After close · New York";
+  }
+
+  function fmtUpdatedNY(iso) {
+    if (!iso) return "";
+    return new Date(iso).toLocaleString("en-US", {
+      month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: NY,
+    });
   }
 
   function setDateLabel(result) {
     const el = document.getElementById("date-usa");
     const niceDate = new Date(result.date + "T12:00:00").toLocaleDateString("en-US", {
-      weekday: "short", month: "short", day: "numeric", year: "numeric"
+      weekday: "short", month: "short", day: "numeric", year: "numeric", timeZone: NY,
     });
-    const sample   = candidates[0] || {};
-    const sessionW = sample.session_window || usaSessionFallback(result.daysAgo);
-    const evalAt   = sample.evaluated_at
-      ? new Date(sample.evaluated_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", timeZone: "America/New_York" })
-      : "";
-    const sessionTag = sessionW
-      ? `<span style="font-size:11px;color:#94a3b8;margin-left:6px;">⏱ ${sessionW}${evalAt ? " · " + evalAt + " ET" : ""}</span>`
-      : "";
+    const sample   = candidates[0] || result.meta || {};
+    const is4h     = sample.timeframe === "4h" || !!result.meta;
+    const tfBadge  = is4h ? `<span class="timeframe-badge">4H SCAN</span>` : "";
+    const window   = usaWindowLabel(sample.session_window, result.daysAgo, sample.evaluated_at);
+    const updated  = fmtUpdatedNY(sample.evaluated_at);
     const openTag  = isMarketOpen() ? `<span class="market-open-tag">⚠ MARKET OPEN</span>` : "";
     const dateClass = result.daysAgo === 0 ? "date-today" : result.daysAgo === 1 ? "date-yesterday" : "date-stale";
     const stale     = result.daysAgo >= 2 ? ` · ${result.daysAgo} days ago` : "";
-    el.innerHTML = `${openTag}<span class="${dateClass}">Report from ${niceDate}${stale}</span>${sessionTag}`;
+    const meta = `<span class="scan-meta" title="4-hour scores for this US session">⏱ <span class="window">${window}</span>${updated ? ` · updated ${updated}` : ""}</span>`;
+    el.innerHTML = `${openTag}${tfBadge}<span class="${dateClass}">${niceDate}${stale}</span>${meta}`;
   }
 
   function updateHeader() {
@@ -589,6 +994,7 @@
     return `
       <tr data-ticker="${c.ticker}">
         <td class="ticker-cell">${c.ticker}</td>
+        <td style="font-size:11px;color:#64748b;">${c.sector ?? "-"}</td>
         <td class="close-cell">${fmtClose(c)}</td>
         <td class="score-cell ${scoreClass(score)}">${score}</td>
         <td>${streakBadge(c.streak)}</td>
@@ -707,6 +1113,8 @@
     document.getElementById("detail-usa").innerHTML = `
       <div style="margin-bottom:12px;">
         <div class="detail-ticker">${c.ticker} ${streakBadge(c.streak)}</div>
+        ${COMPANY_NAMES[c.ticker] ? `<div style="font-size:12px;color:#94a3b8;margin-bottom:2px;">${COMPANY_NAMES[c.ticker]}</div>` : ""}
+        ${c.sector ? `<div style="font-size:11px;color:#6366f1;font-weight:600;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;">${c.sector}</div>` : ""}
         <div class="detail-close">${fmtClose(c)}</div>
         <div class="detail-score ${scoreClass(score)}">${score}<span style="font-size:14px;color:#64748b;"> / 100</span></div>
         ${badgeRow}

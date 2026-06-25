@@ -1,5 +1,6 @@
 import logging
 from datetime import date, datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 from pathlib import Path
 
 import firebase_admin
@@ -43,24 +44,53 @@ def _build_streak_map(db: firestore.client, market: str, today: str) -> dict[str
     return streak_map
 
 
-def _session_window(market: str) -> str:
-    """Return the 4-hour session window label based on current UTC time."""
-    utc = datetime.now(timezone.utc)
-    mins = utc.hour * 60 + utc.minute
+def _session_meta(market: str) -> dict:
+    """Return 4H session window metadata using each market's local clock."""
     if market.upper() == "BIST":
-        if mins < 11 * 60:
-            return "10:00 – 14:00"
-        elif mins < 15 * 60:
-            return "14:00 – 18:00"
+        now = datetime.now(ZoneInfo("Europe/Istanbul"))
+        mins = now.hour * 60 + now.minute
+        if mins < 14 * 60 + 15:
+            window = "10:00 – 14:00"
+            run_hint = "10:15"
+        elif mins < 18 * 60 + 15:
+            window = "14:00 – 18:00"
+            run_hint = "14:15"
         else:
-            return "Kapanış · 18:00"
-    else:  # USA
-        if mins < 17 * 60 + 30:
-            return "09:30 – 13:30 ET"
-        elif mins < 20 * 60:
-            return "13:30 – 16:00 ET"
-        else:
-            return "Kapanış · 16:00 ET"
+            window = "Kapanış"
+            run_hint = "18:15"
+        return {
+            "session_window": f"{window} · İstanbul",
+            "session_tz": "Europe/Istanbul",
+            "session_tz_label": "İstanbul",
+            "session_note": "",
+            "schedule_local": "10:15 · 14:15 · 18:15 · İstanbul",
+            "typical_run_local": f"{run_hint} · İstanbul",
+        }
+
+    now = datetime.now(ZoneInfo("America/New_York"))
+    mins = now.hour * 60 + now.minute
+    if mins < 13 * 60 + 30:
+        window = "09:30 – 13:30"
+        run_hint = "09:30"
+    elif mins < 16 * 60 + 15:
+        window = "13:30 – 16:00"
+        run_hint = "13:30"
+    else:
+        window = "After close"
+        run_hint = "16:15"
+    return {
+        "session_window": f"{window} · New York",
+        "session_tz": "America/New_York",
+        "session_tz_label": "New York",
+        "session_note": "",
+        "schedule_local": "09:30 · 13:30 · 16:15 · New York",
+        "typical_run_local": f"{run_hint} · New York",
+    }
+
+
+def _session_window(market: str) -> str:
+    """Return the 4-hour session window label (legacy string field)."""
+    return _session_meta(market)["session_window"]
 
 
 def write_daily_candidates(
@@ -103,9 +133,18 @@ def write_daily_candidates(
         doc_id = f"{today}_{ticker}"
         ref = col.document(doc_id)
         evaluated_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-        session      = _session_window(market)
-        batch.set(ref, {**c, "date": today, "streak": streak,
-                        "evaluated_at": evaluated_at, "session_window": session})
+        session_meta = _session_meta(market)
+        batch.set(ref, {
+            **c,
+            "date": today,
+            "streak": streak,
+            "evaluated_at": evaluated_at,
+            "session_window": session_meta["session_window"],
+            "session_tz": session_meta["session_tz"],
+            "session_tz_label": session_meta["session_tz_label"],
+            "session_note": session_meta["session_note"],
+            "schedule_local": session_meta["schedule_local"],
+        })
         if streak > 1:
             logger.info("  %s streak=%d", ticker, streak)
         written += 1
@@ -115,6 +154,18 @@ def write_daily_candidates(
         logger.info("Wrote %d candidates to Firestore (market=%s, date=%s)", written, market, today)
     else:
         logger.info("No candidates to write for %s on %s", market, today)
+
+    # Always save scan metadata (even when list is empty) for dashboard header
+    session_meta = _session_meta(market)
+    evaluated_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    tf = (candidates[0].get("timeframe") if candidates else None) or "4h"
+    db.collection("scan_meta").document(f"{today}_{market.upper()}").set({
+        "date": today,
+        "market": market.upper(),
+        "evaluated_at": evaluated_at,
+        "timeframe": tf,
+        **session_meta,
+    })
 
     return written
 

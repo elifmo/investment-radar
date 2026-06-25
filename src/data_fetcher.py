@@ -6,7 +6,8 @@ import yfinance as yf
 logger = logging.getLogger(__name__)
 
 _REQUIRED_COLUMNS = {"Open", "High", "Low", "Close", "Volume"}
-_MIN_ROWS = 60
+_MIN_ROWS_DAILY = 60
+_MIN_ROWS_4H = 20
 
 
 def _fetch_ohlcv(tickers: list[str], period: str, interval: str) -> dict[str, pd.DataFrame]:
@@ -56,7 +57,7 @@ def fetch_batch_daily(tickers: list[str]) -> dict[str, pd.DataFrame]:
                 else:
                     df = raw[ticker].copy()
                 df = df.dropna(how="all")
-                if df.empty or len(df) < _MIN_ROWS:
+                if df.empty or len(df) < _MIN_ROWS_DAILY:
                     logger.warning("Insufficient data for %s in batch — skipping", ticker)
                     continue
                 # Normalise column names (batch download uses Price/Ticker multi-index)
@@ -80,6 +81,57 @@ def fetch_batch_daily(tickers: list[str]) -> dict[str, pd.DataFrame]:
 def fetch_hourly_data(tickers: list[str]) -> dict[str, pd.DataFrame]:
     """Fetch 7-day hourly OHLCV data."""
     return _fetch_ohlcv(tickers, period="7d", interval="1h")
+
+
+def fetch_batch_4h(tickers: list[str]) -> dict[str, pd.DataFrame]:
+    """Batch download 4-hour OHLCV (~60 days) for intraday scanning.
+
+    Used by the pipeline when scan.timeframe is 4h. Falls back to
+    individual fetches on failure.
+    """
+    if not tickers:
+        return {}
+
+    result: dict[str, pd.DataFrame] = {}
+    try:
+        raw = yf.download(
+            tickers=" ".join(tickers),
+            period="60d",
+            interval="4h",
+            group_by="ticker",
+            auto_adjust=True,
+            threads=True,
+            progress=False,
+        )
+        for ticker in tickers:
+            try:
+                if len(tickers) == 1:
+                    df = raw.copy()
+                else:
+                    df = raw[ticker].copy()
+                df = df.dropna(how="all")
+                if df.empty or len(df) < _MIN_ROWS_4H:
+                    logger.warning("Insufficient 4h data for %s in batch — skipping", ticker)
+                    continue
+                df.columns = [c if isinstance(c, str) else c[0] for c in df.columns]
+                if not _REQUIRED_COLUMNS.issubset(df.columns):
+                    logger.warning("Missing columns for %s (4h) — skipping", ticker)
+                    continue
+                result[ticker] = df[list(_REQUIRED_COLUMNS)]
+                logger.info("Batch fetched %d 4h rows for %s", len(df), ticker)
+            except Exception as exc:
+                logger.warning("4h batch parse failed for %s: %s — retrying individually", ticker, exc)
+                fallback = _fetch_ohlcv([ticker], "60d", "4h")
+                for t, fdf in fallback.items():
+                    if len(fdf) >= _MIN_ROWS_4H:
+                        result[t] = fdf
+    except Exception as exc:
+        logger.error("4h batch download failed: %s — falling back to individual fetches", exc)
+        for ticker, df in _fetch_ohlcv(tickers, "60d", "4h").items():
+            if len(df) >= _MIN_ROWS_4H:
+                result[ticker] = df
+
+    return result
 
 
 def get_latest_price(df: pd.DataFrame) -> float:

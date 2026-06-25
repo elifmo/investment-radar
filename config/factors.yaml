@@ -1,6 +1,10 @@
 # Minimum score threshold — candidates below this are filtered out
 min_score: 65
 
+# Scan timeframe for top-stock ranking: daily | 4h
+scan:
+  timeframe: 4h
+
 # Signal weights (sum = 100)
 weights:
   ema_alignment: 20       # EMA5 > EMA20 > EMA50
@@ -11,7 +15,7 @@ weights:
   sr_proximity: 10        # price within 5% of support
   breakout: 10            # price broke above resistance
 
-# Event filter thresholds (Step 1 scan)
+# Event filter thresholds (Step 1 scan) — daily
 thresholds:
   volume_spike_ratio: 1.5
   price_move_pct: 2.0
@@ -19,6 +23,14 @@ thresholds:
   rsi_bounce_lookback: 5   # bars to look back for RSI < oversold
   support_proximity_pct: 2.0
   high_52w_buffer_pct: 1.0
+
+# Event filter thresholds when scan.timeframe = 4h
+thresholds_4h:
+  volume_spike_ratio: 1.5
+  price_move_pct: 1.0      # lower bar threshold for 4H candles
+  rsi_oversold: 35
+  rsi_bounce_lookback: 5
+  support_proximity_pct: 2.0
 
 # Decision engine thresholds (Task 0 backtest will refine these)
 decision:
