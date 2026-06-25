@@ -775,6 +775,11 @@
     return new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
   }
 
+  function pickLatestMeta(metaByDate) {
+    const dates = Object.keys(metaByDate).sort().reverse();
+    return dates.length ? metaByDate[dates[0]] : null;
+  }
+
   async function findLatestCandidates() {
     const now = new Date();
     const startFrom = marketHasClosed() ? 0 : 1;
@@ -801,8 +806,12 @@
 
     if (Object.keys(byDate).length === 0) return null;
 
-    const todayStr = marketTodayStr(nyTz);
-    const todayEmptyScan = isMarketOpen() && !!metaByDate[todayStr] && byDate[todayStr].length === 0;
+    const latestMeta = pickLatestMeta(metaByDate);
+
+    let emptyScanWarning = false;
+    if (latestMeta) {
+      emptyScanWarning = !(byDate[latestMeta.date]?.length);
+    }
 
     const sortedDates = Object.keys(byDate).sort().reverse();
     for (const dateStr of sortedDates) {
@@ -810,7 +819,7 @@
       const d = new Date(dateStr + "T12:00:00");
       const daysAgo = Math.round((now - d) / (1000 * 60 * 60 * 24));
       if (daysAgo < startFrom) continue;
-      return { docs: byDate[dateStr], date: dateStr, daysAgo, meta: metaByDate[dateStr] || null, todayEmptyScan };
+      return { docs: byDate[dateStr], date: dateStr, daysAgo, meta: metaByDate[dateStr] || null, latestMeta, emptyScanWarning };
     }
     for (const dateStr of sortedDates) {
       if (byDate[dateStr].length > 0) continue;
@@ -818,7 +827,7 @@
       const d = new Date(dateStr + "T12:00:00");
       const daysAgo = Math.round((now - d) / (1000 * 60 * 60 * 24));
       if (daysAgo < startFrom) continue;
-      return { docs: [], date: dateStr, daysAgo, meta: metaByDate[dateStr], todayEmptyScan };
+      return { docs: [], date: dateStr, daysAgo, meta: metaByDate[dateStr], latestMeta, emptyScanWarning };
     }
     return null;
   }
@@ -826,16 +835,23 @@
   function renderScanWarning(result) {
     const el = document.getElementById("scan-warning");
     if (!el) return;
-    if (!result?.todayEmptyScan) {
+    const show = result?.emptyScanWarning && (result.daysAgo > 0 || candidates.length === 0);
+    if (!show) {
       el.hidden = true;
       el.innerHTML = "";
       return;
     }
     el.hidden = false;
+    const open = isMarketOpen();
+    const latestIsToday = result.latestMeta?.date === marketTodayStr("America/New_York");
     if (result.daysAgo > 0) {
-      el.innerHTML = `<strong>⚠ Market open today</strong> — not enough candidates passed this session. List below is from the previous session.`;
+      el.innerHTML = open && latestIsToday
+        ? `<strong>⚠ Market open today</strong> — not enough candidates passed this session. List below is from the previous session.`
+        : `<strong>⚠ Latest scan found no qualifying candidates.</strong> List below is from the previous session.`;
     } else {
-      el.innerHTML = `<strong>⚠ Market open today</strong> — not enough candidates met the threshold.`;
+      el.innerHTML = open
+        ? `<strong>⚠ Market open today</strong> — not enough candidates met the threshold.`
+        : `<strong>⚠ Latest scan</strong> found no qualifying candidates.`;
     }
   }
 
@@ -920,11 +936,12 @@
     const niceDate = new Date(result.date + "T12:00:00").toLocaleDateString("en-US", {
       weekday: "short", month: "short", day: "numeric", year: "numeric", timeZone: NY,
     });
-    const sample   = candidates[0] || result.meta || {};
-    const is4h     = sample.timeframe === "4h" || !!result.meta;
-    const tfBadge  = is4h ? `<span class="timeframe-badge">4H SCAN</span>` : "";
-    const window   = usaWindowLabel(sample.session_window, result.daysAgo, sample.evaluated_at);
-    const updated  = fmtUpdatedNY(sample.evaluated_at);
+    const sample     = candidates[0] || {};
+    const headerMeta = result.meta || result.latestMeta || sample;
+    const is4h       = headerMeta.timeframe === "4h" || sample.timeframe === "4h";
+    const tfBadge    = is4h ? `<span class="timeframe-badge">4H SCAN</span>` : "";
+    const window     = usaWindowLabel(headerMeta.session_window, result.daysAgo, headerMeta.evaluated_at);
+    const updated    = fmtUpdatedNY(headerMeta.evaluated_at);
     const openTag  = isMarketOpen() ? `<span class="market-open-tag">⚠ MARKET OPEN</span>` : "";
     const dateClass = result.daysAgo === 0 ? "date-today" : result.daysAgo === 1 ? "date-yesterday" : "date-stale";
     const stale     = result.daysAgo >= 2 ? ` · ${result.daysAgo} days ago` : "";

@@ -254,6 +254,11 @@
     return new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
   }
 
+  function pickLatestMeta(metaByDate) {
+    const dates = Object.keys(metaByDate).sort().reverse();
+    return dates.length ? metaByDate[dates[0]] : null;
+  }
+
   async function findLatest() {
     const now = new Date();
     const startFrom = marketHasClosed() ? 0 : 1;
@@ -263,15 +268,16 @@
       metaSnap.docs.forEach(d => { metaByDate[d.data().date] = d.data(); });
     } catch (e) { console.warn("scan_meta load failed:", e); }
 
-    const todayStr = marketTodayStr(IST);
-    let todayEmptyScan = false;
-    if (isMarketOpen()) {
-      const todaySnap = await getDocs(query(
+    const latestMeta = pickLatestMeta(metaByDate);
+
+    let emptyScanWarning = false;
+    if (latestMeta) {
+      const latestSnap = await getDocs(query(
         collection(db, "daily_candidates"),
         where("market", "==", "BIST"),
-        where("date", "==", todayStr)
+        where("date", "==", latestMeta.date)
       ));
-      todayEmptyScan = !!metaByDate[todayStr] && todaySnap.empty;
+      emptyScanWarning = latestSnap.empty;
     }
 
     let metaOnly = null;
@@ -286,13 +292,13 @@
         where("date",   "==", dateStr)
       ));
       if (!snap.empty) {
-        return { docs: snap.docs, date: dateStr, daysAgo: i, meta: metaByDate[dateStr] || null, todayEmptyScan };
+        return { docs: snap.docs, date: dateStr, daysAgo: i, meta: metaByDate[dateStr] || null, latestMeta, emptyScanWarning };
       }
       if (metaByDate[dateStr] && !metaOnly) {
         metaOnly = { docs: [], date: dateStr, daysAgo: i, meta: metaByDate[dateStr] };
       }
     }
-    if (metaOnly) return { ...metaOnly, todayEmptyScan };
+    if (metaOnly) return { ...metaOnly, latestMeta, emptyScanWarning };
     return null;
   }
 
@@ -343,16 +349,23 @@
   function renderScanWarning(result) {
     const el = document.getElementById("scan-warning");
     if (!el) return;
-    if (!result?.todayEmptyScan) {
+    const show = result?.emptyScanWarning && (result.daysAgo > 0 || candidates.length === 0);
+    if (!show) {
       el.hidden = true;
       el.innerHTML = "";
       return;
     }
     el.hidden = false;
+    const open = isMarketOpen();
+    const latestIsToday = result.latestMeta?.date === marketTodayStr(IST);
     if (result.daysAgo > 0) {
-      el.innerHTML = `<strong>⚠ Bugün piyasa açık</strong> — bu taramada yeterli aday yok. Alttaki liste önceki oturuma ait.`;
+      el.innerHTML = open && latestIsToday
+        ? `<strong>⚠ Bugün piyasa açık</strong> — bu taramada yeterli aday yok. Alttaki liste önceki oturuma ait.`
+        : `<strong>⚠ Son taramada yeterli aday yok.</strong> Alttaki liste önceki oturuma ait.`;
     } else {
-      el.innerHTML = `<strong>⚠ Bugün piyasa açık</strong> — yeterli aday bulunamadı.`;
+      el.innerHTML = open
+        ? `<strong>⚠ Bugün piyasa açık</strong> — yeterli aday bulunamadı.`
+        : `<strong>⚠ Son taramada</strong> yeterli aday bulunamadı.`;
     }
   }
 
@@ -374,11 +387,12 @@
       const niceDate = new Date(result.date + "T12:00:00").toLocaleDateString("tr-TR", {
         weekday: "short", month: "short", day: "numeric", year: "numeric", timeZone: IST,
       });
-      const sample    = candidates[0] || result.meta || {};
-      const is4h      = sample.timeframe === "4h" || !!result.meta;
-      const tfBadge   = is4h ? `<span class="timeframe-badge">4H ANALİZ</span>` : "";
-      const window    = bistWindowLabel(sample.session_window, result.daysAgo, sample.evaluated_at);
-      const updated   = fmtUpdatedIST(sample.evaluated_at);
+      const sample     = candidates[0] || {};
+      const headerMeta = result.meta || result.latestMeta || sample;
+      const is4h       = headerMeta.timeframe === "4h" || sample.timeframe === "4h";
+      const tfBadge    = is4h ? `<span class="timeframe-badge">4H ANALİZ</span>` : "";
+      const window     = bistWindowLabel(headerMeta.session_window, result.daysAgo, headerMeta.evaluated_at);
+      const updated    = fmtUpdatedIST(headerMeta.evaluated_at);
       const openTag   = isMarketOpen() ? `<span class="market-open-tag">⚠ AÇIK</span>` : "";
       const dateClass = result.daysAgo === 0 ? "date-today" : result.daysAgo === 1 ? "date-yesterday" : "date-stale";
       const stale     = result.daysAgo >= 2 ? ` · ${result.daysAgo} gün önce` : "";
