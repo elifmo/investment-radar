@@ -274,7 +274,9 @@
     return !snap.empty;
   }
 
-  async function newerDatesAllEmpty(sinceDate, tz) {
+  async function sessionsAfterEmpty(sinceDate, tz) {
+    const todayStr = marketTodayStr(tz);
+    if (sinceDate >= todayStr) return false;
     for (let i = 0; i < 7; i++) {
       const dateStr = marketDateOffset(i, tz);
       if (dateStr <= sinceDate) continue;
@@ -284,7 +286,6 @@
   }
 
   async function findLatest() {
-    const startFrom = marketHasClosed() ? 0 : 1;
     const metaByDate = {};
     try {
       const metaSnap = await getDocs(query(collection(db, "scan_meta"), where("market", "==", "BIST")));
@@ -296,7 +297,8 @@
     let metaOnly = null;
     let result = null;
 
-    for (let i = startFrom; i < 7; i++) {
+    // Her zaman en güncel adaylı seansı göster (4H oturum verisi geçerli)
+    for (let i = 0; i < 7; i++) {
       const dateStr = marketDateOffset(i, IST);
       const snap = await getDocs(query(
         collection(db, "daily_candidates"),
@@ -316,7 +318,7 @@
       result = metaOnly;
     }
 
-    const emptyScanWarning = await newerDatesAllEmpty(result.date, IST);
+    const emptyScanWarning = await sessionsAfterEmpty(result.date, IST);
     return { ...result, emptyScanWarning };
   }
 
