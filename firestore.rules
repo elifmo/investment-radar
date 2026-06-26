@@ -1,0 +1,29 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /daily_candidates/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /scan_meta/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /macro_regime/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /quality_grades/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /sector_status/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /sector_status_history/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}

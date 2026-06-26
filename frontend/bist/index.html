@@ -259,8 +259,31 @@
     return dates.length ? metaByDate[dates[0]] : null;
   }
 
+  function marketDateOffset(daysAgo, tz) {
+    const d = new Date();
+    d.setDate(d.getDate() - daysAgo);
+    return new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+  }
+
+  async function hasCandidatesOn(dateStr) {
+    const snap = await getDocs(query(
+      collection(db, "daily_candidates"),
+      where("market", "==", "BIST"),
+      where("date", "==", dateStr)
+    ));
+    return !snap.empty;
+  }
+
+  async function newerDatesAllEmpty(sinceDate, tz) {
+    for (let i = 0; i < 7; i++) {
+      const dateStr = marketDateOffset(i, tz);
+      if (dateStr <= sinceDate) continue;
+      if (await hasCandidatesOn(dateStr)) return false;
+    }
+    return true;
+  }
+
   async function findLatest() {
-    const now = new Date();
     const startFrom = marketHasClosed() ? 0 : 1;
     const metaByDate = {};
     try {
@@ -270,36 +293,31 @@
 
     const latestMeta = pickLatestMeta(metaByDate);
 
-    let emptyScanWarning = false;
-    if (latestMeta) {
-      const latestSnap = await getDocs(query(
-        collection(db, "daily_candidates"),
-        where("market", "==", "BIST"),
-        where("date", "==", latestMeta.date)
-      ));
-      emptyScanWarning = latestSnap.empty;
-    }
-
     let metaOnly = null;
+    let result = null;
 
     for (let i = startFrom; i < 7; i++) {
-      const d = new Date(now);
-      d.setDate(d.getDate() - i);
-      const dateStr = localDateStr(d);
+      const dateStr = marketDateOffset(i, IST);
       const snap = await getDocs(query(
         collection(db, "daily_candidates"),
         where("market", "==", "BIST"),
         where("date",   "==", dateStr)
       ));
       if (!snap.empty) {
-        return { docs: snap.docs, date: dateStr, daysAgo: i, meta: metaByDate[dateStr] || null, latestMeta, emptyScanWarning };
+        result = { docs: snap.docs, date: dateStr, daysAgo: i, meta: metaByDate[dateStr] || null, latestMeta };
+        break;
       }
       if (metaByDate[dateStr] && !metaOnly) {
-        metaOnly = { docs: [], date: dateStr, daysAgo: i, meta: metaByDate[dateStr] };
+        metaOnly = { docs: [], date: dateStr, daysAgo: i, meta: metaByDate[dateStr], latestMeta };
       }
     }
-    if (metaOnly) return { ...metaOnly, latestMeta, emptyScanWarning };
-    return null;
+    if (!result) {
+      if (!metaOnly) return null;
+      result = metaOnly;
+    }
+
+    const emptyScanWarning = await newerDatesAllEmpty(result.date, IST);
+    return { ...result, emptyScanWarning };
   }
 
   function localMins(iso, tz) {
@@ -389,8 +407,7 @@
       });
       const sample     = candidates[0] || {};
       const headerMeta = result.meta || result.latestMeta || sample;
-      const is4h       = headerMeta.timeframe === "4h" || sample.timeframe === "4h";
-      const tfBadge    = is4h ? `<span class="timeframe-badge">4H ANALİZ</span>` : "";
+      const tfBadge    = `<span class="timeframe-badge">4H ANALİZ</span>`;
       const window     = bistWindowLabel(headerMeta.session_window, result.daysAgo, headerMeta.evaluated_at);
       const updated    = fmtUpdatedIST(headerMeta.evaluated_at);
       const openTag   = isMarketOpen() ? `<span class="market-open-tag">⚠ AÇIK</span>` : "";
