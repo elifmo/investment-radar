@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Investment Radar — BIST</title>
+  <title>Yatırım Radarı — BIST</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -122,30 +122,30 @@
 <body>
 
 <header>
-  <h1>Investment <span>Radar</span> <span style="font-size:13px;color:#64748b;font-weight:400;">🇹🇷 BIST</span></h1>
-  <span id="last-updated">Loading...</span>
+  <h1>Yatırım <span>Radarı</span> <span style="font-size:13px;color:#64748b;font-weight:400;">🇹🇷 BIST</span></h1>
+  <span id="last-updated">Yükleniyor…</span>
 </header>
 
 <div class="layout">
   <div class="panel-left">
     <div class="panel-header">
       <span class="panel-title">🇹🇷 BIST 100</span>
-      <span class="panel-date" id="date-bist">Loading...</span>
+      <span class="panel-date" id="date-bist">Yükleniyor…</span>
     </div>
     <div id="scan-warning" class="scan-warning" hidden></div>
     <table>
       <thead>
         <tr>
-          <th>Ticker</th><th>Sektör</th><th>Close</th><th>Score</th><th>Streak</th><th>Why Today</th>
+          <th>Sembol</th><th>Sektör</th><th>Kapanış</th><th>Skor</th><th>Seri</th><th>Gerekçe</th>
         </tr>
       </thead>
       <tbody id="tbody-bist">
-        <tr class="status-row"><td colspan="6">Loading...</td></tr>
+        <tr class="status-row"><td colspan="6">Yükleniyor…</td></tr>
       </tbody>
     </table>
   </div>
   <div class="panel-right" id="detail-bist">
-    <div class="detail-empty">← Select a stock<br>to see details</div>
+    <div class="detail-empty">← Detay için<br>bir hisse seçin</div>
   </div>
 </div>
 
@@ -364,6 +364,12 @@
     });
   }
 
+  function fmtSessionDate(dateStr) {
+    return new Date(dateStr + "T12:00:00").toLocaleDateString("tr-TR", {
+      day: "numeric", month: "long", year: "numeric", timeZone: IST,
+    });
+  }
+
   function renderScanWarning(result) {
     const el = document.getElementById("scan-warning");
     if (!el) return;
@@ -376,14 +382,15 @@
     el.hidden = false;
     const open = isMarketOpen();
     const latestIsToday = result.latestMeta?.date === marketTodayStr(IST);
+    const sessionDate = fmtSessionDate(result.date);
     if (result.daysAgo > 0) {
       el.innerHTML = open && latestIsToday
-        ? `<strong>⚠ Bugün piyasa açık</strong> — bu taramada yeterli aday yok. Alttaki liste önceki oturuma ait.`
-        : `<strong>⚠ Son taramada yeterli aday yok.</strong> Alttaki liste önceki oturuma ait.`;
+        ? `<strong>⚠ Piyasa açık</strong> — bu oturumda radara takılan yeterli aday yok. Alttaki liste <strong>${sessionDate}</strong> tarihindeki seansa ait.`
+        : `<strong>⚠ Son taramada radara takılan yeterli aday yok.</strong> Alttaki liste <strong>${sessionDate}</strong> tarihindeki seansa ait.`;
     } else {
       el.innerHTML = open
-        ? `<strong>⚠ Bugün piyasa açık</strong> — yeterli aday bulunamadı.`
-        : `<strong>⚠ Son taramada</strong> yeterli aday bulunamadı.`;
+        ? `<strong>⚠ Piyasa açık</strong> — radara takılan yeterli aday bulunamadı.`
+        : `<strong>⚠ Son taramada</strong> radara takılan yeterli aday bulunamadı.`;
     }
   }
 
@@ -392,9 +399,9 @@
     try {
       const result = await findLatest();
       if (!result) {
-        tbody.innerHTML = `<tr class="status-row"><td colspan="5">No data yet.<br>
-          <small style="color:#64748b">Run: python pipeline.py bist</small></td></tr>`;
-        document.getElementById("date-bist").textContent = "No data";
+        tbody.innerHTML = `<tr class="status-row"><td colspan="6">Henüz veri yok.<br>
+          <small style="color:#64748b">Pipeline: python src/pipeline.py bist</small></td></tr>`;
+        document.getElementById("date-bist").textContent = "Veri yok";
         renderScanWarning(null);
         return;
       }
@@ -426,17 +433,46 @@
       renderTable();
     } catch (err) {
       console.error("Error loading BIST:", err);
-      tbody.innerHTML = `<tr class="status-row"><td colspan="5">Firebase error — check DevTools (F12).</td></tr>`;
+      tbody.innerHTML = `<tr class="status-row"><td colspan="6">Veri yüklenemedi — tarayıcı konsolunu kontrol edin (F12).</td></tr>`;
     }
+  }
+
+  function trWhy(text) {
+    if (!text) return "—";
+    return text
+      .replace(/Strong setup/gi, "Güçlü kurulum")
+      .replace(/Volume ([\d.]+)x/gi, "Hacim $1x")
+      .replace(/Price surge/gi, "Fiyat sıçraması")
+      .replace(/EMA crossover/gi, "EMA kesişimi")
+      .replace(/EMA aligned/gi, "EMA uyumu")
+      .replace(/Volume spike/gi, "Hacim artışı")
+      .replace(/Near support/gi, "Destek yakını")
+      .replace(/Breakout/gi, "Kırılım")
+      .replace(/RSI bounce/gi, "RSI toparlanması")
+      .replace(/Price momentum/gi, "Fiyat momentumu");
+  }
+
+  function trTrigger(t) {
+    const map = {
+      volume_spike: "Hacim artışı",
+      ema_crossover: "EMA kesişimi",
+      ema_alignment: "EMA uyumu",
+      price_momentum: "Fiyat momentumu",
+      rsi_bounce: "RSI toparlanması",
+      support_proximity: "Destek yakını",
+      breakout: "Kırılım",
+      bollinger_position: "Bollinger konumu",
+    };
+    return map[t] || t.replace(/_/g, " ");
   }
 
   function scoreClass(s) { return s >= 75 ? "score-high" : s >= 65 ? "score-mid" : "score-low"; }
 
   function streakBadge(streak) {
-    if (!streak || streak < 2) return `<span class="streak-badge streak-1">1d</span>`;
-    if (streak >= 5)           return `<span class="streak-badge streak-hot">🔥${streak}d</span>`;
-    if (streak >= 3)           return `<span class="streak-badge streak-3">▲${streak}d</span>`;
-    return                            `<span class="streak-badge streak-2">▲${streak}d</span>`;
+    if (!streak || streak < 2) return `<span class="streak-badge streak-1">1g</span>`;
+    if (streak >= 5)           return `<span class="streak-badge streak-hot">🔥${streak}g</span>`;
+    if (streak >= 3)           return `<span class="streak-badge streak-3">▲${streak}g</span>`;
+    return                            `<span class="streak-badge streak-2">▲${streak}g</span>`;
   }
 
   function fmtClose(c) {
@@ -447,10 +483,10 @@
   function renderTable() {
     const tbody = document.getElementById("tbody-bist");
     if (candidates.length === 0) {
-      tbody.innerHTML = `<tr class="status-row"><td colspan="5">Bugün aday yok (min skor 65).<br>
-        <small style="color:#64748b">Son tarama tamamlandı; kriterleri geçen hisse bulunamadı.</small></td></tr>`;
+      tbody.innerHTML = `<tr class="status-row"><td colspan="6">Radara takılan aday yok (min. skor 65).<br>
+        <small style="color:#64748b">Son tarama tamamlandı; eşikleri geçen hisse bulunamadı.</small></td></tr>`;
       document.getElementById("detail-bist").innerHTML =
-        `<div class="detail-empty">Bugün aday çıkmadı.<br><small style="color:#64748b">Pipeline çalıştı, liste boş.</small></div>`;
+        `<div class="detail-empty">Bu oturumda aday çıkmadı.<br><small style="color:#64748b">Tarama tamamlandı, liste boş.</small></div>`;
       return;
     }
     tbody.innerHTML = candidates.map(c => {
@@ -458,11 +494,11 @@
       return `
         <tr data-ticker="${c.ticker}">
           <td class="ticker-cell">${c.ticker.replace(".IS", "")}</td>
-          <td style="font-size:11px;color:#64748b;">${BIST_SECTORS[c.ticker.replace(".IS","")] ?? "-"}</td>
+          <td style="font-size:11px;color:#64748b;">${BIST_SECTORS[c.ticker.replace(".IS","")] ?? "—"}</td>
           <td class="close-cell">${fmtClose(c)}</td>
           <td class="score-cell ${scoreClass(score)}">${score}</td>
           <td>${streakBadge(c.streak)}</td>
-          <td class="why-cell">${c.why_today ?? "-"}</td>
+          <td class="why-cell">${trWhy(c.why_today)}</td>
         </tr>`;
     }).join("");
 
@@ -491,19 +527,19 @@
         <div class="detail-close">${fmtClose(c)}</div>
         <div class="detail-score ${scoreClass(score)}">${score}<span style="font-size:14px;color:#64748b;"> / 100</span></div>
       </div>
-      <div class="detail-why">${c.why_today ?? "No summary available."}</div>
+      <div class="detail-why">${trWhy(c.why_today) || "Özet mevcut değil."}</div>
       <div class="kv-grid">
-        ${kv("Close",      fmtClose(c))}
-        ${kv("Support",    c.support    != null ? "₺" + Number(c.support).toFixed(2)    : null, "green")}
-        ${kv("Resistance", c.resistance != null ? "₺" + Number(c.resistance).toFixed(2) : null, "red")}
-        ${rrVal  ? kv("Risk / Reward", `1:${rrVal}`,  rrVal  >= 1.5 ? "green" : "yellow") : ""}
-        ${volVal ? kv("Volume",        `${volVal}x`,  volVal >= 1.5 ? "green" : "yellow") : ""}
+        ${kv("Kapanış",    fmtClose(c))}
+        ${kv("Destek",     c.support    != null ? "₺" + Number(c.support).toFixed(2)    : null, "green")}
+        ${kv("Direnç",     c.resistance != null ? "₺" + Number(c.resistance).toFixed(2) : null, "red")}
+        ${rrVal  ? kv("Risk / Ödül", `1:${rrVal}`,  rrVal  >= 1.5 ? "green" : "yellow") : ""}
+        ${volVal ? kv("Hacim",         `${volVal}x`,  volVal >= 1.5 ? "green" : "yellow") : ""}
         ${kv("RSI", c.rsi != null ? c.rsi : null, c.rsi >= 70 ? "yellow" : "green")}
       </div>
       ${c.triggers?.length ? `
         <div class="detail-section">
-          <h3>Triggered by</h3>
-          <ul class="signal-list">${c.triggers.map(t => `<li>• ${t.replace(/_/g," ")}</li>`).join("")}</ul>
+          <h3>Tetikleyen sinyaller</h3>
+          <ul class="signal-list">${c.triggers.map(t => `<li>• ${trTrigger(t)}</li>`).join("")}</ul>
         </div>` : ""}`;
   }
 
