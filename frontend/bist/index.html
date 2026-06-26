@@ -443,13 +443,15 @@
       .replace(/Strong setup/gi, "Güçlü kurulum")
       .replace(/Volume ([\d.]+)x/gi, "Hacim $1x")
       .replace(/Price surge/gi, "Fiyat sıçraması")
+      .replace(/4H scan/gi, "4H tarama")
       .replace(/EMA crossover/gi, "EMA kesişimi")
       .replace(/EMA aligned/gi, "EMA uyumu")
       .replace(/Volume spike/gi, "Hacim artışı")
       .replace(/Near support/gi, "Destek yakını")
       .replace(/Breakout/gi, "Kırılım")
       .replace(/RSI bounce/gi, "RSI toparlanması")
-      .replace(/Price momentum/gi, "Fiyat momentumu");
+      .replace(/Price momentum/gi, "Fiyat momentumu")
+      .replace(/Price move/gi, "Fiyat hareketi");
   }
 
   function trTrigger(t) {
@@ -458,6 +460,7 @@
       ema_crossover: "EMA kesişimi",
       ema_alignment: "EMA uyumu",
       price_momentum: "Fiyat momentumu",
+      price_move: "Fiyat hareketi",
       rsi_bounce: "RSI toparlanması",
       support_proximity: "Destek yakını",
       breakout: "Kırılım",
@@ -466,7 +469,7 @@
     return map[t] || t.replace(/_/g, " ");
   }
 
-  function scoreClass(s) { return s >= 75 ? "score-high" : s >= 65 ? "score-mid" : "score-low"; }
+  function scoreClass(s) { return s >= 75 ? "score-high" : s >= 55 ? "score-mid" : "score-low"; }
 
   function streakBadge(streak) {
     if (!streak || streak < 2) return `<span class="streak-badge streak-1">1g</span>`;
@@ -483,7 +486,7 @@
   function renderTable() {
     const tbody = document.getElementById("tbody-bist");
     if (candidates.length === 0) {
-      tbody.innerHTML = `<tr class="status-row"><td colspan="6">Radara takılan aday yok (min. skor 65).<br>
+      tbody.innerHTML = `<tr class="status-row"><td colspan="6">Radara takılan aday yok (min. skor 55).<br>
         <small style="color:#64748b">Son tarama tamamlandı; eşikleri geçen hisse bulunamadı.</small></td></tr>`;
       document.getElementById("detail-bist").innerHTML =
         `<div class="detail-empty">Bu oturumda aday çıkmadı.<br><small style="color:#64748b">Tarama tamamlandı, liste boş.</small></div>`;
