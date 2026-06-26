@@ -6,22 +6,26 @@ on:
     paths:
       - 'frontend/**'
       - 'firebase.json'
+      - 'firestore.rules'
       - '.firebaserc'
   workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Firebase CLI
-        run: npm install -g firebase-tools
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
 
-      - name: Deploy all hosting sites
-        run: |
-          echo "$FIREBASE_SERVICE_ACCOUNT" > serviceAccountKey.json
-          export GOOGLE_APPLICATION_CREDENTIALS=serviceAccountKey.json
-          firebase deploy --only hosting --project investment-radar-2c19d
-        env:
-          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools@13.35.1
+
+      - name: Deploy hosting and Firestore rules
+        run: firebase deploy --only hosting,firestore:rules --project investment-radar-2c19d --non-interactive
