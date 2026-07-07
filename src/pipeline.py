@@ -339,6 +339,9 @@ def run(market_arg: str) -> None:
                 logger.info("[USA] Fetching heatmap OHLCV (regular close, not adjusted)...")
                 watchlist_hm_data = fetch_batch_daily(tickers, auto_adjust=False)
                 sp500_data = fetch_batch_daily(sp500_tickers, auto_adjust=False)
+                logger.info("[USA] Fetching 4H session data for heatmap...")
+                watchlist_h4 = fetch_batch_4h(tickers, auto_adjust=False)
+                sp500_h4 = fetch_batch_4h(sp500_tickers, auto_adjust=False)
                 sp500_caps = caps_from_universe(sp500_univ)
 
                 hm_date = resolve_usa_snapshot_date(watchlist_hm_data)
@@ -346,10 +349,12 @@ def run(market_arg: str) -> None:
 
                 watchlist_hm = compute_sector_heatmap(
                     raw_entries, watchlist_hm_data, as_of_date=hm_date,
+                    h4_data=watchlist_h4,
                 )
                 sp500_hm = compute_sector_heatmap(
                     sp500_univ, sp500_data, as_of_date=hm_date,
                     market_caps=sp500_caps, include_benchmarks=False,
+                    h4_data=sp500_h4,
                 )
                 heatmap = merge_heatmap_payload(watchlist_hm, sp500_hm)
                 write_sector_heatmap(db, heatmap, trade_date=hm_date)

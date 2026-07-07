@@ -106,15 +106,33 @@ def fetch_hourly_data(tickers: list[str]) -> dict[str, pd.DataFrame]:
     return _fetch_ohlcv(tickers, period="7d", interval="1h")
 
 
-def fetch_batch_4h(tickers: list[str]) -> dict[str, pd.DataFrame]:
-    """Batch download 4-hour OHLCV (~60 days) for intraday scanning.
+def fetch_batch_4h(
+    tickers: list[str],
+    chunk_size: int = 80,
+    auto_adjust: bool = True,
+) -> dict[str, pd.DataFrame]:
+    """Batch download 4-hour OHLCV (~60 days) for session heatmap updates.
 
-    Used by the pipeline when scan.timeframe is 4h. Falls back to
-    individual fetches on failure.
+    Used for hybrid heatmap (change_4h) and 4h candidate scans.
+    Splits large lists into chunks (yfinance limit ~100 tickers per call).
     """
     if not tickers:
         return {}
 
+    if len(tickers) <= chunk_size:
+        return _fetch_batch_4h_single(tickers, auto_adjust)
+
+    result: dict[str, pd.DataFrame] = {}
+    for i in range(0, len(tickers), chunk_size):
+        chunk = tickers[i : i + chunk_size]
+        logger.info("Batch 4h chunk %d–%d / %d", i + 1, i + len(chunk), len(tickers))
+        result.update(_fetch_batch_4h_single(chunk, auto_adjust))
+    return result
+
+
+def _fetch_batch_4h_single(
+    tickers: list[str], auto_adjust: bool = True,
+) -> dict[str, pd.DataFrame]:
     result: dict[str, pd.DataFrame] = {}
     try:
         raw = yf.download(
@@ -122,7 +140,7 @@ def fetch_batch_4h(tickers: list[str]) -> dict[str, pd.DataFrame]:
             period="60d",
             interval="4h",
             group_by="ticker",
-            auto_adjust=True,
+            auto_adjust=auto_adjust,
             threads=True,
             progress=False,
         )
@@ -144,13 +162,13 @@ def fetch_batch_4h(tickers: list[str]) -> dict[str, pd.DataFrame]:
                 logger.info("Batch fetched %d 4h rows for %s", len(df), ticker)
             except Exception as exc:
                 logger.warning("4h batch parse failed for %s: %s — retrying individually", ticker, exc)
-                fallback = _fetch_ohlcv([ticker], "60d", "4h")
+                fallback = _fetch_ohlcv([ticker], "60d", "4h", auto_adjust)
                 for t, fdf in fallback.items():
                     if len(fdf) >= _MIN_ROWS_4H:
                         result[t] = fdf
     except Exception as exc:
         logger.error("4h batch download failed: %s — falling back to individual fetches", exc)
-        for ticker, df in _fetch_ohlcv(tickers, "60d", "4h").items():
+        for ticker, df in _fetch_ohlcv(tickers, "60d", "4h", auto_adjust).items():
             if len(df) >= _MIN_ROWS_4H:
                 result[ticker] = df
 
