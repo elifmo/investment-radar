@@ -3,7 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- v3 -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <!-- v17 ETF UX in plain English -->
   <title>Investment Radar — US Markets</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -302,6 +305,26 @@
     .dd-search-btn:hover { background: #4f46e5; }
     .dd-search-btn:disabled { background: #374151; cursor: not-allowed; }
 
+    .dd-market-tabs {
+      display: flex; gap: 8px; margin-bottom: 12px;
+    }
+    .dd-market-tab {
+      background: #1a1d27; border: 1px solid #2d3148; border-radius: 6px;
+      color: #94a3b8; cursor: pointer; font-size: 12px; font-weight: 600;
+      padding: 6px 12px; transition: all 0.15s;
+    }
+    .dd-market-tab.active { background: #1e2a4a; border-color: #6366f1; color: #93c5fd; }
+    .dd-chip-row {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px;
+    }
+    .dd-chip {
+      background: #131520; border: 1px solid #2d3148; border-radius: 16px;
+      color: #94a3b8; cursor: pointer; font-size: 11px; font-weight: 600;
+      padding: 4px 10px; transition: all 0.15s;
+    }
+    .dd-chip:hover { border-color: #6366f1; color: #e2e8f0; }
+    .dd-chip.nl { border-color: #1e3a5f; color: #7dd3fc; }
+
     .dd-status { text-align: center; color: #4b5563; font-size: 13px; padding: 60px 0; line-height: 1.8; }
     .dd-loading { text-align: center; padding: 60px 0; color: #6366f1; font-size: 14px; }
     .dd-error   { background: #2b0d0d; border: 1px solid #7f1d1d; border-radius: 8px;
@@ -396,6 +419,251 @@
     .dd-risks li::before { content: "⚠"; position: absolute; left: 0; font-size: 12px; color: #fb923c; }
 
     .dd-cache-note { font-size: 11px; color: #374151; text-align: center; margin-top: 24px; }
+
+    /* ── Sector Heatmap ─────────────────────────────────────────────── */
+    #tab-heatmap {
+      padding: 20px 24px; overflow-y: auto; height: calc(100vh - 97px);
+    }
+    .hm-market-banner {
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+      background: linear-gradient(90deg, #1e2a4a 0%, #1a1d27 100%);
+      border: 1px solid #2d3148; border-radius: 10px; padding: 12px 16px; margin-bottom: 14px;
+    }
+    .hm-market-banner .hm-market-title { font-size: 16px; font-weight: 800; color: #fff; }
+    .hm-market-banner .hm-market-sub   { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+    .hm-market-badge {
+      font-size: 11px; font-weight: 700; background: #0c1a3b; color: #93c5fd;
+      border: 1px solid #1e3a8a; border-radius: 20px; padding: 4px 12px;
+    }
+    .heatmap-toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px; margin-bottom: 12px;
+    }
+    .heatmap-title { font-size: 13px; font-weight: 700; color: #e2e8f0; }
+    .heatmap-meta  { font-size: 11px; color: #64748b; }
+    .heatmap-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .heatmap-controls label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; }
+    .hm-btn {
+      background: #1e2130; border: 1px solid #2d3148; border-radius: 6px;
+      color: #94a3b8; cursor: pointer; font-size: 12px; font-weight: 600;
+      padding: 6px 12px; transition: all 0.15s;
+    }
+    .hm-btn:hover { color: #e2e8f0; border-color: #4b5563; }
+    .hm-btn-themes {
+      background: #312e81; border-color: #6366f1; color: #c7d2fe;
+    }
+    .hm-btn-themes:not(.active) {
+      animation: hm-pulse 2s ease-in-out infinite;
+    }
+    @keyframes hm-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0.4); }
+      50%       { box-shadow: 0 0 0 4px rgba(99,102,241,0.15); }
+    }
+    .hm-date-select {
+      background: #1e2130; border: 1px solid #2d3148; border-radius: 6px;
+      color: #e2e8f0; font-size: 12px; padding: 6px 10px; cursor: pointer;
+    }
+    #heatmap-chart {
+      width: 100%; min-height: 420px;
+      background: #131520; border: 1px solid #2d3148; border-radius: 10px;
+      padding: 12px; overflow: auto;
+    }
+    .hm-sector-map {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    @media (max-width: 1100px) { .hm-sector-map { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 760px)  { .hm-sector-map { grid-template-columns: repeat(2, 1fr); } }
+    .hm-sector-tile {
+      border-radius: 10px; padding: 14px 16px; cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.08); min-height: 110px;
+      display: flex; flex-direction: column; justify-content: space-between;
+      transition: transform 0.12s, box-shadow 0.12s;
+    }
+    .hm-sector-tile:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.35); }
+    .hm-sector-tile.span-2 { grid-column: span 2; }
+    .hm-tile-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .hm-tile-name { font-size: 13px; font-weight: 700; color: #fff; line-height: 1.3; }
+    .hm-tile-etf  {
+      font-size: 10px; font-weight: 800; background: rgba(0,0,0,0.25);
+      color: rgba(255,255,255,0.9); padding: 2px 7px; border-radius: 4px; flex-shrink: 0;
+    }
+    .hm-tile-chg  { font-size: 22px; font-weight: 800; color: #fff; margin: 8px 0 4px; }
+    .hm-tile-parent {
+      font-size: 11px; font-weight: 700; color: #fff;
+      background: rgba(0,0,0,0.35); padding: 3px 8px; border-radius: 4px;
+      display: inline-block; margin-bottom: 4px; align-self: flex-start;
+    }
+    .hm-tile-foot { font-size: 11px; color: rgba(255,255,255,0.75); display: flex; gap: 8px; flex-wrap: wrap; }
+    .hm-benchmarks {
+      display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;
+    }
+    .hm-bench-tile {
+      flex: 1; min-width: 200px; border-radius: 8px; padding: 12px 14px;
+      border: 1px solid #2d3148; background: #1a1d27;
+    }
+    .hm-bench-label { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; }
+    .hm-bench-name  { font-size: 13px; font-weight: 700; color: #e2e8f0; margin: 2px 0 6px; }
+    .hm-bench-chg   { font-size: 18px; font-weight: 800; }
+    .hm-bench-note  { font-size: 10px; color: #64748b; margin-top: 4px; }
+    .hm-status-pill {
+      font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 10px;
+      background: rgba(0,0,0,0.3);
+    }
+    .hm-drill-header {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
+      padding-bottom: 12px; border-bottom: 1px solid #2d3148;
+    }
+    .hm-back-btn {
+      background: #1e2130; border: 1px solid #2d3148; border-radius: 6px;
+      color: #94a3b8; cursor: pointer; font-size: 12px; padding: 6px 12px;
+    }
+    .hm-back-btn:hover { color: #e2e8f0; }
+    .hm-drill-title { font-size: 18px; font-weight: 800; color: #fff; }
+    .hm-drill-sub   { font-size: 12px; color: #64748b; }
+    .hm-stock-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .hm-stock-table th {
+      text-align: left; padding: 8px 10px; font-size: 10px; font-weight: 600;
+      color: #64748b; text-transform: uppercase; letter-spacing: 0.06em;
+      border-bottom: 1px solid #2d3148;
+    }
+    .hm-stock-table td { padding: 9px 10px; border-bottom: 1px solid #1e2130; color: #cbd5e1; }
+    .hm-stock-table tr:hover td { background: #1a1d27; }
+    .hm-stock-table .tk { font-weight: 800; color: #fff; }
+    .hm-chg-pill {
+      display: inline-block; font-size: 12px; font-weight: 700;
+      padding: 2px 8px; border-radius: 4px; min-width: 58px; text-align: center;
+    }
+    .heatmap-legend {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      margin-top: 12px; font-size: 11px; color: #64748b;
+    }
+    .heatmap-legend-bar {
+      width: 200px; height: 8px; border-radius: 4px;
+      background: linear-gradient(to right, #ef4444, #374151 50%, #22c55e);
+    }
+    .hm-hint { font-size: 11px; color: #64748b; text-align: center; margin-top: 8px; }
+
+    /* ── ETF Scan ─────────────────────────────────────────────────── */
+    #tab-etf.layout { height: calc(100vh - 97px); }
+    .etf-banner {
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+      background: linear-gradient(90deg, #1a2e1a 0%, #1a1d27 100%);
+      border: 1px solid #2d3148; border-radius: 10px; padding: 12px 16px; margin-bottom: 14px;
+    }
+    .etf-banner-title { font-size: 15px; font-weight: 800; color: #fff; }
+    .etf-banner-sub { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+    .etf-toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 10px; margin-bottom: 12px;
+    }
+    .etf-meta { font-size: 11px; color: #64748b; }
+    .etf-date-select {
+      background: #1e2130; border: 1px solid #2d3148; border-radius: 6px;
+      color: #e2e8f0; font-size: 12px; padding: 6px 10px; cursor: pointer;
+    }
+    .etf-table-wrap { overflow-x: auto; }
+    .etf-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .etf-table thead th {
+      text-align: left; padding: 8px 8px; font-size: 10px; font-weight: 600;
+      color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;
+      border-bottom: 1px solid #2d3148; white-space: nowrap;
+    }
+    .etf-table tbody tr { cursor: pointer; border-bottom: 1px solid #1e2130; }
+    .etf-table tbody tr:hover { background: #1e2130; }
+    .etf-table tbody tr.selected { background: #1e2338; }
+    .etf-table td { padding: 9px 8px; vertical-align: middle; }
+    .etf-name-cell { max-width: 200px; }
+    .etf-name-main { font-weight: 700; color: #fff; font-size: 12px; line-height: 1.3; }
+    .etf-name-sub { font-size: 10px; color: #64748b; margin-top: 2px; }
+    .etf-price { font-weight: 700; color: #e2e8f0; white-space: nowrap; }
+    .etf-sr-support { color: #4ade80; font-weight: 600; white-space: nowrap; font-size: 11px; }
+    .etf-sr-resist { color: #f87171; font-weight: 600; white-space: nowrap; font-size: 11px; }
+    .etf-sr-sub { display: block; font-size: 9px; color: #64748b; font-weight: 400; margin-top: 1px; }
+    .etf-chg-pos { color: #4ade80; }
+    .etf-chg-neg { color: #f87171; }
+    .etf-chg-neu { color: #94a3b8; }
+    .etf-pill {
+      display: inline-block; font-size: 10px; font-weight: 700; border-radius: 20px;
+      padding: 2px 8px; white-space: nowrap;
+    }
+    .etf-pill-momentum { background: #1e3b2b; color: #4ade80; }
+    .etf-pill-oversold { background: #1e2a4a; color: #93c5fd; }
+    .etf-pill-overheat { background: #3b1f0a; color: #fb923c; }
+    .etf-pill-pullback { background: #2d3a1a; color: #facc15; }
+    .etf-pill-down { background: #3b1f1f; color: #f87171; }
+    .etf-pill-neutral { background: #1e2130; color: #94a3b8; }
+    .etf-pill-trend-strong { background: #1e3b2b; color: #4ade80; }
+    .etf-pill-trend-weak { background: #3b1f1f; color: #f87171; }
+    .etf-pill-trend-mid { background: #1e2130; color: #cbd5e1; }
+    .etf-detail-section { margin-bottom: 18px; }
+    .etf-detail-label {
+      font-size: 10px; font-weight: 600; color: #64748b;
+      text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;
+    }
+    .etf-level-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .etf-level-box {
+      background: #1a1d27; border: 1px solid #2d3148; border-radius: 8px; padding: 10px 12px;
+    }
+    .etf-level-box .lbl { font-size: 10px; color: #64748b; margin-bottom: 2px; }
+    .etf-level-box .val { font-size: 15px; font-weight: 700; color: #e2e8f0; }
+    .etf-level-box.support .val { color: #4ade80; }
+    .etf-level-box.resist .val { color: #f87171; }
+    .etf-level-box.entry .val { color: #93c5fd; }
+    .etf-level-box.stop .val { color: #fb923c; }
+    .etf-action-box {
+      background: #1e2338; border: 1px solid #6366f1; border-radius: 8px;
+      padding: 12px 14px; font-size: 13px; color: #c7d2fe; line-height: 1.5;
+    }
+    .etf-rec-card {
+      border-radius: 10px; overflow: hidden; border: 1px solid #2d3148;
+    }
+    .etf-rec-card.etf-rec-buy { border-color: #166534; }
+    .etf-rec-card.etf-rec-wait { border-color: #92400e; }
+    .etf-rec-card.etf-rec-small { border-color: #1e40af; }
+    .etf-rec-card.etf-rec-watch { border-color: #374151; }
+    .etf-rec-verdict {
+      padding: 14px 16px; font-size: 22px; font-weight: 800; letter-spacing: 0.04em;
+    }
+    .etf-rec-buy .etf-rec-verdict { background: #14532d; color: #4ade80; }
+    .etf-rec-wait .etf-rec-verdict { background: #451a03; color: #fb923c; }
+    .etf-rec-small .etf-rec-verdict { background: #1e3a5f; color: #93c5fd; }
+    .etf-rec-watch .etf-rec-verdict { background: #1e2130; color: #94a3b8; }
+    .etf-rec-body { background: #1a1d27; padding: 14px 16px; }
+    .etf-rec-headline {
+      font-size: 15px; font-weight: 700; color: #f1f5f9; line-height: 1.45; margin-bottom: 10px;
+    }
+    .etf-rec-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+    .etf-rec-tag {
+      font-size: 10px; font-weight: 600; color: #94a3b8; background: #131520;
+      border: 1px solid #2d3148; border-radius: 20px; padding: 3px 10px;
+    }
+    .etf-rec-block { margin-bottom: 14px; }
+    .etf-rec-block-title {
+      font-size: 11px; font-weight: 700; color: #6366f1; text-transform: uppercase;
+      letter-spacing: 0.06em; margin-bottom: 6px;
+    }
+    .etf-rec-list {
+      margin: 0; padding-left: 18px; color: #cbd5e1; font-size: 13px; line-height: 1.55;
+    }
+    .etf-rec-list li { margin-bottom: 4px; }
+    .etf-rec-list li:last-child { margin-bottom: 0; }
+    .etf-rec-dont {
+      background: #3b1f1f; border: 1px solid #7f1d1d; border-radius: 8px;
+      padding: 10px 12px; font-size: 12px; color: #fca5a5; margin-bottom: 10px; line-height: 1.45;
+    }
+    .etf-rec-role {
+      font-size: 11px; color: #64748b; border-top: 1px solid #2d3148; padding-top: 10px; line-height: 1.4;
+    }
+    .etf-action-short {
+      display: inline-block; font-size: 10px; font-weight: 800; border-radius: 4px;
+      padding: 2px 6px; letter-spacing: 0.03em;
+    }
+    .etf-action-short.buy { background: #14532d; color: #4ade80; }
+    .etf-action-short.wait { background: #451a03; color: #fb923c; }
+    .etf-action-short.small { background: #1e3a5f; color: #93c5fd; }
+    .etf-action-short.watch { background: #1e2130; color: #94a3b8; }
   </style>
 </head>
 <body>
@@ -407,6 +675,8 @@
 
 <div class="tabs" id="tabs-bar">
   <button class="tab-btn active" data-tab="usa">Candidates</button>
+  <button class="tab-btn" data-tab="heatmap">Sector Heatmap</button>
+  <button class="tab-btn" data-tab="etf">ETF Scan</button>
   <button class="tab-btn" data-tab="opportunities">Opportunities</button>
   <button class="tab-btn" data-tab="radar">My Radar</button>
   <button class="tab-btn" data-tab="stats">Statistics</button>
@@ -437,6 +707,89 @@
   </div>
 </div>
 
+<div id="tab-heatmap" class="tab-content" style="display:none;">
+  <div class="hm-market-banner">
+    <div>
+      <div class="hm-market-title">🇺🇸 United States Stock Market</div>
+      <div class="hm-market-sub" id="heatmap-universe-note">Full S&amp;P 500 · 503 stocks · cap-weighted GICS sectors</div>
+    </div>
+    <span class="hm-market-badge" id="heatmap-market-badge">US Market</span>
+  </div>
+  <div class="heatmap-toolbar">
+    <div>
+      <div class="heatmap-title">Sector Performance Map</div>
+      <div class="heatmap-meta" id="heatmap-meta">Loading...</div>
+    </div>
+    <div class="heatmap-controls">
+      <label>View</label>
+      <button class="hm-btn" data-hm-view="sectors">11 Sectors</button>
+      <button class="hm-btn hm-btn-themes active" data-hm-view="themes">★ Popular Themes</button>
+      <label>Date</label>
+      <select id="heatmap-date" class="hm-date-select" title="Snapshot date"></select>
+      <label>Period</label>
+      <button class="hm-btn active" data-hm-period="change_1d">1 Day</button>
+      <button class="hm-btn" data-hm-period="change_5d">1 Week</button>
+      <button class="hm-btn" data-hm-period="change_30d">30 Days</button>
+      <button class="hm-btn" data-hm-period="change_126d">6 Months</button>
+      <button class="hm-btn" data-hm-period="change_252d">1 Year</button>
+    </div>
+  </div>
+  <div id="heatmap-benchmarks"></div>
+  <div id="heatmap-chart"></div>
+  <div class="heatmap-legend">
+    <span id="heatmap-legend-min">−3%</span>
+    <div class="heatmap-legend-bar"></div>
+    <span id="heatmap-legend-max">+3%</span>
+  </div>
+  <div class="hm-hint" id="heatmap-hint">Semiconductors · Nuclear · Biotech · Quantum · AI · Memory · Space</div>
+</div>
+
+<div id="tab-etf" class="layout tab-content" style="display:none;">
+  <div class="panel-left">
+    <div class="etf-banner">
+      <div>
+        <div class="etf-banner-title">📊 Daily ETF Scan — Bux</div>
+        <div class="etf-banner-sub">Search <b>VHYL · VUSA · SEMI · HEAL · DFEN · NUKL</b> in Bux · EUR prices</div>
+      </div>
+      <span class="hm-market-badge" id="etf-scan-badge">ETF Scan</span>
+    </div>
+    <div id="etf-demo-banner" class="scan-warning" style="display:none;margin-bottom:12px;">
+      <strong>Demo mode</strong> — Sample data only. For live data run
+      <code>python3 scripts/scan_etfs_daily.py</code> then deploy.
+    </div>
+    <div class="etf-toolbar">
+      <div class="etf-meta" id="etf-scan-meta">Loading...</div>
+      <select id="etf-date" class="etf-date-select" title="Scan date"></select>
+    </div>
+    <div class="etf-table-wrap">
+      <table class="etf-table">
+        <thead>
+          <tr>
+            <th>Bux</th>
+            <th>ETF</th>
+            <th>Price</th>
+            <th>1D</th>
+            <th>5D</th>
+            <th>1M</th>
+            <th>RSI</th>
+            <th>Support</th>
+            <th>Resistance</th>
+            <th>Trend</th>
+            <th>Signal</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="etf-table-body">
+          <tr><td colspan="12" style="color:#64748b;padding:20px;">Loading ETF scan...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="panel-right" id="etf-detail">
+    <div class="detail-empty">← Select an ETF<br>to see levels &amp; strategy</div>
+  </div>
+</div>
+
 <div id="tab-opportunities" class="tab-content" style="display:none;">
   <div class="opp-header">Market Opportunities</div>
   <div class="opp-grid" id="opp-grid">
@@ -455,12 +808,17 @@
 </div>
 
 <div id="tab-deepdive" class="tab-content" style="display:none;">
+  <div class="dd-market-tabs">
+    <button type="button" class="dd-market-tab active" data-dd-market="all">🇺🇸 US + 🇳🇱 NL</button>
+    <button type="button" class="dd-market-tab" data-dd-market="nl">🇳🇱 Euronext Amsterdam</button>
+  </div>
   <div class="dd-search-wrap">
-    <input id="dd-input" class="dd-search-input" type="text" placeholder="Type a ticker — e.g. NVDA, AAPL, META" maxlength="10" />
+    <input id="dd-input" class="dd-search-input" type="text" placeholder="Ticker — NVDA, AAPL, ASML, INGA.AS" maxlength="16" />
     <button id="dd-btn" class="dd-search-btn">Analyze</button>
   </div>
+  <div id="dd-chips" class="dd-chip-row"></div>
   <div id="dd-result">
-    <div class="dd-status">Type a US ticker above and click Analyze.<br>Analysis is cached for 24 hours — results come back in ~10 seconds.</div>
+    <div class="dd-status">Enter a US ticker or Dutch (Euronext Amsterdam) symbol.<br>Examples: <b>NVDA</b>, <b>ASML</b>, <b>ADYEN.AS</b> — analysis cached 24h (~10 sec first run).</div>
   </div>
 </div>
 
@@ -560,6 +918,40 @@
   let macroData = null;
   let sectorData = {};
   let sectorHistData = {};
+  let heatmapData = null;
+  let heatmapDates = [];
+  let heatmapSelectedDate = null;
+  let heatmapPeriod = "change_1d";
+  let heatmapRendered = false;
+  let heatmapViewMode = "themes";
+  let heatmapDrillKey = null;
+
+  const HEATMAP_THEMES = [
+    { id: "semiconductors", name: "Semiconductors & Chips", icon: "🔬", parentSector: "Technology", parentEtf: "XLK",
+      tickers: ["NVDA","AMD","INTC","QCOM","TSM","AVGO","MRVL","ARM","ON","TXN","ADI","NXPI","MCHP","MPWR","LRCX","AMAT","KLAC","SNPS","CDNS"] },
+    { id: "memory", name: "Memory & Storage", icon: "💾", parentSector: "Technology", parentEtf: "XLK",
+      tickers: ["MU","WDC","STX"] },
+    { id: "nuclear", name: "Nuclear & Uranium", icon: "☢️", parentSector: "Energy & Utilities", parentEtf: "XLE · XLU",
+      tickers: ["CCJ","LEU","OKLO","CEG","VST","NEE"] },
+    { id: "space_defense", name: "Space & Defense", icon: "🚀", parentSector: "Industrials", parentEtf: "XLI",
+      tickers: ["RTX","GD","TDG","GE","PLTR","MSI"] },
+    { id: "ai_cloud", name: "AI & Cloud", icon: "🤖", parentSector: "Technology", parentEtf: "XLK",
+      tickers: ["NVDA","MSFT","GOOGL","GOOG","META","AMZN","PLTR","CRM","NOW","SNOW","DDOG","ARM","SMCI","ORCL"] },
+    { id: "cybersecurity", name: "Cybersecurity", icon: "🛡️", parentSector: "Technology", parentEtf: "XLK",
+      tickers: ["CRWD","PANW","FTNT"] },
+    { id: "fintech_crypto", name: "Fintech & Crypto", icon: "💰", parentSector: "Financials", parentEtf: "XLF",
+      tickers: ["COIN","HOOD","V","MA","BLK","GS","JPM"] },
+    { id: "ev_auto", name: "EV & Auto Tech", icon: "⚡", parentSector: "Consumer Discretionary", parentEtf: "XLY",
+      tickers: ["TSLA","GM","F","PCAR","ON","MPWR"] },
+    { id: "datacenter", name: "Data Center & Servers", icon: "🖥️", parentSector: "Technology & Real Estate", parentEtf: "XLK · XLRE",
+      tickers: ["EQIX","DLR","ANET","CSCO","DELL","SMCI","MU","AVGO"] },
+    { id: "networking", name: "Networking & Infra", icon: "🌐", parentSector: "Technology", parentEtf: "XLK",
+      tickers: ["ANET","CSCO","TEL","APH","MSFT","AMZN"] },
+    { id: "biotech", name: "Biotech & Pharma", icon: "🧬", parentSector: "Health Care", parentEtf: "XLV",
+      tickers: ["VRTX","GILD","AMGN","BMY","MRK","LLY","ABBV","ISRG","DXCM","IDXX","TMO","DHR","ABT","ZTS"] },
+    { id: "quantum", name: "Quantum & Advanced Computing", icon: "⚛️", parentSector: "Technology", parentEtf: "XLK",
+      tickers: ["IBM","GOOGL","GOOG","MSFT","NVDA","ORCL","HON","ACN"] },
+  ];
   let oppRendered = false;
   let candidates = [];
   let dataLoaded = false;
@@ -621,15 +1013,931 @@
     activeTab = tabId;
     const target = document.getElementById(`tab-${tabId}`);
     if (!target) return;
-    target.style.display = tabId === "usa" ? "grid" : "block";
+    target.style.display = (tabId === "usa" || tabId === "etf") ? "grid" : "block";
     if (tabId === "radar") loadRadar();
     else if (tabId === "opportunities") renderOpportunities();
+    else if (tabId === "heatmap") renderHeatmapTab();
+    else if (tabId === "etf") renderEtfScanTab();
     else if (tabId === "deepdive") initDeepDive();
+  }
+
+  async function loadHeatmapIndex() {
+    try {
+      const snap = await getDoc(doc(db, "sector_heatmap", "_index"));
+      if (snap.exists()) {
+        const data = snap.data();
+        heatmapDates = (data.dates || []).slice().sort((a, b) => b.localeCompare(a));
+        if (!heatmapSelectedDate) {
+          heatmapSelectedDate = data.latest || heatmapDates[0] || "current";
+        }
+      }
+    } catch (e) { console.warn("Heatmap index load failed:", e); }
+    if (!heatmapDates.length) heatmapDates = ["current"];
+    if (!heatmapSelectedDate) heatmapSelectedDate = heatmapDates[0];
+  }
+
+  function lastThursdayISO() {
+    const d = new Date();
+    while (d.getDay() !== 4) d.setDate(d.getDate() - 1);
+    return d.toISOString().slice(0, 10);
+  }
+
+  function formatHeatmapDate(iso) {
+    if (!iso || iso === "current") return "Latest";
+    const d = new Date(iso + "T12:00:00");
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    return `${iso} (${days[d.getDay()]})`;
+  }
+
+  function populateHeatmapDateSelect() {
+    const sel = document.getElementById("heatmap-date");
+    if (!sel) return;
+    const thu = lastThursdayISO();
+    const preferred = heatmapDates.includes(thu) ? thu : heatmapSelectedDate;
+    if (!heatmapSelectedDate || heatmapSelectedDate === "current") {
+      heatmapSelectedDate = preferred;
+    }
+    sel.innerHTML = heatmapDates.map(d =>
+      `<option value="${d}">${formatHeatmapDate(d)}${d === thu ? " · last Thu" : ""}</option>`
+    ).join("");
+    if (heatmapDates.includes(heatmapSelectedDate)) {
+      sel.value = heatmapSelectedDate;
+    } else {
+      sel.value = heatmapDates[0];
+      heatmapSelectedDate = heatmapDates[0];
+    }
+  }
+
+  async function loadSectorHeatmap(dateKey) {
+    const key = dateKey || heatmapSelectedDate || "current";
+    try {
+      const snap = await getDoc(doc(db, "sector_heatmap", key));
+      if (snap.exists()) {
+        heatmapData = snap.data();
+        heatmapSelectedDate = key;
+        return heatmapData;
+      }
+      if (key !== "current") {
+        const fallback = await getDoc(doc(db, "sector_heatmap", "current"));
+        if (fallback.exists()) {
+          heatmapData = fallback.data();
+          return heatmapData;
+        }
+      }
+    } catch (e) {
+      console.error("Sector heatmap load failed:", e);
+      const meta = document.getElementById("heatmap-meta");
+      if (meta) meta.textContent = `Load error: ${e.message ?? e}`;
+    }
+    return heatmapData;
+  }
+
+  function fmtChg(val) {
+    if (val == null) return "—";
+    const sign = val >= 0 ? "+" : "";
+    return `${sign}${val.toFixed(2)}%`;
+  }
+
+  function heatmapPeriodMax(period) {
+    const scales = {
+      change_1d: 3, change_5d: 5, change_30d: 8,
+      change_126d: 20, change_252d: 40,
+    };
+    return scales[period] || 8;
+  }
+
+  function heatmapPeriodLabel(period) {
+    const labels = {
+      change_1d: "1-day", change_5d: "1-week", change_30d: "30-day",
+      change_126d: "6-month", change_252d: "1-year",
+    };
+    return labels[period] || period;
+  }
+
+  function updateHeatmapLegend(period) {
+    const max = heatmapPeriodMax(period);
+    const minEl = document.getElementById("heatmap-legend-min");
+    const maxEl = document.getElementById("heatmap-legend-max");
+    if (minEl) minEl.textContent = `−${max}%`;
+    if (maxEl) maxEl.textContent = `+${max}%`;
+  }
+
+  function chgToColor(val, period = heatmapPeriod) {
+    if (val == null || Number.isNaN(val)) return "#374151";
+    const max = heatmapPeriodMax(period);
+    const c = Math.max(-max, Math.min(max, val));
+    if (c >= 0) {
+      const t = c / max;
+      return `rgb(${Math.round(55 + t * (34 - 55))},${Math.round(65 + t * (197 - 65))},${Math.round(81 + t * (94 - 81))})`;
+    }
+    const t = Math.abs(c) / max;
+    return `rgb(${Math.round(55 + t * (239 - 55))},${Math.round(65 + t * (68 - 65))},${Math.round(81 + t * (68 - 81))})`;
+  }
+
+  function weightedGroup(members, period) {
+    const cap = members.reduce((sum, s) => sum + (s.market_cap || 1), 0);
+    let wSum = 0, wChg = 0;
+    members.forEach(s => {
+      const chg = s[period];
+      if (chg != null) { wChg += chg * (s.market_cap || 1); wSum += (s.market_cap || 1); }
+    });
+    return { cap, chg: wSum ? wChg / wSum : 0 };
+  }
+
+  function heatmapStocksForView(data) {
+    if (!data) return [];
+    if (heatmapViewMode === "themes") return data.stocks || [];
+    if (data.stocks_sp500?.length) return data.stocks_sp500;
+    return data.stocks || [];
+  }
+
+  function buildSectorGroups(data, period) {
+    const stocks = heatmapStocksForView(data);
+    if (stocks.length) {
+      const bySector = {};
+      stocks.forEach(s => {
+        if (!bySector[s.sector]) bySector[s.sector] = [];
+        bySector[s.sector].push(s);
+      });
+      return Object.keys(bySector).map(sector => {
+        const members = bySector[sector];
+        const { cap, chg } = weightedGroup(members, period);
+        const etf = members[0]?.etf || "";
+        return {
+          key: sector, title: sector, icon: "🇺🇸",
+          parentSector: sector, parentEtf: etf, etf, cap, chg, members,
+          stockCount: members.length,
+          status: sectorData[etf]?.short_status,
+        };
+      }).sort((a, b) => b.cap - a.cap);
+    }
+    return (data.sectors || []).map(s => ({
+      key: s.sector, title: s.sector, icon: "🇺🇸",
+      parentSector: s.sector, parentEtf: s.etf, etf: s.etf,
+      cap: s.market_cap || 1, chg: s[period], members: [],
+      stockCount: s.stock_count || 0,
+      status: sectorData[s.etf]?.short_status,
+    })).sort((a, b) => b.cap - a.cap);
+  }
+
+  function buildThemeGroups(data, period) {
+    const byTicker = {};
+    data.stocks.forEach(s => { byTicker[s.ticker] = s; });
+
+    return HEATMAP_THEMES.map(theme => {
+      const members = theme.tickers.map(t => byTicker[t]).filter(Boolean);
+      if (!members.length) return null;
+      const { cap, chg } = weightedGroup(members, period);
+      return {
+        key: theme.id, title: theme.name, icon: theme.icon,
+        parentSector: theme.parentSector, parentEtf: theme.parentEtf,
+        etf: theme.parentEtf, cap, chg, members, status: null,
+      };
+    }).filter(Boolean).sort((a, b) => b.cap - a.cap);
+  }
+
+  function getHeatmapGroups(data, period) {
+    return heatmapViewMode === "themes"
+      ? buildThemeGroups(data, period)
+      : buildSectorGroups(data, period);
+  }
+
+  function renderBenchmarkStrip(data, period) {
+    const el = document.getElementById("heatmap-benchmarks");
+    if (!el) return;
+    const b = data?.benchmarks;
+    if (!b?.sp500 && !b?.dollar) {
+      el.innerHTML = `<div style="font-size:11px;color:#64748b;padding:8px 0;margin-bottom:8px;">
+        Benchmarks loading… run <code>python3 pipeline.py usa</code> if empty after refresh.
+      </div>`;
+      return;
+    }
+    const items = [];
+    if (b.sp500) {
+      const chg = b.sp500[period];
+      items.push(`<div class="hm-bench-tile">
+        <div class="hm-bench-label">Market benchmark</div>
+        <div class="hm-bench-name">S&amp;P 500 · SPY</div>
+        <div class="hm-bench-chg" style="color:${chg >= 0 ? "#4ade80" : "#f87171"}">${fmtChg(chg)}</div>
+        <div class="hm-bench-note">Compare themes &amp; sectors vs broad US market</div>
+      </div>`);
+    }
+    if (b.dollar) {
+      const chg = b.dollar[period];
+      items.push(`<div class="hm-bench-tile">
+        <div class="hm-bench-label">Macro · USD proxy</div>
+        <div class="hm-bench-name">US Dollar · UUP</div>
+        <div class="hm-bench-chg" style="color:${chg >= 0 ? "#4ade80" : "#f87171"}">${fmtChg(chg)}</div>
+        <div class="hm-bench-note">Strong dollar often pressures stocks</div>
+      </div>`);
+    }
+    el.innerHTML = `<div class="hm-benchmarks">${items.join("")}</div>`;
+  }
+
+  function renderHeatmapGroupOverview(data, period) {
+    const el = document.getElementById("heatmap-chart");
+    if (!el) return;
+    renderBenchmarkStrip(data, period);
+    const groups = getHeatmapGroups(data, period);
+    const totalCap = groups.reduce((s, x) => s + x.cap, 0) || 1;
+    const maxCap = groups[0]?.cap || 1;
+    const isThemes = heatmapViewMode === "themes";
+
+    el.innerHTML = `<div class="hm-sector-map">${groups.map(g => {
+      const bg = chgToColor(g.chg, period);
+      const span2 = !isThemes && g.cap >= maxCap * 0.85 ? " span-2" : "";
+      const statusHtml = g.status ? `<span class="hm-status-pill">${g.status}</span>` : "";
+      const badge = g.parentEtf || g.etf || "GICS";
+      const parentHtml = isThemes && g.parentSector
+        ? `<div class="hm-tile-parent">Part of ${g.parentSector} · ${badge}</div>` : "";
+      return `<div class="hm-sector-tile${span2}" style="background:${bg};" data-key="${g.key.replace(/"/g, "&quot;")}">
+        <div class="hm-tile-top">
+          <div class="hm-tile-name">${g.icon} ${g.title}</div>
+          ${!isThemes ? `<span class="hm-tile-etf">${badge}</span>` : ""}
+        </div>
+        ${parentHtml}
+        <div class="hm-tile-chg">${fmtChg(g.chg)}</div>
+        <div class="hm-tile-foot">
+          <span>${g.members.length || g.stockCount || 0} stocks</span>
+          <span>${Math.round(g.cap / totalCap * 100)}% weight</span>
+          ${statusHtml}
+        </div>
+      </div>`;
+    }).join("")}</div>`;
+
+    el.querySelectorAll(".hm-sector-tile").forEach(tile => {
+      tile.addEventListener("click", () => {
+        heatmapDrillKey = tile.dataset.key;
+        renderHeatmapTreemap(data, period);
+        const hint = document.getElementById("heatmap-hint");
+        if (hint) hint.textContent = isThemes ? "Stocks in this theme" : "Stocks in this sector";
+      });
+    });
+  }
+
+  function renderHeatmapGroupDetail(data, period, groupKey) {
+    const el = document.getElementById("heatmap-chart");
+    renderBenchmarkStrip(data, period);
+    const groups = getHeatmapGroups(data, period);
+    const g = groups.find(x => x.key === groupKey);
+    if (!el || !g) { heatmapDrillKey = null; renderHeatmapGroupOverview(data, period); return; }
+
+    const backLabel = heatmapViewMode === "themes" ? "← All Themes" : "← All Sectors";
+    if (!g.members.length) {
+      el.innerHTML = `
+        <div class="hm-drill-header">
+          <button class="hm-back-btn" id="hm-back-btn">${backLabel}</button>
+          <div>
+            <div class="hm-drill-title">${g.icon} ${g.title}</div>
+            <div class="hm-drill-sub">${g.parentSector ? `${g.parentSector} (${g.parentEtf || g.etf}) · ` : ""}${g.stockCount || 0} stocks · avg ${fmtChg(g.chg)}</div>
+          </div>
+        </div>
+        <div style="padding:24px;color:#94a3b8;font-size:13px;text-align:center;">
+          Full stock list for this sector is available on the <b>latest snapshot</b> only.<br>
+          Select the most recent date to drill into all ${g.stockCount || "S&P 500"} names.
+        </div>`;
+      document.getElementById("hm-back-btn")?.addEventListener("click", () => {
+        heatmapDrillKey = null;
+        renderHeatmapTreemap(data, period);
+        updateHeatmapHint();
+      });
+      return;
+    }
+
+    const rows = g.members
+      .slice()
+      .sort((a, b) => (b.market_cap || 1) - (a.market_cap || 1))
+      .map(s => {
+        const chg = s[period];
+        const bg = chgToColor(chg, period);
+        return `<tr>
+          <td class="tk">${s.ticker}</td>
+          <td style="font-size:11px;color:#64748b;">${s.sector}</td>
+          <td>$${s.price}</td>
+          <td><span class="hm-chg-pill" style="background:${bg};color:#fff;">${fmtChg(chg)}</span></td>
+          <td>${fmtChg(s.change_5d)}</td>
+          <td>${fmtChg(s.change_30d)}</td>
+          <td>${fmtChg(s.change_126d)}</td>
+          <td>${fmtChg(s.change_252d)}</td>
+          <td style="color:#64748b;font-size:11px;">${s.market_cap ? `$${(s.market_cap / 1e9).toFixed(1)}B` : "—"}</td>
+        </tr>`;
+      }).join("");
+
+    el.innerHTML = `
+      <div class="hm-drill-header">
+        <button class="hm-back-btn" id="hm-back-btn">${backLabel}</button>
+        <div>
+          <div class="hm-drill-title">${g.icon} ${g.title}</div>
+          <div class="hm-drill-sub">${g.parentSector ? `${g.parentSector} (${g.parentEtf || g.etf}) · ` : ""}${g.members.length} stocks · avg ${fmtChg(g.chg)}${g.status ? ` · ${g.status}` : ""}</div>
+        </div>
+      </div>
+      <table class="hm-stock-table">
+        <thead><tr>
+          <th>Ticker</th><th>GICS Sector</th><th>Price</th><th>Selected</th><th>1 Week</th><th>30 Days</th><th>6 Mo</th><th>1 Year</th><th>Market Cap</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+
+    document.getElementById("hm-back-btn")?.addEventListener("click", () => {
+      heatmapDrillKey = null;
+      renderHeatmapTreemap(data, period);
+      updateHeatmapHint();
+    });
+  }
+
+  function updateHeatmapHint() {
+    const hint = document.getElementById("heatmap-hint");
+    if (!hint) return;
+    hint.textContent = heatmapViewMode === "themes"
+      ? "Click a theme — Semiconductors, Nuclear, Biotech, Quantum, AI…"
+      : "Click a GICS sector to see stocks inside it";
+  }
+
+  function renderHeatmapTreemap(data, period) {
+    const el = document.getElementById("heatmap-chart");
+    if (!el) return;
+    if (!data?.stocks?.length && !data?.stocks_sp500?.length && !data?.sectors?.length) {
+      el.innerHTML = '<div style="padding:40px;text-align:center;color:#64748b;">No heatmap data yet. Run: <code>python3 pipeline.py usa</code></div>';
+      return;
+    }
+    if (heatmapDrillKey) renderHeatmapGroupDetail(data, period, heatmapDrillKey);
+    else renderHeatmapGroupOverview(data, period);
+  }
+
+  async function renderHeatmapTab() {
+    if (!heatmapRendered) {
+      document.querySelectorAll(".hm-btn[data-hm-period]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".hm-btn[data-hm-period]").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          heatmapPeriod = btn.dataset.hmPeriod;
+          updateHeatmapLegend(heatmapPeriod);
+          if (heatmapData) {
+            renderBenchmarkStrip(heatmapData, heatmapPeriod);
+            renderHeatmapTreemap(heatmapData, heatmapPeriod);
+            updateHeatmapMeta();
+          }
+        });
+      });
+      document.querySelectorAll(".hm-btn[data-hm-view]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".hm-btn[data-hm-view]").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          heatmapViewMode = btn.dataset.hmView;
+          heatmapDrillKey = null;
+          updateHeatmapBanner();
+          updateHeatmapHint();
+          if (heatmapData) {
+            renderHeatmapTreemap(heatmapData, heatmapPeriod);
+            updateHeatmapMeta();
+          }
+        });
+      });
+      const dateSel = document.getElementById("heatmap-date");
+      if (dateSel) {
+        dateSel.addEventListener("change", async () => {
+          heatmapSelectedDate = dateSel.value;
+          heatmapData = null;
+          heatmapDrillKey = null;
+          await loadSectorHeatmap(heatmapSelectedDate);
+          updateHeatmapMeta();
+          renderHeatmapTreemap(heatmapData, heatmapPeriod);
+        });
+      }
+      heatmapRendered = true;
+    }
+
+    await loadHeatmapIndex();
+    populateHeatmapDateSelect();
+    heatmapData = null;
+    await loadSectorHeatmap(heatmapSelectedDate);
+    updateHeatmapBanner();
+    updateHeatmapLegend(heatmapPeriod);
+    updateHeatmapHint();
+    updateHeatmapMeta();
+    renderHeatmapTreemap(heatmapData, heatmapPeriod);
+  }
+
+  function updateHeatmapBanner() {
+    const title = document.querySelector(".hm-market-title");
+    const sub = document.getElementById("heatmap-universe-note");
+    const panelTitle = document.querySelector("#tab-heatmap .heatmap-title");
+    const spCount = heatmapData?.meta?.sp500_count
+      || heatmapData?.stocks_sp500?.length
+      || 503;
+    const wlCount = heatmapData?.meta?.watchlist_count
+      || heatmapData?.stocks?.length
+      || 175;
+    if (heatmapViewMode === "themes") {
+      if (title) title.textContent = "🇺🇸 US Popular Themes";
+      if (sub) sub.textContent = `${wlCount} curated watchlist stocks · SPY = full S&P 500 benchmark`;
+      if (panelTitle) panelTitle.textContent = "Theme Performance Map";
+    } else {
+      if (title) title.textContent = "🇺🇸 S&P 500 — Full Index";
+      if (sub) sub.textContent = `${spCount} stocks · 11 cap-weighted GICS sectors · like TradingView sector map`;
+      if (panelTitle) panelTitle.textContent = "S&P 500 Sector Map";
+    }
+  }
+
+  function updateHeatmapMeta() {
+    const meta = document.getElementById("heatmap-meta");
+    const badge = document.getElementById("heatmap-market-badge");
+    const asOf = heatmapData?.as_of_date || heatmapData?.updated_at;
+    if (badge && asOf) badge.textContent = `US · ${asOf}`;
+    if (!meta) return;
+    const isHistorical = asOf && heatmapDates[0] && asOf !== heatmapDates[0];
+    const viewLabel = heatmapViewMode === "themes"
+      ? `${HEATMAP_THEMES.length} themes`
+      : "11 GICS sectors";
+    const stockCount = heatmapViewMode === "themes"
+      ? (heatmapData?.stocks?.length || 0)
+      : (heatmapData?.meta?.sp500_count || heatmapData?.stocks_sp500?.length || 0);
+    const periodLabel = heatmapPeriodLabel(heatmapPeriod);
+    meta.textContent = stockCount
+      ? `${formatHeatmapDate(asOf)} · regular close (Yahoo) · ${viewLabel} · ${stockCount} stocks · ${periodLabel} change` +
+        (isHistorical ? " · historical" : "")
+      : "No data — run: python3 scripts/backfill_sector_heatmap.py";
+  }
+
+  // ── ETF Scan ──────────────────────────────────────────────────────────────
+  let etfScanData = null;
+  let etfScanDates = [];
+  let etfSelectedDate = null;
+  let etfSelectedTicker = null;
+  let etfScanRendered = false;
+  let etfUsingDemo = false;
+
+  const DEMO_ETF_SCAN = {
+    _demo: true,
+    as_of_date: "2026-07-06",
+    updated_at: "2026-07-06",
+    count: 6,
+    etfs: [
+      { ticker: "VUSA.AS", bux_symbol: "VUSA", bux_name: "Vanguard S&P 500 UCITS ETF", short_name: "Vanguard S&P 500", full_name: "Vanguard S&P 500 UCITS ETF", exchange: "Euronext Amsterdam", isin: "IE00B3XXRP09", price_eur: 124.98, change_1d: 0.58, change_5d: 1.79, change_21d: 1.49, change_63d: 16.44, rsi: 58.8, trend: "Güçlü", signal: "Momentum", action: "Al — pullback limit", support_1_eur: 120.42, support_2_eur: 109.09, resistance_1_eur: 125.07, resistance_2_eur: null, entry_eur: 120.42, stop_eur: 108, target_eur: 125.07, low_52w_eur: 100.5, high_52w_eur: 125.07, ema20_eur: 123.33, ema50_eur: 120.99, volume_ratio: 1.18, role: "Çekirdek — S&P 500", risk: "Düşük" },
+      { ticker: "VHYL.AS", bux_symbol: "VHYL", bux_name: "Vanguard FTSE All-World High Dividend Yield UCITS ETF", short_name: "Vanguard FTSE All World High Div Yield", full_name: "Vanguard FTSE All-World High Dividend Yield UCITS ETF", exchange: "Euronext Amsterdam", isin: "IE00B8GKDB10", price_eur: 79.98, change_1d: 0.2, change_5d: 1.83, change_21d: 2.36, change_63d: 8.63, rsi: 57, trend: "Güçlü", signal: "Momentum", action: "Al — pullback limit", support_1_eur: 77.49, support_2_eur: 75.06, resistance_1_eur: 80.22, resistance_2_eur: null, entry_eur: 77.49, stop_eur: 74.3, target_eur: 80.22, low_52w_eur: 63.29, high_52w_eur: 80.22, ema20_eur: 78.82, ema50_eur: 77.68, volume_ratio: 1.01, role: "Çekirdek — temettü", risk: "Düşük" },
+      { ticker: "DFEN.DE", bux_symbol: "DFEN", bux_name: "VanEck Defense UCITS ETF", short_name: "VanEck Defense", full_name: "VanEck Defense UCITS ETF", exchange: "XETRA", isin: "IE000YYE6WK5", price_eur: 54.78, change_1d: 1.73, change_5d: 11.38, change_21d: 2.01, change_63d: -8.73, rsi: 58, trend: "Nötr", signal: "Momentum", action: "Al — pullback limit", support_1_eur: 51.75, support_2_eur: 48.08, resistance_1_eur: 57.33, resistance_2_eur: 60.78, entry_eur: 51.75, stop_eur: 47.6, target_eur: 57.33, low_52w_eur: 47.08, high_52w_eur: 64.51, ema20_eur: 52.42, ema50_eur: 53.77, volume_ratio: 0.89, role: "Tema — savunma", risk: "Orta" },
+      { ticker: "NUKL.DE", bux_symbol: "NUKL", bux_name: "VanEck Uranium and Nuclear Technologies UCITS ETF", short_name: "VanEck Uranium and Nuclear Technologies", full_name: "VanEck Uranium and Nuclear Technologies UCITS ETF", exchange: "XETRA", isin: "IE000M7V94E1", price_eur: 47.56, change_1d: 1.03, change_5d: 2.15, change_21d: -4.57, change_63d: -2.25, rsi: 35.4, trend: "Zayıf", signal: "Oversold", action: "Küçük pozisyon — destek", support_1_eur: 47.07, support_2_eur: 45.3, resistance_1_eur: 54.28, resistance_2_eur: 56.92, entry_eur: 47.07, stop_eur: 44.85, target_eur: 54.28, low_52w_eur: 36.33, high_52w_eur: 61.4, ema20_eur: 48.41, ema50_eur: 49.83, volume_ratio: 0.69, role: "Tema — nükleer", risk: "Yüksek" },
+      { ticker: "SEMI.AS", bux_symbol: "SEMI", bux_name: "iShares MSCI Global Semiconductors UCITS ETF", short_name: "iShares MSCI Global Semiconductors", full_name: "iShares MSCI Global Semiconductors UCITS ETF", exchange: "Euronext Amsterdam", isin: "IE00BMC38736", price_eur: 22.16, change_1d: -0.09, change_5d: -2.01, change_21d: 7.39, change_63d: 73.55, rsi: 48, trend: "Güçlü", signal: "Pullback", action: "Destek bekle", support_1_eur: 19.97, support_2_eur: 17.84, resistance_1_eur: 22.68, resistance_2_eur: 24.59, entry_eur: 19.97, stop_eur: 17.66, target_eur: 22.68, low_52w_eur: 7.99, high_52w_eur: 24.59, ema20_eur: 22.31, ema50_eur: 20.59, volume_ratio: 0.47, role: "Tema — yarı iletken", risk: "Yüksek" },
+      { ticker: "HEAL.AS", bux_symbol: "HEAL", bux_name: "iShares Healthcare Innovation UCITS ETF", short_name: "iShares Healthcare Innovations", full_name: "iShares Healthcare Innovation UCITS ETF", exchange: "Euronext Amsterdam", isin: "IE00BYZK4552", price_eur: 8.62, change_1d: -0.2, change_5d: 2.99, change_21d: 11.05, change_63d: 16.2, rsi: 91.1, trend: "Güçlü", signal: "Aşırı alım", action: "Bekle — pullback", support_1_eur: 7.84, support_2_eur: 7.48, resistance_1_eur: 8.68, resistance_2_eur: null, entry_eur: 7.84, stop_eur: 7.4, target_eur: 8.68, low_52w_eur: 6.48, high_52w_eur: 8.68, ema20_eur: 8.16, ema50_eur: 7.87, volume_ratio: 0.29, role: "Tema — sağlık", risk: "Yüksek" },
+    ],
+  };
+
+  function fmtEtfTrend(trend) {
+    const map = { "Güçlü": "Strong", "Zayıf": "Weak", "Nötr": "Neutral" };
+    return map[trend] || trend || "—";
+  }
+
+  function fmtEtfSignal(signal) {
+    const map = {
+      "Momentum": "Strong move",
+      "Oversold": "Oversold",
+      "Pullback": "Pullback",
+      "Downtrend": "Downtrend",
+      "Nötr": "Neutral",
+      "Aşırı alım": "Overbought",
+    };
+    return map[signal] || signal || "—";
+  }
+
+  function fmtEtfRisk(risk) {
+    const map = { "Düşük": "Low", "Orta": "Medium", "Yüksek": "High" };
+    return map[risk] || risk || "—";
+  }
+
+  function fmtEtfRole(role) {
+    const map = {
+      "Çekirdek — S&P 500": "Core — S&P 500",
+      "Çekirdek — temettü": "Core — dividend",
+      "Tema — savunma": "Theme — defense",
+      "Tema — nükleer": "Theme — nuclear",
+      "Tema — yarı iletken": "Theme — semiconductors",
+      "Tema — sağlık": "Theme — healthcare",
+    };
+    return map[role] || role || "";
+  }
+
+  function etfActionKind(action) {
+    const a = (action || "").toLowerCase();
+    if (a.includes("pullback limit") || a.includes("al —") || a.includes("al—") || a.startsWith("buy"))
+      return "buy";
+    if (a.includes("destek bekle") || a.includes("wait for support"))
+      return "wait_support";
+    if (a.includes("küçük") || a.includes("small"))
+      return "small";
+    if (a.includes("bekle") || a.includes("wait"))
+      return "wait";
+    return "watch";
+  }
+
+  function buildEtfRecommendation(e) {
+    const sym = e.bux_symbol || (e.ticker || "").split(".")[0];
+    const kind = etfActionKind(e.action);
+    const trend = fmtEtfTrend(e.trend);
+    const signalTr = fmtEtfSignal(e.signal);
+    const entry = fmtEur(e.entry_eur);
+    const stop = fmtEur(e.stop_eur);
+    const target = fmtEur(e.target_eur);
+    const sup = fmtEur(e.support_1_eur);
+    const res = fmtEur(e.resistance_1_eur);
+    const rsi = e.rsi ?? "—";
+    const risk = fmtEtfRisk(e.risk);
+    const role = fmtEtfRole(e.role);
+
+    let verdict = "WATCH";
+    let verdictType = "watch";
+    let headline = "No clear buy signal yet. Keep it on your list and check back.";
+    let why = [
+      "Trend and momentum are mixed — no rush.",
+      `Price now: ${fmtEur(e.price_eur)} · Support: ${sup}`,
+    ];
+    let steps = [
+      `Add <b>${sym}</b> to your Bux watchlist`,
+      `Check again when price nears ${sup}`,
+    ];
+    let dont = null;
+
+    if (kind === "buy") {
+      verdict = "BUY";
+      verdictType = "buy";
+      headline = "Uptrend looks good. Set a limit buy on a small dip.";
+      why = [
+        `${trend} trend — long-term direction is up.`,
+        `${signalTr} — buyers are still active.`,
+        `RSI ${rsi} — not overbought yet.`,
+        `Best entry near support: ${sup}`,
+      ];
+      steps = [
+        `Search <b>${sym}</b> in Bux`,
+        `Place a <b>limit buy</b> at ${entry}`,
+        `Set stop-loss at ${stop}`,
+        `Take-profit target: ${target}`,
+      ];
+    } else if (kind === "wait") {
+      verdict = "WAIT";
+      verdictType = "wait";
+      headline = "Don't buy now. Price is high — wait for a pullback.";
+      why = [
+        `RSI ${rsi} — overbought, a drop is possible.`,
+        `${trend} trend, but price is expensive today.`,
+        `Better entry price: ${sup}`,
+        `Resistance: ${res}`,
+      ];
+      steps = [
+        `Add <b>${sym}</b> to your Bux watchlist`,
+        `Wait until price drops to ${sup}`,
+        `Then set limit buy at ${entry}`,
+      ];
+      dont = "Don't buy at today's price — wait for a pullback.";
+    } else if (kind === "small") {
+      verdict = "SMALL BUY";
+      verdictType = "small";
+      headline = "Weak trend but oversold. Only a small, careful position.";
+      why = [
+        `RSI ${rsi} — oversold, bounce is possible.`,
+        `${trend} trend — keep size small.`,
+        `If ${sup} breaks, stop at ${stop} limits loss.`,
+      ];
+      steps = [
+        `Search <b>${sym}</b> in Bux — buy less than usual`,
+        `Limit buy at ${entry}`,
+        `Always set stop at ${stop}`,
+        `Target: ${target}`,
+      ];
+      dont = "Don't put a large part of your portfolio here.";
+    } else if (kind === "wait_support") {
+      verdict = "WAIT";
+      verdictType = "wait";
+      headline = "Trend is OK but price is far from support. Wait for support.";
+      why = [
+        `${signalTr} — a short-term dip is possible.`,
+        `${trend} trend — long-term still OK.`,
+        `Wait for support at ${sup}`,
+        `Price now: ${fmtEur(e.price_eur)}`,
+      ];
+      steps = [
+        `Add <b>${sym}</b> to your Bux watchlist`,
+        `When price hits ${sup}, set limit buy at ${entry}`,
+        `Stop: ${stop} · Target: ${target}`,
+      ];
+      dont = "Don't buy before price reaches support.";
+    } else if (e.signal === "Downtrend" || e.trend === "Zayıf" || e.trend === "Weak") {
+      verdict = "WATCH";
+      verdictType = "watch";
+      headline = "Trend is weak. Too early to buy — wait for recovery.";
+      why = [
+        `${signalTr} — selling pressure may continue.`,
+        `If ${sup} fails, price can fall further.`,
+        `RSI ${rsi}`,
+      ];
+      steps = [
+        `Watch <b>${sym}</b> in Bux only`,
+        `Wait until the trend turns stronger`,
+      ];
+      dont = "Don't catch a falling knife — wait for the trend to improve.";
+    }
+
+    return { verdict, verdictType, headline, why, steps, dont, role, risk, trend, signalTr };
+  }
+
+  function etfActionShort(e) {
+    const rec = buildEtfRecommendation(e);
+    return rec.verdict;
+  }
+
+  function etfActionShortClass(e) {
+    const rec = buildEtfRecommendation(e);
+    return rec.verdictType;
+  }
+
+  function renderEtfRecommendationHtml(e) {
+    const rec = buildEtfRecommendation(e);
+    const whyHtml = rec.why.map(w => `<li>${w}</li>`).join("");
+    const stepsHtml = rec.steps.map(s => `<li>${s}</li>`).join("");
+    return `
+      <div class="etf-rec-card etf-rec-${rec.verdictType}">
+        <div class="etf-rec-verdict">${rec.verdict}</div>
+        <div class="etf-rec-body">
+          <div class="etf-rec-headline">${rec.headline}</div>
+          <div class="etf-rec-tags">
+            <span class="etf-rec-tag">Trend: ${rec.trend}</span>
+            <span class="etf-rec-tag">Signal: ${rec.signalTr}</span>
+            <span class="etf-rec-tag">Risk: ${rec.risk}</span>
+          </div>
+          <div class="etf-rec-block">
+            <div class="etf-rec-block-title">What this means</div>
+            <ul class="etf-rec-list">${whyHtml}</ul>
+          </div>
+          <div class="etf-rec-block">
+            <div class="etf-rec-block-title">What to do in Bux</div>
+            <ol class="etf-rec-list">${stepsHtml}</ol>
+          </div>
+          ${rec.dont ? `<div class="etf-rec-dont">❌ ${rec.dont}</div>` : ""}
+          ${rec.role ? `<div class="etf-rec-role">${rec.role} · Not financial advice — your call.</div>` : ""}
+        </div>
+      </div>`;
+  }
+
+  function etfSignalClass(signal) {
+    if (!signal) return "etf-pill-neutral";
+    if (signal.includes("Momentum")) return "etf-pill-momentum";
+    if (signal.includes("Oversold")) return "etf-pill-oversold";
+    if (signal.includes("Aşırı") || signal.includes("Overheated")) return "etf-pill-overheat";
+    if (signal.includes("Pullback")) return "etf-pill-pullback";
+    if (signal.includes("Downtrend")) return "etf-pill-down";
+    return "etf-pill-neutral";
+  }
+
+  function etfTrendClass(trend) {
+    if (trend === "Güçlü") return "etf-pill-trend-strong";
+    if (trend === "Zayıf") return "etf-pill-trend-weak";
+    return "etf-pill-trend-mid";
+  }
+
+  function fmtEtfChg(v) {
+    if (v == null) return '<span class="etf-chg-neu">—</span>';
+    const cls = v >= 0 ? "etf-chg-pos" : "etf-chg-neg";
+    const sign = v >= 0 ? "+" : "";
+    return `<span class="${cls}">${sign}${v.toFixed(2)}%</span>`;
+  }
+
+  function fmtEur(v) {
+    if (v == null) return "—";
+    return `€${Number(v).toFixed(2)}`;
+  }
+
+  async function loadEtfScanIndex() {
+    try {
+      const snap = await getDoc(doc(db, "etf_scans", "_index"));
+      if (snap.exists()) {
+        const data = snap.data();
+        etfScanDates = (data.dates || []).slice().sort((a, b) => b.localeCompare(a));
+        if (!etfSelectedDate) etfSelectedDate = data.latest || etfScanDates[0] || "current";
+      }
+    } catch (e) { console.warn("ETF scan index load failed:", e); }
+    if (!etfScanDates.length) etfScanDates = ["current"];
+    if (!etfSelectedDate) etfSelectedDate = etfScanDates[0];
+  }
+
+  function populateEtfDateSelect() {
+    const sel = document.getElementById("etf-date");
+    if (!sel) return;
+    sel.innerHTML = etfScanDates.map(d =>
+      `<option value="${d}">${formatHeatmapDate(d)}</option>`
+    ).join("");
+    if (etfScanDates.includes(etfSelectedDate)) sel.value = etfSelectedDate;
+    else { sel.value = etfScanDates[0]; etfSelectedDate = etfScanDates[0]; }
+  }
+
+  async function loadEtfScan(dateKey) {
+    const key = dateKey || etfSelectedDate || "current";
+    try {
+      const snap = await getDoc(doc(db, "etf_scans", key));
+      if (snap.exists()) {
+        etfScanData = snap.data();
+        etfSelectedDate = key;
+        etfUsingDemo = false;
+        return etfScanData;
+      }
+      if (key !== "current") {
+        const fallback = await getDoc(doc(db, "etf_scans", "current"));
+        if (fallback.exists()) {
+          etfScanData = fallback.data();
+          etfUsingDemo = false;
+          return etfScanData;
+        }
+      }
+    } catch (e) {
+      console.error("ETF scan load failed:", e);
+    }
+    etfScanData = structuredClone(DEMO_ETF_SCAN);
+    etfUsingDemo = true;
+    if (!etfScanDates.length) etfScanDates = [etfScanData.as_of_date];
+    if (!etfSelectedDate) etfSelectedDate = etfScanData.as_of_date;
+    return etfScanData;
+  }
+
+  function updateEtfMeta() {
+    const meta = document.getElementById("etf-scan-meta");
+    const badge = document.getElementById("etf-scan-badge");
+    const demo = document.getElementById("etf-demo-banner");
+    const asOf = etfScanData?.as_of_date || etfScanData?.updated_at;
+    const count = etfScanData?.count || etfScanData?.etfs?.length || 0;
+    if (demo) demo.style.display = etfUsingDemo ? "block" : "none";
+    if (badge && asOf) badge.textContent = etfUsingDemo ? `Demo · ${asOf}` : `ETF · ${asOf}`;
+    if (meta) {
+      meta.textContent = count
+        ? (etfUsingDemo
+          ? `${count} ETFs · demo data · click a row for details`
+          : `${count} ETFs · EUR · Bux · live scan`)
+        : "No data";
+    }
+  }
+
+  function renderEtfTable() {
+    const tbody = document.getElementById("etf-table-body");
+    if (!tbody) return;
+    const etfs = etfScanData?.etfs || [];
+    if (!etfs.length) {
+      tbody.innerHTML = `<tr><td colspan="12" style="color:#64748b;padding:20px;">No ETF scan data. Run: <code>python3 scripts/scan_etfs_daily.py</code></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = etfs.map(e => {
+      const selected = e.ticker === etfSelectedTicker ? " selected" : "";
+      return `<tr data-ticker="${e.ticker}" class="${selected.trim()}">
+        <td><span class="etf-pill etf-pill-momentum" style="background:#312e81;color:#c7d2fe;">${e.bux_symbol || e.ticker.split(".")[0]}</span></td>
+        <td class="etf-name-cell">
+          <div class="etf-name-main">${e.short_name || e.bux_name || ""}</div>
+          <div class="etf-name-sub">${e.bux_name || e.full_name || ""}</div>
+        </td>
+        <td class="etf-price">${fmtEur(e.price_eur)}</td>
+        <td>${fmtEtfChg(e.change_1d)}</td>
+        <td>${fmtEtfChg(e.change_5d)}</td>
+        <td>${fmtEtfChg(e.change_21d)}</td>
+        <td>${e.rsi ?? "—"}</td>
+        <td class="etf-sr-support">${fmtEur(e.support_1_eur)}${e.support_2_eur != null ? `<span class="etf-sr-sub">S2 ${fmtEur(e.support_2_eur)}</span>` : ""}</td>
+        <td class="etf-sr-resist">${fmtEur(e.resistance_1_eur)}${e.resistance_2_eur != null ? `<span class="etf-sr-sub">R2 ${fmtEur(e.resistance_2_eur)}</span>` : ""}</td>
+        <td><span class="etf-pill ${etfTrendClass(e.trend)}">${fmtEtfTrend(e.trend)}</span></td>
+        <td><span class="etf-pill ${etfSignalClass(e.signal)}">${fmtEtfSignal(e.signal)}</span></td>
+        <td><span class="etf-action-short ${etfActionShortClass(e)}">${etfActionShort(e)}</span></td>
+      </tr>`;
+    }).join("");
+
+    tbody.querySelectorAll("tr[data-ticker]").forEach(row => {
+      row.addEventListener("click", () => {
+        etfSelectedTicker = row.dataset.ticker;
+        tbody.querySelectorAll("tr").forEach(r => r.classList.remove("selected"));
+        row.classList.add("selected");
+        renderEtfDetail(etfSelectedTicker);
+      });
+    });
+
+    if (!etfSelectedTicker && etfs.length) {
+      etfSelectedTicker = etfs[0].ticker;
+      tbody.querySelector(`tr[data-ticker="${etfSelectedTicker}"]`)?.classList.add("selected");
+      renderEtfDetail(etfSelectedTicker);
+    }
+  }
+
+  function renderEtfDetail(ticker) {
+    const el = document.getElementById("etf-detail");
+    const e = (etfScanData?.etfs || []).find(x => x.ticker === ticker);
+    if (!el || !e) {
+      if (el) el.innerHTML = `<div class="detail-empty">ETF not found</div>`;
+      return;
+    }
+
+    el.innerHTML = `
+      <div class="detail-ticker">${e.bux_symbol || e.ticker}</div>
+      <div style="font-size:13px;color:#94a3b8;margin-bottom:4px;">${e.bux_name || e.full_name || ""}</div>
+      <div style="font-size:11px;color:#6366f1;margin-bottom:8px;">🔍 Search <b>${e.bux_symbol}</b> in Bux · ${e.exchange || "EUR"} · ${e.isin || ""}</div>
+      <div class="detail-close" style="font-size:22px;font-weight:800;color:#fff;margin-bottom:16px;">${fmtEur(e.price_eur)}</div>
+
+      <div class="etf-detail-section">
+        <div class="etf-detail-label">What To Do</div>
+        ${renderEtfRecommendationHtml(e)}
+      </div>
+
+      <div class="etf-detail-section">
+        <div class="etf-detail-label">Support &amp; Resistance (EUR)</div>
+        <div class="etf-level-grid">
+          <div class="etf-level-box support"><div class="lbl">Support 1</div><div class="val">${fmtEur(e.support_1_eur)}</div></div>
+          <div class="etf-level-box support"><div class="lbl">Support 2</div><div class="val">${fmtEur(e.support_2_eur)}</div></div>
+          <div class="etf-level-box resist"><div class="lbl">Resistance 1</div><div class="val">${fmtEur(e.resistance_1_eur)}</div></div>
+          <div class="etf-level-box resist"><div class="lbl">Resistance 2</div><div class="val">${fmtEur(e.resistance_2_eur)}</div></div>
+        </div>
+      </div>
+
+      <div class="etf-detail-section">
+        <div class="etf-detail-label">Your Order Plan (EUR)</div>
+        <div class="etf-level-grid">
+          <div class="etf-level-box entry"><div class="lbl">Limit Buy</div><div class="val">${fmtEur(e.entry_eur)}</div></div>
+          <div class="etf-level-box stop"><div class="lbl">Stop Loss</div><div class="val">${fmtEur(e.stop_eur)}</div></div>
+          <div class="etf-level-box"><div class="lbl">Target</div><div class="val">${fmtEur(e.target_eur)}</div></div>
+          <div class="etf-level-box"><div class="lbl">52-Week Range</div><div class="val">${fmtEur(e.low_52w_eur)} – ${fmtEur(e.high_52w_eur)}</div></div>
+        </div>
+      </div>
+
+      <div class="etf-detail-section">
+        <div class="etf-detail-label">Performance</div>
+        <div class="etf-level-grid">
+          <div class="etf-level-box"><div class="lbl">1 Day</div><div class="val">${e.change_1d != null ? (e.change_1d>=0?"+":"")+e.change_1d+"%" : "—"}</div></div>
+          <div class="etf-level-box"><div class="lbl">5 Days</div><div class="val">${e.change_5d != null ? (e.change_5d>=0?"+":"")+e.change_5d+"%" : "—"}</div></div>
+          <div class="etf-level-box"><div class="lbl">1 Month</div><div class="val">${e.change_21d != null ? (e.change_21d>=0?"+":"")+e.change_21d+"%" : "—"}</div></div>
+          <div class="etf-level-box"><div class="lbl">3 Months</div><div class="val">${e.change_63d != null ? (e.change_63d>=0?"+":"")+e.change_63d+"%" : "—"}</div></div>
+        </div>
+      </div>
+
+      <div class="etf-detail-section">
+        <div class="etf-detail-label">Indicators</div>
+        <div class="etf-level-grid">
+          <div class="etf-level-box"><div class="lbl">RSI</div><div class="val">${e.rsi ?? "—"}</div></div>
+          <div class="etf-level-box"><div class="lbl">Volume</div><div class="val">${e.volume_ratio != null ? e.volume_ratio+"x" : "—"}</div></div>
+          <div class="etf-level-box"><div class="lbl">EMA20</div><div class="val">${fmtEur(e.ema20_eur)}</div></div>
+          <div class="etf-level-box"><div class="lbl">EMA50</div><div class="val">${fmtEur(e.ema50_eur)}</div></div>
+        </div>
+      </div>`;
+  }
+
+  async function renderEtfScanTab() {
+    if (!etfScanRendered) {
+      const dateSel = document.getElementById("etf-date");
+      if (dateSel) {
+        dateSel.addEventListener("change", async () => {
+          etfSelectedDate = dateSel.value;
+          etfSelectedTicker = null;
+          await loadEtfScan(etfSelectedDate);
+          updateEtfMeta();
+          renderEtfTable();
+        });
+      }
+      etfScanRendered = true;
+    }
+    await loadEtfScanIndex();
+    populateEtfDateSelect();
+    etfScanData = null;
+    await loadEtfScan(etfSelectedDate);
+    updateEtfMeta();
+    renderEtfTable();
   }
 
   // ── Deep Dive ─────────────────────────────────────────────────────────────
   const DEEP_DIVE_URL = "https://us-central1-investment-radar-2c19d.cloudfunctions.net/deep_dive";
   let ddInitialized = false;
+  let ddMarketFilter = "all";
+
+  const DD_US_CHIPS = ["NVDA", "AAPL", "META", "MSFT", "PLTR", "TSM"];
+  const DD_NL_CHIPS = [
+    { label: "ASML", ticker: "ASML" },
+    { label: "ING", ticker: "ING" },
+    { label: "ADYEN", ticker: "ADYEN" },
+    { label: "HEIA", ticker: "HEIA" },
+    { label: "PHIA", ticker: "PHIA" },
+    { label: "PRX", ticker: "PRX" },
+    { label: "WKL", ticker: "WKL" },
+    { label: "SHELL", ticker: "SHELL" },
+    { label: "ABN", ticker: "ABN" },
+    { label: "KPN", ticker: "KPN" },
+  ];
+
+  function renderDeepDiveChips() {
+    const el = document.getElementById("dd-chips");
+    if (!el) return;
+    const chips = ddMarketFilter === "nl"
+      ? DD_NL_CHIPS.map(c => ({ ...c, nl: true }))
+      : [
+          ...DD_US_CHIPS.map(t => ({ label: t, ticker: t, nl: false })),
+          ...DD_NL_CHIPS.slice(0, 4).map(c => ({ ...c, nl: true })),
+        ];
+    el.innerHTML = chips.map(c =>
+      `<button type="button" class="dd-chip${c.nl ? " nl" : ""}" data-ticker="${c.ticker}">${c.label}${c.nl ? " · NL" : ""}</button>`
+    ).join("");
+    el.querySelectorAll(".dd-chip").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.getElementById("dd-input").value = btn.dataset.ticker;
+        runDeepDive();
+      });
+    });
+  }
 
   function initDeepDive() {
     if (ddInitialized) return;
@@ -638,6 +1946,21 @@
     const input = document.getElementById("dd-input");
     btn.addEventListener("click", runDeepDive);
     input.addEventListener("keydown", e => { if (e.key === "Enter") runDeepDive(); });
+    document.querySelectorAll(".dd-market-tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".dd-market-tab").forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        ddMarketFilter = tab.dataset.ddMarket;
+        renderDeepDiveChips();
+      });
+    });
+    renderDeepDiveChips();
+  }
+
+  function ddMoney(amount, currency = "USD") {
+    if (amount == null || Number.isNaN(Number(amount))) return "—";
+    const sym = currency === "EUR" ? "€" : "$";
+    return `${sym}${Number(amount).toFixed(2)}`;
   }
 
   async function runDeepDive() {
@@ -681,18 +2004,21 @@
     const bearHtml = (a.bear_points || []).map(p => `<li>${p}</li>`).join("");
     const riskHtml = (a.risks || []).map(p => `<li>${p}</li>`).join("");
 
-    const fmtPrice = p => p ? `$${Number(p).toFixed(2)}` : "—";
+    const fmtPrice = p => ddMoney(p, r.currency || "USD");
     const cachedNote = cached
       ? `Cached · last updated ${new Date(cachedAt).toLocaleString("en-US", {month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})}`
       : `Fresh analysis · cached for 24 hours`;
+    const marketBadge = r.market === "NL"
+      ? `<span style="display:inline-block;font-size:10px;font-weight:700;background:#1e3a5f;color:#7dd3fc;border-radius:4px;padding:1px 6px;margin-left:6px;">🇳🇱 EURONEXT AMS</span>`
+      : "";
 
     document.getElementById("dd-result").innerHTML = `
       <div class="dd-header">
-        <div class="dd-title">${r.company_name} · ${r.ticker} · $${Number(r.price).toFixed(2)}</div>
-        <div class="dd-subtitle">${r.sector} — ${r.industry} · ${r.exchange}</div>
+        <div class="dd-title">${r.company_name} · ${r.ticker}${marketBadge} · ${ddMoney(r.price, r.currency)}</div>
+        <div class="dd-subtitle">${r.sector} — ${r.industry} · ${r.exchange}${r.input_ticker && r.input_ticker !== r.ticker ? ` · searched: ${r.input_ticker}` : ""}</div>
         <div class="dd-stats">
           <span><b>Market Cap</b> ${r.market_cap}</span>
-          <span><b>52W Range</b> $${r.week52_low?.toFixed(2)} – $${r.week52_high?.toFixed(2)}</span>
+          <span><b>52W Range</b> ${ddMoney(r.week52_low, r.currency)} – ${ddMoney(r.week52_high, r.currency)}</span>
           <span><b>Avg Volume</b> ${r.avg_volume}</span>
           <span><b>RSI</b> ${r.rsi}</span>
           ${r.inst_pct ? `<span><b>Institutional</b> ${r.inst_pct}%</span>` : ""}
@@ -1238,7 +2564,10 @@
           <div class="radar-card-meta"><b>Exit:</b> ${item.exit_condition ?? "-"}</div>
         </div>`;
       }).join("");
-    } catch (err) { container.innerHTML = `<p style="color:#f87171;">Error loading radar.</p>`; }
+    } catch (err) {
+      console.error("Radar load failed:", err);
+      container.innerHTML = `<p style="color:#f87171;">Error loading radar: ${err.message ?? err}</p>`;
+    }
   }
 
   // ── Modal ─────────────────────────────────────────────────────────────────

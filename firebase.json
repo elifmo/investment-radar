@@ -2,11 +2,28 @@
   "firestore": {
     "rules": "firestore.rules"
   },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "runtime": "python313"
+    }
+  ],
   "hosting": [
     {
       "site": "investment-radar-usa",
       "public": "frontend/usa",
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "headers": [
+        {
+          "source": "/index.html",
+          "headers": [{ "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }]
+        },
+        {
+          "source": "/",
+          "headers": [{ "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }]
+        }
+      ]
     },
     {
       "site": "investment-radar-bist",
