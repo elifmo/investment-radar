@@ -10,6 +10,12 @@ on:
       - 'functions/**'
       - '.firebaserc'
   workflow_dispatch:
+    inputs:
+      deploy_functions:
+        description: "Also deploy deep_dive function (needs IAM Service Account User role)"
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   deploy:
@@ -36,12 +42,16 @@ jobs:
           TARGETS="hosting,firestore:rules"
           BEFORE="${{ github.event.before }}"
           AFTER="${{ github.sha }}"
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            TARGETS="hosting,firestore:rules,functions:deep_dive"
-          elif [ -n "$BEFORE" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ]; then
+          DEPLOY_FUNCTIONS=false
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.deploy_functions }}" = "true" ]; then
+            DEPLOY_FUNCTIONS=true
+          elif [ "${{ github.event_name }}" = "push" ] && [ -n "$BEFORE" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ]; then
             if git diff --name-only "$BEFORE" "$AFTER" | grep -q '^functions/'; then
-              TARGETS="hosting,firestore:rules,functions:deep_dive"
+              DEPLOY_FUNCTIONS=true
             fi
+          fi
+          if [ "$DEPLOY_FUNCTIONS" = "true" ]; then
+            TARGETS="hosting,firestore:rules,functions:deep_dive"
           fi
           echo "targets=$TARGETS" >> "$GITHUB_OUTPUT"
           echo "Deploy targets: $TARGETS"
