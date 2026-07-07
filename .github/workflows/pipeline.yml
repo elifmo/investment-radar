@@ -21,6 +21,11 @@ on:
           - usa
           - bist
           - all
+      daily_reports:
+        description: "Also run heatmap + ETF scan (normally 23:15 TR only)"
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   run-pipeline:
@@ -59,4 +64,6 @@ jobs:
           python3 -c "import os, pathlib; pathlib.Path('serviceAccountKey.json').write_text(os.environ['FIREBASE_SERVICE_ACCOUNT'])"
 
       - name: Run pipeline
+        env:
+          RUN_DAILY_REPORTS: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.daily_reports || 'false' }}
         run: python src/pipeline.py ${{ steps.market.outputs.market }}

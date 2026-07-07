@@ -727,7 +727,6 @@
       <label>Date</label>
       <select id="heatmap-date" class="hm-date-select" title="Snapshot date"></select>
       <label>Period</label>
-      <button class="hm-btn" data-hm-period="change_4h">Session (4H)</button>
       <button class="hm-btn active" data-hm-period="change_1d">1 Day</button>
       <button class="hm-btn" data-hm-period="change_5d">1 Week</button>
       <button class="hm-btn" data-hm-period="change_30d">30 Days</button>
@@ -769,7 +768,6 @@
             <th>Bux</th>
             <th>ETF</th>
             <th>Price</th>
-            <th>4H</th>
             <th>1D</th>
             <th>5D</th>
             <th>1M</th>
@@ -782,7 +780,7 @@
           </tr>
         </thead>
         <tbody id="etf-table-body">
-          <tr><td colspan="13" style="color:#64748b;padding:20px;">Loading ETF scan...</td></tr>
+          <tr><td colspan="12" style="color:#64748b;padding:20px;">Loading ETF scan...</td></tr>
         </tbody>
       </table>
     </div>
@@ -1102,7 +1100,7 @@
 
   function heatmapPeriodMax(period) {
     const scales = {
-      change_4h: 2, change_1d: 3, change_5d: 5, change_30d: 8,
+      change_1d: 3, change_5d: 5, change_30d: 8,
       change_126d: 20, change_252d: 40,
     };
     return scales[period] || 8;
@@ -1110,7 +1108,7 @@
 
   function heatmapPeriodLabel(period) {
     const labels = {
-      change_4h: "4-hour session", change_1d: "1-day", change_5d: "1-week", change_30d: "30-day",
+      change_1d: "1-day", change_5d: "1-week", change_30d: "30-day",
       change_126d: "6-month", change_252d: "1-year",
     };
     return labels[period] || period;
@@ -1455,13 +1453,8 @@
       ? (heatmapData?.stocks?.length || 0)
       : (heatmapData?.meta?.sp500_count || heatmapData?.stocks_sp500?.length || 0);
     const periodLabel = heatmapPeriodLabel(heatmapPeriod);
-    const priceBasis = heatmapPeriod === "change_4h" ? "4h bar (Yahoo)" : "regular close (Yahoo)";
-    const sessionNote = heatmapPeriod === "change_4h" && heatmapData?.session_as_of
-      ? ` · ${heatmapData.session_as_of}`
-      : "";
     meta.textContent = stockCount
-      ? `${formatHeatmapDate(asOf)} · ${priceBasis} · ${viewLabel} · ${stockCount} stocks · ${periodLabel} change` +
-        sessionNote +
+      ? `${formatHeatmapDate(asOf)} · regular close (Yahoo) · ${viewLabel} · ${stockCount} stocks · ${periodLabel} change` +
         (isHistorical ? " · historical" : "")
       : "No data — run: python3 scripts/backfill_sector_heatmap.py";
   }
@@ -1797,7 +1790,6 @@
           <div class="etf-name-sub">${e.bux_name || e.full_name || ""}</div>
         </td>
         <td class="etf-price">${fmtEur(e.price_eur)}</td>
-        <td>${fmtEtfChg(e.change_4h)}</td>
         <td>${fmtEtfChg(e.change_1d)}</td>
         <td>${fmtEtfChg(e.change_5d)}</td>
         <td>${fmtEtfChg(e.change_21d)}</td>
@@ -1868,7 +1860,6 @@
       <div class="etf-detail-section">
         <div class="etf-detail-label">Performance</div>
         <div class="etf-level-grid">
-          <div class="etf-level-box"><div class="lbl">Session (4H)</div><div class="val">${fmtEtfChg(e.change_4h)}</div></div>
           <div class="etf-level-box"><div class="lbl">1 Day</div><div class="val">${fmtEtfChg(e.change_1d)}</div></div>
           <div class="etf-level-box"><div class="lbl">5 Days</div><div class="val">${fmtEtfChg(e.change_5d)}</div></div>
           <div class="etf-level-box"><div class="lbl">1 Month</div><div class="val">${fmtEtfChg(e.change_21d)}</div></div>

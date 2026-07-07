@@ -5,9 +5,11 @@ Usage:
   python pipeline.py usa
   python pipeline.py bist
   python pipeline.py all
+  python pipeline.py usa --daily   # force heatmap + ETF (normally ~23:15 TR only)
 """
 
 import logging
+import os
 import sys
 from pathlib import Path
 
@@ -57,6 +59,23 @@ def _market_open_now(market: str) -> bool:
         return 7 * 60 <= mins < 15 * 60 + 5
     else:  # USA
         return 13 * 60 + 30 <= mins < 20 * 60
+
+
+def _should_run_usa_daily_reports(force: bool = False) -> bool:
+    """Heatmap + ETF: once per day after US close (~23:15 Turkey time)."""
+    if force:
+        return True
+    if os.environ.get("RUN_DAILY_REPORTS", "").lower() in ("1", "true", "yes"):
+        return True
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+
+    now = datetime.now(ZoneInfo("Europe/Istanbul"))
+    if now.weekday() >= 5:
+        return False
+    mins = now.hour * 60 + now.minute
+    # 22:30–23:45 TR — matches GitHub cron at 20:15 UTC (23:15 TR)
+    return 22 * 60 + 30 <= mins <= 23 * 60 + 45
 
 
 def load_config() -> tuple[dict, dict]:
@@ -298,7 +317,7 @@ def _enrich_usa_candidates(
     return enriched
 
 
-def run(market_arg: str) -> None:
+def run(market_arg: str, force_daily: bool = False) -> None:
     universe, factors = load_config()
     markets = ["usa", "bist"] if market_arg == "all" else [market_arg.lower()]
     db = init_firebase()
@@ -331,17 +350,14 @@ def run(market_arg: str) -> None:
                 trade_date = today_utc if last_bar == today_utc or _market_open_now(market) else last_bar
                 logger.info("Trade date for %s: %s (last_bar=%s)", market.upper(), trade_date, last_bar)
 
-        if market == "usa":
-            logger.info("[USA] Computing sector heatmap (watchlist + S&P 500)...")
+        if market == "usa" and _should_run_usa_daily_reports(force_daily):
+            logger.info("[USA] Daily close run — computing sector heatmap + ETF scan...")
             try:
                 sp500_univ = load_sp500_universe()
                 sp500_tickers = [e["ticker"] for e in sp500_univ]
                 logger.info("[USA] Fetching heatmap OHLCV (regular close, not adjusted)...")
                 watchlist_hm_data = fetch_batch_daily(tickers, auto_adjust=False)
                 sp500_data = fetch_batch_daily(sp500_tickers, auto_adjust=False)
-                logger.info("[USA] Fetching 4H session data for heatmap...")
-                watchlist_h4 = fetch_batch_4h(tickers, auto_adjust=False)
-                sp500_h4 = fetch_batch_4h(sp500_tickers, auto_adjust=False)
                 sp500_caps = caps_from_universe(sp500_univ)
 
                 hm_date = resolve_usa_snapshot_date(watchlist_hm_data)
@@ -349,12 +365,10 @@ def run(market_arg: str) -> None:
 
                 watchlist_hm = compute_sector_heatmap(
                     raw_entries, watchlist_hm_data, as_of_date=hm_date,
-                    h4_data=watchlist_h4,
                 )
                 sp500_hm = compute_sector_heatmap(
                     sp500_univ, sp500_data, as_of_date=hm_date,
                     market_caps=sp500_caps, include_benchmarks=False,
-                    h4_data=sp500_h4,
                 )
                 heatmap = merge_heatmap_payload(watchlist_hm, sp500_hm)
                 write_sector_heatmap(db, heatmap, trade_date=hm_date)
@@ -370,13 +384,17 @@ def run(market_arg: str) -> None:
                     logger.warning("ETF scan returned no results")
             except Exception as exc:
                 logger.warning("Could not write ETF scan: %s", exc)
+        elif market == "usa":
+            logger.info(
+                "[USA] Skipping heatmap + ETF (daily close only at ~23:15 TR; use --daily to force)",
+            )
 
-            if candidates:
-                logger.info("[USA] Running enrichment layers + decision engine...")
-                candidates = _enrich_usa_candidates(
-                    candidates, tickers, sector_map, daily_data, db,
-                    factors.get("decision", {}),
-                )
+        if market == "usa" and candidates:
+            logger.info("[USA] Running enrichment layers + decision engine...")
+            candidates = _enrich_usa_candidates(
+                candidates, tickers, sector_map, daily_data, db,
+                factors.get("decision", {}),
+            )
 
         write_daily_candidates(db, candidates, market, trade_date=trade_date)
 
@@ -384,8 +402,11 @@ def run(market_arg: str) -> None:
 
 
 if __name__ == "__main__":
-    market = sys.argv[1] if len(sys.argv) > 1 else "usa"
+    args = [a for a in sys.argv[1:] if a]
+    force_daily = "--daily" in args
+    args = [a for a in args if a != "--daily"]
+    market = args[0] if args else "usa"
     if market not in ("usa", "bist", "all"):
-        logger.error("Usage: python pipeline.py [usa|bist|all]")
+        logger.error("Usage: python pipeline.py [usa|bist|all] [--daily]")
         sys.exit(1)
-    run(market)
+    run(market, force_daily=force_daily)

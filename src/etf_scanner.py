@@ -173,18 +173,6 @@ def scan_etf(entry: dict, fx_eurusd: float | None = None) -> dict[str, Any] | No
     chg_21d = _pct_change(price_native, df["Close"], 21)
     chg_63d = _pct_change(price_native, df["Close"], 63)
 
-    chg_4h = None
-    try:
-        h4 = yf.download(ticker, period="60d", interval="4h", auto_adjust=False, progress=False)
-        if h4 is not None and not h4.empty:
-            if isinstance(h4.columns, pd.MultiIndex):
-                h4.columns = h4.columns.get_level_values(0)
-            closes_4h = h4["Close"].dropna()
-            if len(closes_4h) >= 2:
-                chg_4h = round((float(closes_4h.iloc[-1] / closes_4h.iloc[-2]) - 1) * 100, 2)
-    except Exception as exc:
-        logger.debug("4h fetch failed for %s: %s", ticker, exc)
-
     trend = _trend_label(price_native, e20, e50, e200, chg_21d, rsi)
     signal = _signal_label(price_native, e20, e50, rsi, chg_5d)
     action = _action_label(trend, signal)
@@ -215,7 +203,6 @@ def scan_etf(entry: dict, fx_eurusd: float | None = None) -> dict[str, Any] | No
         "price_eur": to_eur(price_native),
         "price_native": round(price_native, 2),
         "as_of_date": str(df.index[-1].date()),
-        "change_4h": chg_4h,
         "change_1d": chg_1d,
         "change_5d": chg_5d,
         "change_21d": chg_21d,
@@ -283,7 +270,6 @@ def results_to_dataframe(results: list[dict[str, Any]]) -> pd.DataFrame:
             "Tarih": r["as_of_date"],
             "Fiyat (EUR)": r["price_eur"],
             "Fiyat (Native)": r["price_native"],
-            "4H Session %": r.get("change_4h"),
             "1 Gün %": r["change_1d"],
             "5 Gün %": r["change_5d"],
             "1 Ay (21G) %": r["change_21d"],

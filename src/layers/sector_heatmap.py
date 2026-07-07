@@ -61,34 +61,6 @@ def _pct_change(closes: pd.Series, days: int) -> float | None:
     return round((float(closes.iloc[-1] / closes.iloc[-1 - days]) - 1) * 100, 2)
 
 
-def _change_4h(closes: pd.Series) -> float | None:
-    """Last 4H bar vs previous 4H bar (%)."""
-    series = closes.dropna()
-    if len(series) < 2:
-        return None
-    return round((float(series.iloc[-1] / series.iloc[-2]) - 1) * 100, 2)
-
-
-def _session_as_of(h4_data: dict[str, pd.DataFrame] | None) -> str | None:
-    """Latest 4H bar timestamp across the batch (America/New_York)."""
-    if not h4_data:
-        return None
-    latest = None
-    for df in h4_data.values():
-        if df is None or df.empty:
-            continue
-        ts = pd.Timestamp(df.index[-1])
-        if latest is None or ts > latest:
-            latest = ts
-    if latest is None:
-        return None
-    if latest.tzinfo is not None:
-        latest = latest.tz_convert("America/New_York")
-    else:
-        latest = latest.tz_localize("UTC").tz_convert("America/New_York")
-    return latest.strftime("%Y-%m-%d %H:%M ET")
-
-
 def _fetch_market_caps(tickers: list[str], cached: dict[str, float] | None = None) -> dict[str, float]:
     """Return {ticker: market_cap_usd}; use cached caps first, parallel-fetch the rest."""
     caps: dict[str, float] = dict(cached or {})
@@ -131,27 +103,19 @@ def _fetch_benchmarks(as_of_date: str | None = None) -> dict:
     result: dict = {}
     for symbol, label in [("SPY", "sp500"), ("UUP", "dollar")]:
         try:
-            t = yf.Ticker(symbol)
-            df = t.history(period="2y", interval="1d", auto_adjust=False)
+            df = yf.Ticker(symbol).history(period="2y", interval="1d", auto_adjust=False)
             if df.empty:
                 continue
             closes = _closes_as_of(df["Close"], as_of_date)
             if len(closes) < 2:
                 continue
-            bench: dict = {
+            result[label] = {
                 "symbol": symbol,
                 "label":  "S&P 500" if symbol == "SPY" else "US Dollar",
                 "etf":    symbol,
                 "price":  round(float(closes.iloc[-1]), 2),
                 **_stock_changes(closes),
             }
-            try:
-                h4 = t.history(period="60d", interval="4h", auto_adjust=False)
-                if not h4.empty and len(h4["Close"].dropna()) >= 2:
-                    bench["change_4h"] = _change_4h(h4["Close"])
-            except Exception as exc:
-                logger.debug("4h benchmark fetch failed for %s: %s", symbol, exc)
-            result[label] = bench
         except Exception as exc:
             logger.debug("Benchmark fetch failed for %s: %s", symbol, exc)
     return result
@@ -186,7 +150,6 @@ def compute_sector_heatmap(
     daily_data: dict[str, pd.DataFrame],
     as_of_date: str | None = None,
     market_caps: dict[str, float] | None = None,
-    h4_data: dict[str, pd.DataFrame] | None = None,
     include_stocks: bool = True,
     include_benchmarks: bool = True,
 ) -> dict:
@@ -233,20 +196,14 @@ def compute_sector_heatmap(
         if not market_cap:
             market_cap = max(price * 1_000_000, 1.0)
 
-        row: dict = {
+        stocks.append({
             "ticker":     ticker,
             "sector":     sector,
             "etf":        _SECTOR_TO_ETF.get(sector, ""),
             "price":      price,
             "market_cap": round(market_cap),
             **_stock_changes(closes),
-        }
-        h4_df = (h4_data or {}).get(ticker)
-        if h4_df is not None and not h4_df.empty:
-            chg_4h = _change_4h(h4_df["Close"])
-            if chg_4h is not None:
-                row["change_4h"] = chg_4h
-        stocks.append(row)
+        })
 
     sector_groups: dict[str, list[dict]] = {}
     for s in stocks:
@@ -267,7 +224,6 @@ def compute_sector_heatmap(
             "etf":          _SECTOR_TO_ETF.get(sector, ""),
             "stock_count":  len(members),
             "market_cap":   total_cap,
-            "change_4h":    _weighted("change_4h"),
             "change_1d":    _weighted("change_1d"),
             "change_5d":    _weighted("change_5d"),
             "change_30d":   _weighted("change_30d"),
@@ -280,7 +236,6 @@ def compute_sector_heatmap(
         snapshot_date, len(stocks), len(sectors),
     )
     benchmarks = _fetch_benchmarks(as_of_date) if include_benchmarks else {}
-    session_as_of = _session_as_of(h4_data)
     payload: dict = {
         "as_of_date": snapshot_date,
         "updated_at": date.today().isoformat(),
@@ -290,9 +245,6 @@ def compute_sector_heatmap(
         "price_basis": "regular_close",
         "data_source": "yahoo_finance",
     }
-    if session_as_of:
-        payload["session_as_of"] = session_as_of
-        payload["session_basis"] = "4h_close"
     if include_stocks:
         payload["stocks"] = stocks
     return payload
