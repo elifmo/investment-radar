@@ -17,9 +17,11 @@ from data_fetcher import fetch_batch_daily, fetch_batch_4h
 from event_filter import run_event_filter
 from detailed_scorer import score_all
 from ta_engine import Timeframe
+from etf_scanner import scan_all_etfs
 from firebase_writer import (
     init_firebase,
     write_daily_candidates,
+    write_etf_scan,
     write_macro_regime,
     write_quality_grades,
     write_sector_heatmap,
@@ -353,6 +355,16 @@ def run(market_arg: str) -> None:
                 write_sector_heatmap(db, heatmap, trade_date=hm_date)
             except Exception as exc:
                 logger.warning("Could not write sector heatmap: %s", exc)
+
+            logger.info("[USA] Running ETF scan...")
+            try:
+                etf_results = scan_all_etfs()
+                if etf_results:
+                    write_etf_scan(db, etf_results)
+                else:
+                    logger.warning("ETF scan returned no results")
+            except Exception as exc:
+                logger.warning("Could not write ETF scan: %s", exc)
 
             if candidates:
                 logger.info("[USA] Running enrichment layers + decision engine...")
