@@ -48,6 +48,8 @@ NL_SYMBOL_MAP: dict[str, str] = {
     "CTPNV": "CTPNV.AS",
     "TKWY": "TKWY.AS",
     "JUSTEAT": "TKWY.AS",
+    "SIFG": "SIFG.AS",
+    "SIF": "SIFG.AS",
 }
 
 

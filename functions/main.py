@@ -213,10 +213,24 @@ def deep_dive(req: https_fn.Request) -> https_fn.Response:
         info  = stock.info or {}
         hist  = stock.history(period="1y")
 
+        # Bare symbol with no US data? Try Euronext Amsterdam (.AS)
+        if hist.empty and market == "US" and "." not in ticker:
+            nl_symbol = f"{ticker}.AS"
+            stock_nl  = yf.Ticker(nl_symbol)
+            hist_nl   = stock_nl.history(period="1y")
+            if not hist_nl.empty:
+                stock    = stock_nl
+                info     = stock_nl.info or {}
+                hist     = hist_nl
+                yf_symbol = nl_symbol
+                market   = "NL"
+                currency = "EUR"
+                cache_id = nl_symbol
+
         if hist.empty:
-            hint = " Try ASML or INGA.AS for Dutch stocks." if market == "US" and "." not in ticker else ""
+            hint = " Hollanda hisseleri için .AS ekleyin (ör. SIFG.AS)." if "." not in ticker else ""
             return https_fn.Response(
-                json.dumps({"error": f"No price data found for {ticker}.{hint}"}),
+                json.dumps({"error": f"{ticker} için fiyat verisi bulunamadı.{hint}"}),
                 status=404, mimetype="application/json",
             )
 
