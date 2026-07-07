@@ -64,6 +64,8 @@ jobs:
           python3 -c "import os, pathlib; pathlib.Path('serviceAccountKey.json').write_text(os.environ['FIREBASE_SERVICE_ACCOUNT'])"
 
       - name: Run pipeline
-        env:
-          RUN_DAILY_REPORTS: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.daily_reports || 'false' }}
-        run: python src/pipeline.py ${{ steps.market.outputs.market }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.daily_reports }}" = "true" ]; then
+            export RUN_DAILY_REPORTS=true
+          fi
+          python src/pipeline.py ${{ steps.market.outputs.market }}
