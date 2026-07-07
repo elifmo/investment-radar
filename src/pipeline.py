@@ -22,9 +22,13 @@ from firebase_writer import (
     write_daily_candidates,
     write_macro_regime,
     write_quality_grades,
+    write_sector_heatmap,
     write_sector_status,
 )
 from layers.relative_strength import compute_rs_ratings
+from layers.sector_heatmap import compute_sector_heatmap, merge_heatmap_payload
+from market_calendar import resolve_usa_snapshot_date
+from sp500_universe import caps_from_universe, load_sp500_universe
 from layers.sector_rotation import compute_sector_rotation, SECTOR_ETFS
 from layers.macro_regime import compute_macro_regime
 from layers.earnings_calendar import get_earnings_calendar
@@ -325,12 +329,37 @@ def run(market_arg: str) -> None:
                 trade_date = today_utc if last_bar == today_utc or _market_open_now(market) else last_bar
                 logger.info("Trade date for %s: %s (last_bar=%s)", market.upper(), trade_date, last_bar)
 
-        if market == "usa" and candidates:
-            logger.info("[USA] Running enrichment layers + decision engine...")
-            candidates = _enrich_usa_candidates(
-                candidates, tickers, sector_map, daily_data, db,
-                factors.get("decision", {}),
-            )
+        if market == "usa":
+            logger.info("[USA] Computing sector heatmap (watchlist + S&P 500)...")
+            try:
+                sp500_univ = load_sp500_universe()
+                sp500_tickers = [e["ticker"] for e in sp500_univ]
+                logger.info("[USA] Fetching heatmap OHLCV (regular close, not adjusted)...")
+                watchlist_hm_data = fetch_batch_daily(tickers, auto_adjust=False)
+                sp500_data = fetch_batch_daily(sp500_tickers, auto_adjust=False)
+                sp500_caps = caps_from_universe(sp500_univ)
+
+                hm_date = resolve_usa_snapshot_date(watchlist_hm_data)
+                logger.info("[USA] Heatmap snapshot date: %s", hm_date)
+
+                watchlist_hm = compute_sector_heatmap(
+                    raw_entries, watchlist_hm_data, as_of_date=hm_date,
+                )
+                sp500_hm = compute_sector_heatmap(
+                    sp500_univ, sp500_data, as_of_date=hm_date,
+                    market_caps=sp500_caps, include_benchmarks=False,
+                )
+                heatmap = merge_heatmap_payload(watchlist_hm, sp500_hm)
+                write_sector_heatmap(db, heatmap, trade_date=hm_date)
+            except Exception as exc:
+                logger.warning("Could not write sector heatmap: %s", exc)
+
+            if candidates:
+                logger.info("[USA] Running enrichment layers + decision engine...")
+                candidates = _enrich_usa_candidates(
+                    candidates, tickers, sector_map, daily_data, db,
+                    factors.get("decision", {}),
+                )
 
         write_daily_candidates(db, candidates, market, trade_date=trade_date)
 

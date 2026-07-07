@@ -210,6 +210,62 @@ def write_sector_status(db: firestore.client, sector_data: dict[str, dict]) -> N
     logger.info("Sector status written: %d sectors (week=%s)", len(sector_data), week_key)
 
 
+def write_sector_heatmap(db: firestore.client, heatmap: dict, trade_date: str | None = None) -> None:
+    """Upsert sector_heatmap/current and sector_heatmap/{YYYY-MM-DD}."""
+    date_key = trade_date or heatmap.get("as_of_date") or heatmap.get("updated_at")
+    payload = {**heatmap, "as_of_date": date_key}
+
+    col = db.collection("sector_heatmap")
+    col.document("current").set(payload)
+    col.document(date_key).set(payload)
+
+    index_ref = col.document("_index")
+    index_snap = index_ref.get()
+    dates: list[str] = []
+    if index_snap.exists:
+        dates = list(index_snap.to_dict().get("dates") or [])
+    if date_key not in dates:
+        dates.append(date_key)
+    dates = sorted(set(dates), reverse=True)[:252]
+
+    index_ref.set({"dates": dates, "latest": dates[0] if dates else date_key})
+    logger.info(
+        "Sector heatmap written: %s — %d watchlist, %d sp500 stocks, %d sectors (%d days indexed)",
+        date_key,
+        len(payload.get("stocks", [])),
+        len(payload.get("stocks_sp500", [])),
+        len(payload.get("sectors", [])),
+        len(dates),
+    )
+
+
+def write_etf_scan(db: firestore.client, results: list[dict], scan_date: str | None = None) -> None:
+    """Upsert etf_scans/current and etf_scans/{YYYY-MM-DD}."""
+    date_key = scan_date or (results[0].get("as_of_date") if results else date.today().isoformat())
+    payload = {
+        "as_of_date": date_key,
+        "updated_at": date.today().isoformat(),
+        "count": len(results),
+        "etfs": results,
+    }
+
+    col = db.collection("etf_scans")
+    col.document("current").set(payload)
+    col.document(date_key).set(payload)
+
+    index_ref = col.document("_index")
+    index_snap = index_ref.get()
+    dates: list[str] = []
+    if index_snap.exists:
+        dates = list(index_snap.to_dict().get("dates") or [])
+    if date_key not in dates:
+        dates.append(date_key)
+    dates = sorted(set(dates), reverse=True)[:90]
+
+    index_ref.set({"dates": dates, "latest": dates[0] if dates else date_key})
+    logger.info("ETF scan written: %s — %d ETFs (%d days indexed)", date_key, len(results), len(dates))
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 

@@ -1,0 +1,1011 @@
+updated_at: '2026-07-06'
+source: datasets/s-and-p-500-companies
+count: 503
+sp500:
+- ticker: MMM
+  sector: Industrials
+- ticker: AOS
+  sector: Industrials
+- ticker: ABT
+  sector: Health Care
+- ticker: ABBV
+  sector: Health Care
+- ticker: ACN
+  sector: Technology
+- ticker: ADBE
+  sector: Technology
+- ticker: AMD
+  sector: Technology
+- ticker: AES
+  sector: Utilities
+- ticker: AFL
+  sector: Financials
+- ticker: A
+  sector: Health Care
+- ticker: APD
+  sector: Materials
+- ticker: ABNB
+  sector: Consumer Discretionary
+- ticker: AKAM
+  sector: Technology
+- ticker: ALB
+  sector: Materials
+- ticker: ARE
+  sector: Real Estate
+- ticker: ALGN
+  sector: Health Care
+- ticker: ALLE
+  sector: Industrials
+- ticker: LNT
+  sector: Utilities
+- ticker: ALL
+  sector: Financials
+- ticker: GOOGL
+  sector: Communication Services
+- ticker: GOOG
+  sector: Communication Services
+- ticker: MO
+  sector: Consumer Staples
+- ticker: AMZN
+  sector: Consumer Discretionary
+- ticker: AMCR
+  sector: Materials
+- ticker: AEE
+  sector: Utilities
+- ticker: AEP
+  sector: Utilities
+- ticker: AXP
+  sector: Financials
+- ticker: AIG
+  sector: Financials
+- ticker: AMT
+  sector: Real Estate
+- ticker: AWK
+  sector: Utilities
+- ticker: AMP
+  sector: Financials
+- ticker: AME
+  sector: Industrials
+- ticker: AMGN
+  sector: Health Care
+- ticker: APH
+  sector: Technology
+- ticker: ADI
+  sector: Technology
+- ticker: AON
+  sector: Financials
+- ticker: APA
+  sector: Energy
+- ticker: APO
+  sector: Financials
+- ticker: AAPL
+  sector: Technology
+- ticker: AMAT
+  sector: Technology
+- ticker: APP
+  sector: Technology
+- ticker: APTV
+  sector: Consumer Discretionary
+- ticker: ACGL
+  sector: Financials
+- ticker: ADM
+  sector: Consumer Staples
+- ticker: ARES
+  sector: Financials
+- ticker: ANET
+  sector: Technology
+- ticker: AJG
+  sector: Financials
+- ticker: AIZ
+  sector: Financials
+- ticker: T
+  sector: Communication Services
+- ticker: ATO
+  sector: Utilities
+- ticker: ADSK
+  sector: Technology
+- ticker: ADP
+  sector: Industrials
+- ticker: AZO
+  sector: Consumer Discretionary
+- ticker: AVB
+  sector: Real Estate
+- ticker: AVY
+  sector: Materials
+- ticker: AXON
+  sector: Industrials
+- ticker: BKR
+  sector: Energy
+- ticker: BALL
+  sector: Materials
+- ticker: BAC
+  sector: Financials
+- ticker: BAX
+  sector: Health Care
+- ticker: BDX
+  sector: Health Care
+- ticker: BRK-B
+  sector: Financials
+- ticker: BBY
+  sector: Consumer Discretionary
+- ticker: TECH
+  sector: Health Care
+- ticker: BIIB
+  sector: Health Care
+- ticker: BLK
+  sector: Financials
+- ticker: BX
+  sector: Financials
+- ticker: XYZ
+  sector: Financials
+- ticker: BNY
+  sector: Financials
+- ticker: BA
+  sector: Industrials
+- ticker: BKNG
+  sector: Consumer Discretionary
+- ticker: BSX
+  sector: Health Care
+- ticker: BMY
+  sector: Health Care
+- ticker: AVGO
+  sector: Technology
+- ticker: BR
+  sector: Industrials
+- ticker: BRO
+  sector: Financials
+- ticker: BF-B
+  sector: Consumer Staples
+- ticker: BLDR
+  sector: Industrials
+- ticker: BG
+  sector: Consumer Staples
+- ticker: BXP
+  sector: Real Estate
+- ticker: CHRW
+  sector: Industrials
+- ticker: CDNS
+  sector: Technology
+- ticker: CPT
+  sector: Real Estate
+- ticker: COF
+  sector: Financials
+- ticker: CAH
+  sector: Health Care
+- ticker: CCL
+  sector: Consumer Discretionary
+- ticker: CARR
+  sector: Industrials
+- ticker: CVNA
+  sector: Consumer Discretionary
+- ticker: CASY
+  sector: Consumer Staples
+- ticker: CAT
+  sector: Industrials
+- ticker: CBOE
+  sector: Financials
+- ticker: CBRE
+  sector: Real Estate
+- ticker: CDW
+  sector: Technology
+- ticker: COR
+  sector: Health Care
+- ticker: CNC
+  sector: Health Care
+- ticker: CNP
+  sector: Utilities
+- ticker: CF
+  sector: Materials
+- ticker: CRL
+  sector: Health Care
+- ticker: SCHW
+  sector: Financials
+- ticker: CHTR
+  sector: Communication Services
+- ticker: CVX
+  sector: Energy
+- ticker: CMG
+  sector: Consumer Discretionary
+- ticker: CB
+  sector: Financials
+- ticker: CHD
+  sector: Consumer Staples
+- ticker: CIEN
+  sector: Technology
+- ticker: CI
+  sector: Health Care
+- ticker: CINF
+  sector: Financials
+- ticker: CTAS
+  sector: Industrials
+- ticker: CSCO
+  sector: Technology
+- ticker: C
+  sector: Financials
+- ticker: CFG
+  sector: Financials
+- ticker: CLX
+  sector: Consumer Staples
+- ticker: CME
+  sector: Financials
+- ticker: CMS
+  sector: Utilities
+- ticker: KO
+  sector: Consumer Staples
+- ticker: CTSH
+  sector: Technology
+- ticker: COHR
+  sector: Technology
+- ticker: COIN
+  sector: Financials
+- ticker: CL
+  sector: Consumer Staples
+- ticker: CMCSA
+  sector: Communication Services
+- ticker: FIX
+  sector: Industrials
+- ticker: COP
+  sector: Energy
+- ticker: ED
+  sector: Utilities
+- ticker: STZ
+  sector: Consumer Staples
+- ticker: CEG
+  sector: Utilities
+- ticker: COO
+  sector: Health Care
+- ticker: CPRT
+  sector: Industrials
+- ticker: GLW
+  sector: Technology
+- ticker: CPAY
+  sector: Financials
+- ticker: CTVA
+  sector: Materials
+- ticker: CSGP
+  sector: Real Estate
+- ticker: COST
+  sector: Consumer Staples
+- ticker: CRH
+  sector: Materials
+- ticker: CRWD
+  sector: Technology
+- ticker: CCI
+  sector: Real Estate
+- ticker: CSX
+  sector: Industrials
+- ticker: CMI
+  sector: Industrials
+- ticker: CVS
+  sector: Health Care
+- ticker: DHR
+  sector: Health Care
+- ticker: DRI
+  sector: Consumer Discretionary
+- ticker: DDOG
+  sector: Technology
+- ticker: DVA
+  sector: Health Care
+- ticker: DECK
+  sector: Consumer Discretionary
+- ticker: DE
+  sector: Industrials
+- ticker: DELL
+  sector: Technology
+- ticker: DAL
+  sector: Industrials
+- ticker: DVN
+  sector: Energy
+- ticker: DXCM
+  sector: Health Care
+- ticker: FANG
+  sector: Energy
+- ticker: DLR
+  sector: Real Estate
+- ticker: DG
+  sector: Consumer Staples
+- ticker: DLTR
+  sector: Consumer Staples
+- ticker: D
+  sector: Utilities
+- ticker: DPZ
+  sector: Consumer Discretionary
+- ticker: DASH
+  sector: Consumer Discretionary
+- ticker: DOV
+  sector: Industrials
+- ticker: DOW
+  sector: Materials
+- ticker: DHI
+  sector: Consumer Discretionary
+- ticker: DTE
+  sector: Utilities
+- ticker: DUK
+  sector: Utilities
+- ticker: DD
+  sector: Materials
+- ticker: ETN
+  sector: Industrials
+- ticker: EBAY
+  sector: Consumer Discretionary
+- ticker: ECHO
+  sector: Communication Services
+- ticker: ECL
+  sector: Materials
+- ticker: EIX
+  sector: Utilities
+- ticker: EW
+  sector: Health Care
+- ticker: EA
+  sector: Communication Services
+- ticker: ELV
+  sector: Health Care
+- ticker: EME
+  sector: Industrials
+- ticker: EMR
+  sector: Industrials
+- ticker: ETR
+  sector: Utilities
+- ticker: EOG
+  sector: Energy
+- ticker: EQT
+  sector: Energy
+- ticker: EFX
+  sector: Industrials
+- ticker: EQIX
+  sector: Real Estate
+- ticker: EQR
+  sector: Real Estate
+- ticker: ERIE
+  sector: Financials
+- ticker: ESS
+  sector: Real Estate
+- ticker: EL
+  sector: Consumer Staples
+- ticker: EG
+  sector: Financials
+- ticker: EVRG
+  sector: Utilities
+- ticker: ES
+  sector: Utilities
+- ticker: EXC
+  sector: Utilities
+- ticker: EXE
+  sector: Energy
+- ticker: EXPE
+  sector: Consumer Discretionary
+- ticker: EXPD
+  sector: Industrials
+- ticker: EXR
+  sector: Real Estate
+- ticker: XOM
+  sector: Energy
+- ticker: FFIV
+  sector: Technology
+- ticker: FDS
+  sector: Financials
+- ticker: FICO
+  sector: Technology
+- ticker: FAST
+  sector: Industrials
+- ticker: FRT
+  sector: Real Estate
+- ticker: FDX
+  sector: Industrials
+- ticker: FDXF
+  sector: Industrials
+- ticker: FIS
+  sector: Financials
+- ticker: FITB
+  sector: Financials
+- ticker: FSLR
+  sector: Technology
+- ticker: FE
+  sector: Utilities
+- ticker: FISV
+  sector: Financials
+- ticker: FLEX
+  sector: Technology
+- ticker: F
+  sector: Consumer Discretionary
+- ticker: FTNT
+  sector: Technology
+- ticker: FTV
+  sector: Industrials
+- ticker: FOXA
+  sector: Communication Services
+- ticker: FOX
+  sector: Communication Services
+- ticker: BEN
+  sector: Financials
+- ticker: FCX
+  sector: Materials
+- ticker: GRMN
+  sector: Consumer Discretionary
+- ticker: IT
+  sector: Technology
+- ticker: GE
+  sector: Industrials
+- ticker: GEHC
+  sector: Health Care
+- ticker: GEV
+  sector: Industrials
+- ticker: GEN
+  sector: Technology
+- ticker: GNRC
+  sector: Industrials
+- ticker: GD
+  sector: Industrials
+- ticker: GIS
+  sector: Consumer Staples
+- ticker: GM
+  sector: Consumer Discretionary
+- ticker: GPC
+  sector: Consumer Discretionary
+- ticker: GILD
+  sector: Health Care
+- ticker: GPN
+  sector: Financials
+- ticker: GL
+  sector: Financials
+- ticker: GDDY
+  sector: Technology
+- ticker: GS
+  sector: Financials
+- ticker: HAL
+  sector: Energy
+- ticker: HIG
+  sector: Financials
+- ticker: HAS
+  sector: Consumer Discretionary
+- ticker: HCA
+  sector: Health Care
+- ticker: DOC
+  sector: Real Estate
+- ticker: HSIC
+  sector: Health Care
+- ticker: HSY
+  sector: Consumer Staples
+- ticker: HPE
+  sector: Technology
+- ticker: HLT
+  sector: Consumer Discretionary
+- ticker: HD
+  sector: Consumer Discretionary
+- ticker: HONA
+  sector: Industrials
+- ticker: HON
+  sector: Industrials
+- ticker: HRL
+  sector: Consumer Staples
+- ticker: HST
+  sector: Real Estate
+- ticker: HWM
+  sector: Industrials
+- ticker: HPQ
+  sector: Technology
+- ticker: HUBB
+  sector: Industrials
+- ticker: HUM
+  sector: Health Care
+- ticker: HBAN
+  sector: Financials
+- ticker: HII
+  sector: Industrials
+- ticker: IBM
+  sector: Technology
+- ticker: IEX
+  sector: Industrials
+- ticker: IDXX
+  sector: Health Care
+- ticker: ITW
+  sector: Industrials
+- ticker: INCY
+  sector: Health Care
+- ticker: IR
+  sector: Industrials
+- ticker: PODD
+  sector: Health Care
+- ticker: INTC
+  sector: Technology
+- ticker: IBKR
+  sector: Financials
+- ticker: ICE
+  sector: Financials
+- ticker: IFF
+  sector: Materials
+- ticker: IP
+  sector: Materials
+- ticker: INTU
+  sector: Technology
+- ticker: ISRG
+  sector: Health Care
+- ticker: IVZ
+  sector: Financials
+- ticker: INVH
+  sector: Real Estate
+- ticker: IQV
+  sector: Health Care
+- ticker: IRM
+  sector: Real Estate
+- ticker: JBHT
+  sector: Industrials
+- ticker: JBL
+  sector: Technology
+- ticker: JKHY
+  sector: Financials
+- ticker: J
+  sector: Industrials
+- ticker: JNJ
+  sector: Health Care
+- ticker: JCI
+  sector: Industrials
+- ticker: JPM
+  sector: Financials
+- ticker: KVUE
+  sector: Consumer Staples
+- ticker: KDP
+  sector: Consumer Staples
+- ticker: KEY
+  sector: Financials
+- ticker: KEYS
+  sector: Technology
+- ticker: KMB
+  sector: Consumer Staples
+- ticker: KIM
+  sector: Real Estate
+- ticker: KMI
+  sector: Energy
+- ticker: KKR
+  sector: Financials
+- ticker: KLAC
+  sector: Technology
+- ticker: KHC
+  sector: Consumer Staples
+- ticker: KR
+  sector: Consumer Staples
+- ticker: LHX
+  sector: Industrials
+- ticker: LH
+  sector: Health Care
+- ticker: LRCX
+  sector: Technology
+- ticker: LVS
+  sector: Consumer Discretionary
+- ticker: LDOS
+  sector: Industrials
+- ticker: LEN
+  sector: Consumer Discretionary
+- ticker: LII
+  sector: Industrials
+- ticker: LLY
+  sector: Health Care
+- ticker: LIN
+  sector: Materials
+- ticker: LYV
+  sector: Communication Services
+- ticker: LMT
+  sector: Industrials
+- ticker: L
+  sector: Financials
+- ticker: LOW
+  sector: Consumer Discretionary
+- ticker: LULU
+  sector: Consumer Discretionary
+- ticker: LITE
+  sector: Technology
+- ticker: LYB
+  sector: Materials
+- ticker: MTB
+  sector: Financials
+- ticker: MPC
+  sector: Energy
+- ticker: MAR
+  sector: Consumer Discretionary
+- ticker: MRSH
+  sector: Financials
+- ticker: MLM
+  sector: Materials
+- ticker: MRVL
+  sector: Technology
+- ticker: MAS
+  sector: Industrials
+- ticker: MA
+  sector: Financials
+- ticker: MKC
+  sector: Consumer Staples
+- ticker: MCD
+  sector: Consumer Discretionary
+- ticker: MCK
+  sector: Health Care
+- ticker: MDT
+  sector: Health Care
+- ticker: MRK
+  sector: Health Care
+- ticker: META
+  sector: Communication Services
+- ticker: MET
+  sector: Financials
+- ticker: MTD
+  sector: Health Care
+- ticker: MGM
+  sector: Consumer Discretionary
+- ticker: MCHP
+  sector: Technology
+- ticker: MU
+  sector: Technology
+- ticker: MSFT
+  sector: Technology
+- ticker: MAA
+  sector: Real Estate
+- ticker: MRNA
+  sector: Health Care
+- ticker: TAP
+  sector: Consumer Staples
+- ticker: MDLZ
+  sector: Consumer Staples
+- ticker: MPWR
+  sector: Technology
+- ticker: MNST
+  sector: Consumer Staples
+- ticker: MCO
+  sector: Financials
+- ticker: MS
+  sector: Financials
+- ticker: MOS
+  sector: Materials
+- ticker: MSI
+  sector: Technology
+- ticker: MSCI
+  sector: Financials
+- ticker: NDAQ
+  sector: Financials
+- ticker: NTAP
+  sector: Technology
+- ticker: NFLX
+  sector: Communication Services
+- ticker: NEM
+  sector: Materials
+- ticker: NWSA
+  sector: Communication Services
+- ticker: NWS
+  sector: Communication Services
+- ticker: NEE
+  sector: Utilities
+- ticker: NKE
+  sector: Consumer Discretionary
+- ticker: NI
+  sector: Utilities
+- ticker: NDSN
+  sector: Industrials
+- ticker: NSC
+  sector: Industrials
+- ticker: NTRS
+  sector: Financials
+- ticker: NOC
+  sector: Industrials
+- ticker: NCLH
+  sector: Consumer Discretionary
+- ticker: NRG
+  sector: Utilities
+- ticker: NUE
+  sector: Materials
+- ticker: NVDA
+  sector: Technology
+- ticker: NVR
+  sector: Consumer Discretionary
+- ticker: NXPI
+  sector: Technology
+- ticker: ORLY
+  sector: Consumer Discretionary
+- ticker: OXY
+  sector: Energy
+- ticker: ODFL
+  sector: Industrials
+- ticker: OMC
+  sector: Communication Services
+- ticker: 'ON'
+  sector: Technology
+- ticker: OKE
+  sector: Energy
+- ticker: ORCL
+  sector: Technology
+- ticker: OTIS
+  sector: Industrials
+- ticker: PCAR
+  sector: Industrials
+- ticker: PKG
+  sector: Materials
+- ticker: PLTR
+  sector: Technology
+- ticker: PANW
+  sector: Technology
+- ticker: PSKY
+  sector: Communication Services
+- ticker: PH
+  sector: Industrials
+- ticker: PAYX
+  sector: Industrials
+- ticker: PYPL
+  sector: Financials
+- ticker: PNR
+  sector: Industrials
+- ticker: PEP
+  sector: Consumer Staples
+- ticker: PFE
+  sector: Health Care
+- ticker: PCG
+  sector: Utilities
+- ticker: PM
+  sector: Consumer Staples
+- ticker: PSX
+  sector: Energy
+- ticker: PNW
+  sector: Utilities
+- ticker: PNC
+  sector: Financials
+- ticker: PPG
+  sector: Materials
+- ticker: PPL
+  sector: Utilities
+- ticker: PFG
+  sector: Financials
+- ticker: PG
+  sector: Consumer Staples
+- ticker: PGR
+  sector: Financials
+- ticker: PLD
+  sector: Real Estate
+- ticker: PRU
+  sector: Financials
+- ticker: PEG
+  sector: Utilities
+- ticker: PTC
+  sector: Technology
+- ticker: PSA
+  sector: Real Estate
+- ticker: PHM
+  sector: Consumer Discretionary
+- ticker: PWR
+  sector: Industrials
+- ticker: QCOM
+  sector: Technology
+- ticker: DGX
+  sector: Health Care
+- ticker: Q
+  sector: Technology
+- ticker: RL
+  sector: Consumer Discretionary
+- ticker: RJF
+  sector: Financials
+- ticker: RTX
+  sector: Industrials
+- ticker: O
+  sector: Real Estate
+- ticker: REG
+  sector: Real Estate
+- ticker: REGN
+  sector: Health Care
+- ticker: RF
+  sector: Financials
+- ticker: RSG
+  sector: Industrials
+- ticker: RMD
+  sector: Health Care
+- ticker: RVTY
+  sector: Health Care
+- ticker: HOOD
+  sector: Financials
+- ticker: ROK
+  sector: Industrials
+- ticker: ROL
+  sector: Industrials
+- ticker: ROP
+  sector: Technology
+- ticker: ROST
+  sector: Consumer Discretionary
+- ticker: RCL
+  sector: Consumer Discretionary
+- ticker: SPGI
+  sector: Financials
+- ticker: CRM
+  sector: Technology
+- ticker: SNDK
+  sector: Technology
+- ticker: SBAC
+  sector: Real Estate
+- ticker: SLB
+  sector: Energy
+- ticker: STX
+  sector: Technology
+- ticker: SRE
+  sector: Utilities
+- ticker: NOW
+  sector: Technology
+- ticker: SHW
+  sector: Materials
+- ticker: SPG
+  sector: Real Estate
+- ticker: SWKS
+  sector: Technology
+- ticker: SJM
+  sector: Consumer Staples
+- ticker: SW
+  sector: Materials
+- ticker: SNA
+  sector: Industrials
+- ticker: SOLV
+  sector: Health Care
+- ticker: SO
+  sector: Utilities
+- ticker: LUV
+  sector: Industrials
+- ticker: SWK
+  sector: Industrials
+- ticker: SBUX
+  sector: Consumer Discretionary
+- ticker: STT
+  sector: Financials
+- ticker: STLD
+  sector: Materials
+- ticker: STE
+  sector: Health Care
+- ticker: SYK
+  sector: Health Care
+- ticker: SMCI
+  sector: Technology
+- ticker: SYF
+  sector: Financials
+- ticker: SNPS
+  sector: Technology
+- ticker: SYY
+  sector: Consumer Staples
+- ticker: TMUS
+  sector: Communication Services
+- ticker: TROW
+  sector: Financials
+- ticker: TTWO
+  sector: Communication Services
+- ticker: TPR
+  sector: Consumer Discretionary
+- ticker: TRGP
+  sector: Energy
+- ticker: TGT
+  sector: Consumer Staples
+- ticker: TEL
+  sector: Technology
+- ticker: TDY
+  sector: Technology
+- ticker: TER
+  sector: Technology
+- ticker: TSLA
+  sector: Consumer Discretionary
+- ticker: TXN
+  sector: Technology
+- ticker: TPL
+  sector: Energy
+- ticker: TXT
+  sector: Industrials
+- ticker: TMO
+  sector: Health Care
+- ticker: TJX
+  sector: Consumer Discretionary
+- ticker: TKO
+  sector: Communication Services
+- ticker: TTD
+  sector: Communication Services
+- ticker: TSCO
+  sector: Consumer Discretionary
+- ticker: TT
+  sector: Industrials
+- ticker: TDG
+  sector: Industrials
+- ticker: TRV
+  sector: Financials
+- ticker: TRMB
+  sector: Technology
+- ticker: TFC
+  sector: Financials
+- ticker: TYL
+  sector: Technology
+- ticker: TSN
+  sector: Consumer Staples
+- ticker: USB
+  sector: Financials
+- ticker: UBER
+  sector: Industrials
+- ticker: UDR
+  sector: Real Estate
+- ticker: ULTA
+  sector: Consumer Discretionary
+- ticker: UNP
+  sector: Industrials
+- ticker: UAL
+  sector: Industrials
+- ticker: UPS
+  sector: Industrials
+- ticker: URI
+  sector: Industrials
+- ticker: UNH
+  sector: Health Care
+- ticker: UHS
+  sector: Health Care
+- ticker: VLO
+  sector: Energy
+- ticker: VEEV
+  sector: Health Care
+- ticker: VTR
+  sector: Real Estate
+- ticker: VLTO
+  sector: Industrials
+- ticker: VRSN
+  sector: Technology
+- ticker: VRSK
+  sector: Industrials
+- ticker: VZ
+  sector: Communication Services
+- ticker: VRTX
+  sector: Health Care
+- ticker: VRT
+  sector: Industrials
+- ticker: VTRS
+  sector: Health Care
+- ticker: VICI
+  sector: Real Estate
+- ticker: V
+  sector: Financials
+- ticker: VST
+  sector: Utilities
+- ticker: VMC
+  sector: Materials
+- ticker: WRB
+  sector: Financials
+- ticker: GWW
+  sector: Industrials
+- ticker: WAB
+  sector: Industrials
+- ticker: WMT
+  sector: Consumer Staples
+- ticker: DIS
+  sector: Communication Services
+- ticker: WBD
+  sector: Communication Services
+- ticker: WM
+  sector: Industrials
+- ticker: WAT
+  sector: Health Care
+- ticker: WEC
+  sector: Utilities
+- ticker: WFC
+  sector: Financials
+- ticker: WELL
+  sector: Real Estate
+- ticker: WST
+  sector: Health Care
+- ticker: WDC
+  sector: Technology
+- ticker: WY
+  sector: Real Estate
+- ticker: WSM
+  sector: Consumer Discretionary
+- ticker: WMB
+  sector: Energy
+- ticker: WTW
+  sector: Financials
+- ticker: WDAY
+  sector: Technology
+- ticker: WYNN
+  sector: Consumer Discretionary
+- ticker: XEL
+  sector: Utilities
+- ticker: XYL
+  sector: Industrials
+- ticker: YUM
+  sector: Consumer Discretionary
+- ticker: ZBRA
+  sector: Technology
+- ticker: ZBH
+  sector: Health Care
+- ticker: ZTS
+  sector: Health Care
+

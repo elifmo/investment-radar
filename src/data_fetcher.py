@@ -10,11 +10,13 @@ _MIN_ROWS_DAILY = 60
 _MIN_ROWS_4H = 20
 
 
-def _fetch_ohlcv(tickers: list[str], period: str, interval: str) -> dict[str, pd.DataFrame]:
+def _fetch_ohlcv(
+    tickers: list[str], period: str, interval: str, auto_adjust: bool = True,
+) -> dict[str, pd.DataFrame]:
     result: dict[str, pd.DataFrame] = {}
     for ticker in tickers:
         try:
-            df = yf.Ticker(ticker).history(period=period, interval=interval)
+            df = yf.Ticker(ticker).history(period=period, interval=interval, auto_adjust=auto_adjust)
             if df.empty or not _REQUIRED_COLUMNS.issubset(df.columns):
                 logger.warning("No valid data for %s (%s) — skipping", ticker, interval)
                 continue
@@ -30,20 +32,41 @@ def fetch_ticker_data(tickers: list[str]) -> dict[str, pd.DataFrame]:
     return _fetch_ohlcv(tickers, period="1y", interval="1d")
 
 
-def fetch_batch_daily(tickers: list[str]) -> dict[str, pd.DataFrame]:
+def fetch_batch_daily(
+    tickers: list[str],
+    period: str = "2y",
+    chunk_size: int = 80,
+    auto_adjust: bool = True,
+) -> dict[str, pd.DataFrame]:
     """Batch download daily OHLCV for large ticker lists (single yfinance call).
 
     Faster than fetch_ticker_data() for 50+ tickers.
     Falls back to individual fetch on failure.
+    Default period is 2y so 6M/1Y heatmap lookbacks work on historical snapshots.
+    Splits large lists into chunks (yfinance limit ~100 tickers per call).
     """
     if not tickers:
         return {}
 
+    if len(tickers) <= chunk_size:
+        return _fetch_batch_daily_single(tickers, period, auto_adjust)
+
+    result: dict[str, pd.DataFrame] = {}
+    for i in range(0, len(tickers), chunk_size):
+        chunk = tickers[i : i + chunk_size]
+        logger.info("Batch daily chunk %d–%d / %d", i + 1, i + len(chunk), len(tickers))
+        result.update(_fetch_batch_daily_single(chunk, period, auto_adjust))
+    return result
+
+
+def _fetch_batch_daily_single(
+    tickers: list[str], period: str, auto_adjust: bool = True,
+) -> dict[str, pd.DataFrame]:
     result: dict[str, pd.DataFrame] = {}
     try:
         raw = yf.download(
             tickers=" ".join(tickers),
-            period="1y",
+            period=period,
             interval="1d",
             group_by="ticker",
             auto_adjust=True,
@@ -69,11 +92,11 @@ def fetch_batch_daily(tickers: list[str]) -> dict[str, pd.DataFrame]:
                 logger.info("Batch fetched %d rows for %s", len(df), ticker)
             except Exception as exc:
                 logger.warning("Batch parse failed for %s: %s — retrying individually", ticker, exc)
-                fallback = _fetch_ohlcv([ticker], "1y", "1d")
+                fallback = _fetch_ohlcv([ticker], period, "1d", auto_adjust)
                 result.update(fallback)
     except Exception as exc:
         logger.error("Batch download failed: %s — falling back to individual fetches", exc)
-        return _fetch_ohlcv(tickers, "1y", "1d")
+        return _fetch_ohlcv(tickers, period, "1d", auto_adjust)
 
     return result
 

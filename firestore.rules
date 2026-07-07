@@ -25,5 +25,18 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false;
     }
+    match /sector_heatmap/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /etf_scans/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /radar_items/{doc} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if true;
+    }
   }
 }

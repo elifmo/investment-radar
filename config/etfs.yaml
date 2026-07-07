@@ -1,0 +1,70 @@
+# Daily ETF watchlist — Bux (EUR) only
+# bux_symbol = search this in the Bux app
+# ticker     = Yahoo Finance symbol for price data
+
+etfs:
+  - ticker: VHYL.AS
+    bux_symbol: VHYL
+    bux_name: Vanguard FTSE All-World High Dividend Yield UCITS ETF
+    short_name: Vanguard FTSE All World High Dividend Yield
+    full_name: Vanguard FTSE All-World High Dividend Yield UCITS ETF
+    isin: IE00B8GKDB10
+    exchange: Euronext Amsterdam
+    currency: EUR
+    role: Çekirdek — temettü
+    risk: Düşük
+
+  - ticker: VUSA.AS
+    bux_symbol: VUSA
+    bux_name: Vanguard S&P 500 UCITS ETF
+    short_name: Vanguard S&P 500
+    full_name: Vanguard S&P 500 UCITS ETF
+    isin: IE00B3XXRP09
+    exchange: Euronext Amsterdam
+    currency: EUR
+    role: Çekirdek — S&P 500
+    risk: Düşük
+
+  - ticker: SEMI.AS
+    bux_symbol: SEMI
+    bux_name: iShares MSCI Global Semiconductors UCITS ETF
+    short_name: iShares MSCI Global Semiconductors
+    full_name: iShares MSCI Global Semiconductors UCITS ETF
+    isin: IE00BMC38736
+    exchange: Euronext Amsterdam
+    currency: EUR
+    role: Tema — yarı iletken
+    risk: Yüksek
+
+  - ticker: HEAL.AS
+    bux_symbol: HEAL
+    bux_name: iShares Healthcare Innovation UCITS ETF
+    short_name: iShares Healthcare Innovations
+    full_name: iShares Healthcare Innovation UCITS ETF
+    isin: IE00BYZK4552
+    exchange: Euronext Amsterdam
+    currency: EUR
+    role: Tema — sağlık / biotech
+    risk: Yüksek
+
+  - ticker: DFEN.DE
+    bux_symbol: DFEN
+    bux_name: VanEck Defense UCITS ETF
+    short_name: VanEck Defense
+    full_name: VanEck Defense UCITS ETF
+    isin: IE000YYE6WK5
+    exchange: XETRA
+    currency: EUR
+    role: Tema — savunma
+    risk: Orta
+
+  - ticker: NUKL.DE
+    bux_symbol: NUKL
+    bux_name: VanEck Uranium and Nuclear Technologies UCITS ETF
+    short_name: VanEck Uranium and Nuclear Technologies
+    full_name: VanEck Uranium and Nuclear Technologies UCITS ETF
+    isin: IE000M7V94E1
+    exchange: XETRA
+    currency: EUR
+    role: Tema — nükleer / uranyum
+    risk: Yüksek
