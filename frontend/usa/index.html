@@ -1182,7 +1182,7 @@
 
   function buildThemeGroups(data, period) {
     const byTicker = {};
-    data.stocks.forEach(s => { byTicker[s.ticker] = s; });
+    (data.stocks || []).forEach(s => { byTicker[s.ticker] = s; });
 
     return HEATMAP_THEMES.map(theme => {
       const members = theme.tickers.map(t => byTicker[t]).filter(Boolean);
@@ -1860,10 +1860,10 @@
       <div class="etf-detail-section">
         <div class="etf-detail-label">Performance</div>
         <div class="etf-level-grid">
-          <div class="etf-level-box"><div class="lbl">1 Day</div><div class="val">${e.change_1d != null ? (e.change_1d>=0?"+":"")+e.change_1d+"%" : "—"}</div></div>
-          <div class="etf-level-box"><div class="lbl">5 Days</div><div class="val">${e.change_5d != null ? (e.change_5d>=0?"+":"")+e.change_5d+"%" : "—"}</div></div>
-          <div class="etf-level-box"><div class="lbl">1 Month</div><div class="val">${e.change_21d != null ? (e.change_21d>=0?"+":"")+e.change_21d+"%" : "—"}</div></div>
-          <div class="etf-level-box"><div class="lbl">3 Months</div><div class="val">${e.change_63d != null ? (e.change_63d>=0?"+":"")+e.change_63d+"%" : "—"}</div></div>
+          <div class="etf-level-box"><div class="lbl">1 Day</div><div class="val">${fmtEtfChg(e.change_1d)}</div></div>
+          <div class="etf-level-box"><div class="lbl">5 Days</div><div class="val">${fmtEtfChg(e.change_5d)}</div></div>
+          <div class="etf-level-box"><div class="lbl">1 Month</div><div class="val">${fmtEtfChg(e.change_21d)}</div></div>
+          <div class="etf-level-box"><div class="lbl">3 Months</div><div class="val">${fmtEtfChg(e.change_63d)}</div></div>
         </div>
       </div>
 
