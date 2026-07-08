@@ -1,6 +1,8 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // ── Public pipeline data (read-only) ──────────────────────────────────
     match /daily_candidates/{doc} {
       allow read: if true;
       allow write: if false;
@@ -33,10 +35,39 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false;
     }
-    match /radar_items/{doc} {
-      allow read: if true;
-      allow create: if true;
-      allow update, delete: if true;
+
+    // ── Private user data (Firebase Auth required) ────────────────────────
+    function signedIn() {
+      return request.auth != null;
+    }
+    function isOwner() {
+      return signedIn() && resource.data.user_id == request.auth.uid;
+    }
+    function createsAsOwner() {
+      return signedIn() && request.resource.data.user_id == request.auth.uid;
+    }
+
+    match /radar_items/{itemId} {
+      allow create: if createsAsOwner();
+      allow read, update, delete: if isOwner();
+    }
+
+    // Faz 1f — prepared for silent signal / recommendation logs
+    match /signal_log/{docId} {
+      allow create: if createsAsOwner();
+      allow read: if isOwner();
+      allow update, delete: if false;
+    }
+    match /recommendation_log/{docId} {
+      allow create: if createsAsOwner();
+      allow read: if isOwner();
+      allow update, delete: if false;
+    }
+
+    // Faz 1c — trade journal (not used until Faz 1c ships)
+    match /trade_entries/{docId} {
+      allow create: if createsAsOwner();
+      allow read, update, delete: if isOwner();
     }
   }
 }

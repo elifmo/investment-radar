@@ -51,6 +51,13 @@ jobs:
             if [ "${{ github.event.inputs.deploy_functions }}" = "true" ]; then
               TARGETS="${TARGETS},functions:deep_dive"
             fi
+          elif [ "${{ github.event_name }}" = "push" ] && [ -n "$BEFORE" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ]; then
+            if git diff --name-only "$BEFORE" "$AFTER" | grep -q '^firestore.rules$'; then
+              TARGETS="${TARGETS},firestore:rules"
+            fi
+            if git diff --name-only "$BEFORE" "$AFTER" | grep -q '^functions/'; then
+              TARGETS="${TARGETS},functions:deep_dive"
+            fi
           fi
           echo "targets=$TARGETS" >> "$GITHUB_OUTPUT"
           echo "Deploy targets: $TARGETS"

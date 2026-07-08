@@ -664,13 +664,40 @@
     .etf-action-short.wait { background: #451a03; color: #fb923c; }
     .etf-action-short.small { background: #1e3a5f; color: #93c5fd; }
     .etf-action-short.watch { background: #1e2130; color: #94a3b8; }
+
+    header { gap: 16px; flex-wrap: wrap; }
+    .header-right { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+    #auth-user { font-size: 12px; color: #94a3b8; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .auth-btn {
+      background: #1e2130; border: 1px solid #2d3148; color: #e2e8f0;
+      font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 6px; cursor: pointer;
+    }
+    .auth-btn:hover { background: #252838; }
+    .auth-btn-primary { background: #4338ca; border-color: #6366f1; color: #fff; }
+    .auth-btn-primary:hover { background: #4f46e5; }
+    .radar-auth-gate {
+      background: #131825; border: 1px solid #2d3148; border-radius: 8px;
+      padding: 24px; max-width: 420px; color: #94a3b8; line-height: 1.6;
+    }
+    .radar-auth-gate h3 { color: #e2e8f0; font-size: 15px; margin-bottom: 8px; }
+    .auth-form { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+    .auth-form input {
+      background: #0f1117; border: 1px solid #2d3148; border-radius: 6px;
+      color: #e2e8f0; padding: 8px 10px; font-size: 13px;
+    }
+    .auth-form-hint { font-size: 11px; color: #64748b; }
   </style>
 </head>
 <body>
 
 <header>
   <h1>Investment <span>Radar</span> <span style="font-size:13px;color:#64748b;font-weight:400;">🇺🇸 US Markets</span></h1>
-  <span id="last-updated">Loading...</span>
+  <div class="header-right">
+    <span id="last-updated">Loading...</span>
+    <span id="auth-user" hidden></span>
+    <button type="button" class="auth-btn auth-btn-primary" id="auth-signin-btn">Sign in</button>
+    <button type="button" class="auth-btn" id="auth-signout-btn" hidden>Sign out</button>
+  </div>
 </header>
 
 <div class="tabs" id="tabs-bar">
@@ -799,6 +826,11 @@
 
 <div id="tab-radar" class="tab-content" style="display:none; padding:24px;">
   <div style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:16px;">My Radar</div>
+  <div id="radar-auth-gate" class="radar-auth-gate" hidden>
+    <h3>Sign in to use My Radar</h3>
+    <p>Thesis, exit conditions, and future trade journal are private. Sign in with Google or email — only you can read your data.</p>
+    <button type="button" class="auth-btn auth-btn-primary" id="radar-auth-signin" style="margin-top:12px;">Sign in</button>
+  </div>
   <div id="radar-list" style="color:#64748b;">Loading...</div>
 </div>
 
@@ -837,11 +869,36 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="auth-modal">
+  <div class="modal">
+    <h2>Sign in</h2>
+    <p style="color:#94a3b8;font-size:12px;margin-bottom:14px;line-height:1.5;">
+      Personal radar data is private. Use Google or create an account with email.
+    </p>
+    <button type="button" class="auth-btn auth-btn-primary" id="auth-google-btn" style="width:100%;margin-bottom:12px;">Continue with Google</button>
+    <div class="auth-form">
+      <input type="email" id="auth-email" placeholder="Email" autocomplete="email" />
+      <input type="password" id="auth-password" placeholder="Password" autocomplete="current-password" />
+      <button type="button" class="auth-btn auth-btn-primary" id="auth-email-signin-btn">Sign in with email</button>
+      <button type="button" class="auth-btn" id="auth-email-signup-btn">Create account</button>
+      <span class="auth-form-hint" id="auth-error"></span>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="auth-modal-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
   import {
     getFirestore, collection, getDocs, getDoc, doc, addDoc, query, where, serverTimestamp
   } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+  import {
+    getAuth, GoogleAuthProvider, signInWithPopup,
+    signInWithEmailAndPassword, createUserWithEmailAndPassword,
+    signOut, onAuthStateChanged,
+  } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey:            "AIzaSyBIG3tZFNq_cSAWmEHx2nWsQOKBpD-YE-g",
@@ -854,8 +911,89 @@
 
   const app = initializeApp(firebaseConfig);
   const db  = getFirestore(app);
-  const USER_ID = 1;
+  const auth = getAuth(app);
   const RS_THRESHOLD = 70;
+
+  // ── Auth (Faz 0) ─────────────────────────────────────────────────────────
+  function currentUserId() {
+    return auth.currentUser?.uid ?? null;
+  }
+
+  function openAuthModal() {
+    document.getElementById("auth-error").textContent = "";
+    document.getElementById("auth-modal").classList.add("open");
+  }
+
+  function closeAuthModal() {
+    document.getElementById("auth-modal").classList.remove("open");
+  }
+
+  function updateAuthUI(user) {
+    const signedIn = !!user;
+    document.getElementById("auth-signin-btn").hidden = signedIn;
+    document.getElementById("auth-signout-btn").hidden = !signedIn;
+    const userEl = document.getElementById("auth-user");
+    if (signedIn) {
+      userEl.hidden = false;
+      userEl.textContent = user.displayName || user.email || "Signed in";
+    } else {
+      userEl.hidden = true;
+      userEl.textContent = "";
+    }
+    const gate = document.getElementById("radar-auth-gate");
+    const list = document.getElementById("radar-list");
+    if (gate) gate.hidden = signedIn;
+    if (list) list.hidden = !signedIn;
+    if (signedIn && document.getElementById("tab-radar")?.style.display !== "none") {
+      loadRadar();
+    }
+  }
+
+  document.getElementById("auth-signin-btn").addEventListener("click", openAuthModal);
+  document.getElementById("radar-auth-signin")?.addEventListener("click", openAuthModal);
+  document.getElementById("auth-modal-cancel").addEventListener("click", closeAuthModal);
+  document.getElementById("auth-signout-btn").addEventListener("click", () => signOut(auth));
+  document.getElementById("auth-google-btn").addEventListener("click", async () => {
+    const errEl = document.getElementById("auth-error");
+    errEl.textContent = "";
+    try {
+      await signInWithPopup(auth, new GoogleAuthProvider());
+      closeAuthModal();
+    } catch (e) {
+      errEl.textContent = e.message ?? "Google sign-in failed";
+    }
+  });
+  document.getElementById("auth-email-signin-btn").addEventListener("click", async () => {
+    const email = document.getElementById("auth-email").value.trim();
+    const password = document.getElementById("auth-password").value;
+    const errEl = document.getElementById("auth-error");
+    errEl.textContent = "";
+    if (!email || !password) { errEl.textContent = "Email and password required"; return; }
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      closeAuthModal();
+    } catch (e) {
+      errEl.textContent = e.message ?? "Sign-in failed";
+    }
+  });
+  document.getElementById("auth-email-signup-btn").addEventListener("click", async () => {
+    const email = document.getElementById("auth-email").value.trim();
+    const password = document.getElementById("auth-password").value;
+    const errEl = document.getElementById("auth-error");
+    errEl.textContent = "";
+    if (!email || password.length < 6) {
+      errEl.textContent = "Email and password (min 6 chars) required";
+      return;
+    }
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      closeAuthModal();
+    } catch (e) {
+      errEl.textContent = e.message ?? "Sign-up failed";
+    }
+  });
+
+  onAuthStateChanged(auth, (user) => updateAuthUI(user));
 
   const MARKET = { id: "usa", label: "🇺🇸 USA", market: "USA", currency: "$", openUTC: 13*60+30, closeUTC: 20*60+5 };
 
@@ -2554,8 +2692,13 @@
   // ── My Radar ──────────────────────────────────────────────────────────────
   async function loadRadar() {
     const container = document.getElementById("radar-list");
+    const uid = currentUserId();
+    if (!uid) {
+      updateAuthUI(null);
+      return;
+    }
     try {
-      const snap = await getDocs(query(collection(db, "radar_items"), where("user_id", "==", USER_ID)));
+      const snap = await getDocs(query(collection(db, "radar_items"), where("user_id", "==", uid)));
       if (snap.empty) { container.innerHTML = `<p>No stocks in your radar yet.</p>`; return; }
       container.innerHTML = snap.docs.map(d => {
         const item = d.data();
@@ -2573,6 +2716,10 @@
 
   // ── Modal ─────────────────────────────────────────────────────────────────
   function openModal(ticker) {
+    if (!currentUserId()) {
+      openAuthModal();
+      return;
+    }
     document.getElementById("modal-ticker").value = ticker;
     document.getElementById("modal-thesis").value = "";
     document.getElementById("modal-exit").value   = "";
@@ -2581,18 +2728,21 @@
   document.getElementById("modal-cancel").addEventListener("click", () =>
     document.getElementById("radar-modal").classList.remove("open"));
   document.getElementById("modal-save").addEventListener("click", async () => {
+    const uid = currentUserId();
+    if (!uid) { openAuthModal(); return; }
     const ticker = document.getElementById("modal-ticker").value;
     const thesis = document.getElementById("modal-thesis").value.trim();
     const exit   = document.getElementById("modal-exit").value.trim();
     if (!thesis) { alert("Please enter your thesis."); return; }
     try {
       await addDoc(collection(db, "radar_items"), {
-        user_id: USER_ID, ticker, thesis, exit_condition: exit,
+        user_id: uid, ticker, thesis, exit_condition: exit,
         added_at: serverTimestamp(), is_active: true,
       });
       document.getElementById("radar-modal").classList.remove("open");
       alert(`${ticker} added to your radar!`);
-    } catch (err) { alert("Could not save — check Firestore security rules."); }
+      loadRadar();
+    } catch (err) { alert("Could not save — sign in and check Firestore rules."); }
   });
 
   // ── Boot ──────────────────────────────────────────────────────────────────
