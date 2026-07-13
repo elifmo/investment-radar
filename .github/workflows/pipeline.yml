@@ -64,8 +64,18 @@ jobs:
           python3 -c "import os, pathlib; pathlib.Path('serviceAccountKey.json').write_text(os.environ['FIREBASE_SERVICE_ACCOUNT'])"
 
       - name: Run pipeline
+        env:
+          SCHEDULE: ${{ github.event.schedule }}
         run: |
+          # 20:15 UTC = 23:15 TR — always run heatmap + ETF on this slot
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.daily_reports }}" = "true" ]; then
             export RUN_DAILY_REPORTS=true
           fi
-          python src/pipeline.py ${{ steps.market.outputs.market }}
+          if [ "$SCHEDULE" = "15 20 * * 1-5" ]; then
+            export RUN_DAILY_REPORTS=true
+          fi
+          EXTRA=""
+          if [ "$RUN_DAILY_REPORTS" = "true" ]; then
+            EXTRA="--daily"
+          fi
+          python src/pipeline.py ${{ steps.market.outputs.market }} $EXTRA

@@ -74,8 +74,10 @@ def _should_run_usa_daily_reports(force: bool = False) -> bool:
     if now.weekday() >= 5:
         return False
     mins = now.hour * 60 + now.minute
-    # 22:30–23:45 TR — matches GitHub cron at 20:15 UTC (23:15 TR)
-    return 22 * 60 + 30 <= mins <= 23 * 60 + 45
+    # 22:30–23:59 TR + 00:00–01:30 catch-up if cron was late
+    evening = 22 * 60 + 30 <= mins <= 23 * 60 + 59
+    catchup = mins <= 90  # 00:00–01:30
+    return evening or catchup
 
 
 def load_config() -> tuple[dict, dict]:
@@ -395,6 +397,17 @@ def run(market_arg: str, force_daily: bool = False) -> None:
                 candidates, tickers, sector_map, daily_data, db,
                 factors.get("decision", {}),
             )
+        elif market == "usa":
+            # Still refresh macro + sector rotation when no candidates pass filter
+            logger.info("[USA] No candidates — refreshing macro + sector rotation only...")
+            try:
+                sector_status = compute_sector_rotation()
+                if sector_status:
+                    write_sector_status(db, sector_status)
+                macro = compute_macro_regime()
+                write_macro_regime(db, macro)
+            except Exception as exc:
+                logger.warning("USA macro/sector refresh failed: %s", exc)
 
         write_daily_candidates(db, candidates, market, trade_date=trade_date)
 
