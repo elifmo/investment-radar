@@ -2,7 +2,7 @@
 min_score: 55
 
 # Scan timeframe for top-stock ranking: daily | 4h
-# universe: watchlist (~175) | sp500 (~503) | sp500_nasdaq (~520, default)
+# universe: watchlist (~177) | sp500 (~503) | sp500_nasdaq (~523, default)
 scan:
   timeframe: 4h
   universe: sp500_nasdaq

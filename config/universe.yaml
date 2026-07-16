@@ -159,6 +159,7 @@ usa:
   - {ticker: CPRT,  sector: Industrials}
   - {ticker: WM,    sector: Industrials}
   - {ticker: PAYX,  sector: Industrials}
+  - {ticker: RKLB,  sector: Industrials}
 
   # Energy (XLE)
   - {ticker: XOM,   sector: Energy}
@@ -201,6 +202,7 @@ usa:
   - {ticker: META,  sector: "Communication Services"}
   - {ticker: T,     sector: "Communication Services"}
   - {ticker: NFLX,  sector: "Communication Services"}
+  - {ticker: ASTS,  sector: "Communication Services"}
 
 bist:
   # BIST 100 — major components (Phase 2: sector mapping deferred)

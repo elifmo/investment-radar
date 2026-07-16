@@ -6,11 +6,40 @@ Günlük hisse tarama ve sinyal sistemi. Pipeline her gün BIST ve USA hisseleri
 
 ## Hisse Evreni
 
-**Son güncelleme: 3 Haziran 2026** — Toplam **268 hisse** (USA: 175 · BIST: 93)
+**Son güncelleme: Temmuz 2026** — Toplam **616 hisse** (USA pipeline: **523** · BIST: **93**)
 
 ---
 
-### 🇺🇸 USA — 175 hisse
+### 🇺🇸 USA — Pipeline tarama evreni (523 hisse)
+
+Varsayılan mod: `config/factors.yaml` → `scan.universe: sp500_nasdaq`
+
+| Kaynak | Adet | Dosya |
+|--------|------|-------|
+| S&P 500 | 503 | `config/sp500.yaml` |
+| Nasdaq-100 (SP500 dışı) | 13 | `config/nasdaq100.yaml` |
+| Ekstra izleme listesi | 7 | `config/universe.yaml` |
+| **Toplam (dedupe)** | **523** | `src/usa_universe.py` |
+
+**Nasdaq-100 (SP500’de olmayanlar):** ALNY, ARM, ASML, CCEP, FER, INSM, MELI, MSTR, PDD, SHOP, TEAM, TRI, ZS
+
+**Ekstra izleme (uranium / ADR / space):** CCJ, LEU, OKLO, SNOW, TSM, RKLB, ASTS
+
+Candidates, Oversold Watch ve RS hesapları bu **523 hisseyi** tarar. Sector heatmap ayrıca tam S&P 500 (503) kullanır.
+
+`scan.universe` modları: `watchlist` (177) · `sp500` (503) · `sp500_nasdaq` (523, varsayılan)
+
+Listeleri güncellemek:
+```bash
+python3 scripts/refresh_sp500_universe.py
+python3 scripts/refresh_nasdaq100_universe.py
+```
+
+---
+
+### 🇺🇸 USA — Öncelikli izleme listesi (177 hisse)
+
+`config/universe.yaml` içindeki el ile seçilmiş liste. Pipeline’da `sp500_nasdaq` modunda bunların çoğu zaten S&P 500’de; yalnızca yukarıdaki **7 ekstra** ticker birleşik evrene eklenir.
 
 | Sektör | Hisseler |
 |--------|----------|

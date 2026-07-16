@@ -19,6 +19,7 @@
 | Decision engine (BUY/WATCH/SKIP) | ✅ | `src/decision_engine.py` |
 | Sector heatmap + ETF scan | ✅ | 23:15 TR cron |
 | Oversold Watch (Stoch + RSI) | ✅ | `oversold_watch` koleksiyonu |
+| USA evren genişletmesi (523) | ✅ | S&P 500 + Nasdaq-100 + 7 ekstra |
 | My Radar + Firebase Auth | ✅ | `firestore.rules` |
 | Opportunities sekmesi | ✅ | `DASHBOARD_DESIGN_EN.md` |
 | Deep Dive | ✅ | Cloud Function |

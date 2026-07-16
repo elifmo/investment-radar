@@ -1590,10 +1590,10 @@
       || 503;
     const wlCount = heatmapData?.meta?.watchlist_count
       || heatmapData?.stocks?.length
-      || 175;
+      || 523;
     if (heatmapViewMode === "themes") {
       if (title) title.textContent = "🇺🇸 US Popular Themes";
-      if (sub) sub.textContent = `${wlCount} curated watchlist stocks · SPY = full S&P 500 benchmark`;
+      if (sub) sub.textContent = `${wlCount} pipeline stocks (S&P 500 + Nasdaq) · SPY = full S&P 500 benchmark`;
       if (panelTitle) panelTitle.textContent = "Theme Performance Map";
     } else {
       if (title) title.textContent = "🇺🇸 S&P 500 — Full Index";
