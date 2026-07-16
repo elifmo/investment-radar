@@ -122,6 +122,7 @@ def score_all(
         try:
             score, signals = score_ticker(ticker, df, weights, timeframe)
             ind = analyze_ticker(ticker, df, timeframe)["indicators"]
+            stoch = ind.get("stochastic") if ind else None
             scored.append({
                 "ticker": ticker,
                 "score": score,
@@ -131,6 +132,8 @@ def score_all(
                 "resistance": ind["support_resistance"]["nearest_resistance"] if ind else None,
                 "volume_ratio": round(ind["volume"]["volume_ratio"], 2) if ind else None,
                 "rsi": round(ind["rsi"]["value"], 1) if ind and ind["rsi"] else None,
+                "stoch_k": round(stoch["k"], 1) if stoch else None,
+                "stoch_d": round(stoch["d"], 1) if stoch else None,
                 "timeframe": timeframe,
             })
         except Exception as exc:

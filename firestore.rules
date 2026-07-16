@@ -35,6 +35,10 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false;
     }
+    match /oversold_watch/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
 
     // ── Private user data (Firebase Auth required) ────────────────────────
     function signedIn() {

@@ -25,14 +25,17 @@ from firebase_writer import (
     write_daily_candidates,
     write_etf_scan,
     write_macro_regime,
+    write_oversold_watch,
     write_quality_grades,
     write_sector_heatmap,
     write_sector_status,
 )
+from layers.oversold_scan import scan_oversold_watch
 from layers.relative_strength import compute_rs_ratings
 from layers.sector_heatmap import compute_sector_heatmap, merge_heatmap_payload
 from market_calendar import resolve_usa_snapshot_date
 from sp500_universe import caps_from_universe, load_sp500_universe
+from usa_universe import load_usa_scan_universe
 from layers.sector_rotation import compute_sector_rotation, SECTOR_ETFS
 from layers.macro_regime import compute_macro_regime
 from layers.earnings_calendar import get_earnings_calendar
@@ -160,7 +163,7 @@ def run_market(market: str, tickers: list[str], factors: dict) -> tuple[list[dic
 
     # USA enrichment layers (RS, sector) still need daily OHLCV
     daily_data = fetch_batch_daily(tickers) if timeframe == "4h" else scan_data
-    return candidates, daily_data
+    return candidates, daily_data, scan_data, timeframe
 
 
 def _build_why(candidate: dict, triggers: list[str], timeframe: Timeframe = "daily") -> str:
@@ -325,20 +328,23 @@ def run(market_arg: str, force_daily: bool = False) -> None:
     db = init_firebase()
 
     for market in markets:
-        raw_entries = universe.get(market)
-        if not raw_entries:
-            logger.error("No tickers found for market '%s' in universe.yaml", market)
-            continue
-
-        # universe.yaml: USA entries are {ticker, sector} dicts; BIST entries are plain strings
-        if isinstance(raw_entries[0], dict):
+        if market == "usa":
+            scan_mode = (factors.get("scan") or {}).get("universe", "sp500_nasdaq")
+            raw_entries = load_usa_scan_universe(scan_mode)
+            if not raw_entries:
+                logger.error("No USA tickers resolved (scan.universe=%s)", scan_mode)
+                continue
             tickers    = [e["ticker"] for e in raw_entries]
             sector_map = {e["ticker"]: e.get("sector", "Unknown") for e in raw_entries}
         else:
+            raw_entries = universe.get(market)
+            if not raw_entries:
+                logger.error("No tickers found for market '%s' in universe.yaml", market)
+                continue
             tickers    = raw_entries
             sector_map = {}
 
-        candidates, daily_data = run_market(market, tickers, factors)
+        candidates, daily_data, scan_data, scan_tf = run_market(market, tickers, factors)
 
         # Use today's date when market is open (intraday runs); fall back to
         # last bar date so weekend/holiday runs still tag the correct trading day.
@@ -410,6 +416,24 @@ def run(market_arg: str, force_daily: bool = False) -> None:
                 logger.warning("USA macro/sector refresh failed: %s", exc)
 
         write_daily_candidates(db, candidates, market, trade_date=trade_date)
+
+        if market == "usa" and scan_data:
+            os_cfg = factors.get("oversold") or {}
+            try:
+                qgrades = _read_cached_quality_grades(db, tickers)
+                oversold_items = scan_oversold_watch(
+                    tickers,
+                    scan_data,
+                    sector_map=sector_map,
+                    quality_grades=qgrades,
+                    timeframe=scan_tf,
+                    stoch_threshold=float(os_cfg.get("stoch_k", 20)),
+                    rsi_threshold=float(os_cfg.get("rsi", 35)),
+                    max_items=int(os_cfg.get("max_items", 15)),
+                )
+                write_oversold_watch(db, oversold_items, trade_date=trade_date, timeframe=scan_tf)
+            except Exception as exc:
+                logger.warning("Oversold watch failed: %s", exc)
 
     logger.info("Pipeline complete.")
 

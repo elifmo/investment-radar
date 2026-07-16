@@ -20,6 +20,9 @@ BB_STD_DEVS = 2.0
 BB_PERIOD = 20
 RSI_PERIOD = 14
 ATR_PERIOD = 14
+STOCH_K_PERIOD = 14
+STOCH_D_PERIOD = 3
+STOCH_SMOOTH = 3
 
 # ── Type definitions ──────────────────────────────────────────────────────────
 
@@ -33,6 +36,13 @@ class EMAValues(TypedDict):
 class RSIValues(TypedDict):
     value: float
     prev_value: float
+
+
+class StochasticValues(TypedDict):
+    k: float
+    d: float
+    prev_k: float
+    prev_d: float
 
 
 class ATRValues(TypedDict):
@@ -78,6 +88,7 @@ class StopRunDetection(TypedDict):
 class IndicatorValues(TypedDict):
     ema: EMAValues
     rsi: RSIValues | None       # None on 1H
+    stochastic: StochasticValues | None  # None on 1H
     atr: ATRValues | None       # None on 1H
     bollinger: BollingerValues
     support_resistance: SRLevels
@@ -119,6 +130,22 @@ def calculate_rsi(series: pd.Series, period: int = RSI_PERIOD) -> pd.Series:
     # Guard against division by zero: no losing bars → RSI = 100
     rs = avg_gain / avg_loss.replace(0, float("inf"))
     return 100 - (100 / (1 + rs))
+
+
+def calculate_stochastic(
+    df: pd.DataFrame,
+    k_period: int = STOCH_K_PERIOD,
+    d_period: int = STOCH_D_PERIOD,
+    smooth: int = STOCH_SMOOTH,
+) -> tuple[pd.Series, pd.Series]:
+    """Slow Stochastic (%K smoothed, %D = SMA of %K). TradingView-compatible."""
+    low_min = df["Low"].rolling(k_period).min()
+    high_max = df["High"].rolling(k_period).max()
+    denom = (high_max - low_min).replace(0, float("nan"))
+    raw_k = 100 * (df["Close"] - low_min) / denom
+    k = raw_k.rolling(smooth).mean()
+    d = k.rolling(d_period).mean()
+    return k, d
 
 
 def calculate_atr(df: pd.DataFrame, period: int = ATR_PERIOD) -> pd.Series:
@@ -285,6 +312,24 @@ def evaluate_rsi_signals(rsi: RSIValues) -> list[str]:
     return signals
 
 
+def evaluate_stoch_signals(stoch: StochasticValues) -> list[str]:
+    signals: list[str] = []
+    k, d = stoch["k"], stoch["d"]
+    pk, pd_ = stoch["prev_k"], stoch["prev_d"]
+    kv = round(k)
+
+    if k > 80:
+        signals.append(f"❌ Stoch %K {kv} = Overbought")
+    elif k < 20:
+        signals.append(f"✅ Stoch %K {kv} = Oversold (bounce zone)")
+    elif pk <= pd_ and k > d:
+        signals.append(f"✅ Stoch %K {kv} = Bullish cross (%K > %D)")
+    elif 20 <= k <= 80:
+        signals.append(f"✅ Stoch %K {kv} = Neutral momentum")
+
+    return signals
+
+
 def evaluate_volume_signals(volume: VolumeAnalysis) -> list[str]:
     signals: list[str] = []
     ratio = volume["volume_ratio"]
@@ -403,6 +448,22 @@ def analyze_ticker(
         except Exception as exc:
             logger.warning("RSI calculation failed for %s: %s", ticker, exc)
 
+    # Stochastic (daily and 4h)
+    stoch_values: StochasticValues | None = None
+    if timeframe in ("daily", "4h"):
+        try:
+            k_series, d_series = calculate_stochastic(df)
+            if not k_series.dropna().empty and not d_series.dropna().empty:
+                stoch_values = StochasticValues(
+                    k=float(k_series.iloc[-1]),
+                    d=float(d_series.iloc[-1]),
+                    prev_k=float(k_series.iloc[-2]),
+                    prev_d=float(d_series.iloc[-2]),
+                )
+                signals.extend(evaluate_stoch_signals(stoch_values))
+        except Exception as exc:
+            logger.warning("Stochastic calculation failed for %s: %s", ticker, exc)
+
     # ATR (daily and 4h)
     atr_values: ATRValues | None = None
     if timeframe in ("daily", "4h"):
@@ -478,6 +539,7 @@ def analyze_ticker(
     indicators = IndicatorValues(
         ema=ema_values,
         rsi=rsi_values,
+        stochastic=stoch_values,
         atr=atr_values,
         bollinger=bb_values,
         support_resistance=sr_values,

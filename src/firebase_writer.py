@@ -266,6 +266,29 @@ def write_etf_scan(db: firestore.client, results: list[dict], scan_date: str | N
     logger.info("ETF scan written: %s — %d ETFs (%d days indexed)", date_key, len(results), len(dates))
 
 
+def write_oversold_watch(
+    db: firestore.client,
+    items: list[dict],
+    trade_date: str | None = None,
+    timeframe: str = "4h",
+) -> None:
+    """Upsert oversold_watch/current — full-universe oversold list for Opportunities tab."""
+    from datetime import date as _date, datetime, timezone
+
+    date_key = trade_date or _date.today().isoformat()
+    payload = {
+        "as_of_date": date_key,
+        "updated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "timeframe": timeframe,
+        "count": len(items),
+        "items": items,
+    }
+    col = db.collection("oversold_watch")
+    col.document("current").set(payload)
+    col.document(date_key).set(payload)
+    logger.info("Oversold watch written: %s — %d items (%s)", date_key, len(items), timeframe)
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 

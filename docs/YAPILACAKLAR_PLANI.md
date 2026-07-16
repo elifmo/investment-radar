@@ -7,6 +7,24 @@
 > tezini yazdırır, riskini gösterir, exit adayı sunar, kaçışı fark ettirir.
 > Bugünkü pozisyonlar (INTC/RKLB/ASTS) için karar hep senin.
 
+**Son güncelleme:** Temmuz 2026
+
+---
+
+## Zaten canlıda olanlar (bu planın önüne geçti)
+
+| Özellik | Durum | Doküman |
+|---------|-------|---------|
+| Pipeline + Firestore | ✅ | `CLAUDE_EN.md` |
+| Decision engine (BUY/WATCH/SKIP) | ✅ | `src/decision_engine.py` |
+| Sector heatmap + ETF scan | ✅ | 23:15 TR cron |
+| Oversold Watch (Stoch + RSI) | ✅ | `oversold_watch` koleksiyonu |
+| My Radar + Firebase Auth | ✅ | `firestore.rules` |
+| Opportunities sekmesi | ✅ | `DASHBOARD_DESIGN_EN.md` |
+| Deep Dive | ✅ | Cloud Function |
+
+**Mimari referans:** `CLAUDE_EN.md` ve `README_DOCUMENTATION.md`
+
 ---
 
 ## Bağlam: gerçek sorun ne

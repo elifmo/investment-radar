@@ -1,0 +1,206 @@
+updated_at: '2026-07-16'
+source: yfiua index-constituents
+count: 101
+nasdaq100:
+- ticker: NVDA
+  sector: Technology
+- ticker: AAPL
+  sector: Technology
+- ticker: MSFT
+  sector: Technology
+- ticker: AMZN
+  sector: Consumer Discretionary
+- ticker: GOOGL
+  sector: Communication Services
+- ticker: GOOG
+  sector: Communication Services
+- ticker: AVGO
+  sector: Technology
+- ticker: META
+  sector: Communication Services
+- ticker: TSLA
+  sector: Consumer Discretionary
+- ticker: WMT
+  sector: Consumer Staples
+- ticker: ASML
+  sector: Unknown
+- ticker: COST
+  sector: Consumer Staples
+- ticker: NFLX
+  sector: Communication Services
+- ticker: MU
+  sector: Technology
+- ticker: PLTR
+  sector: Technology
+- ticker: AMD
+  sector: Technology
+- ticker: CSCO
+  sector: Technology
+- ticker: AMAT
+  sector: Technology
+- ticker: LRCX
+  sector: Technology
+- ticker: TMUS
+  sector: Communication Services
+- ticker: LIN
+  sector: Materials
+- ticker: INTC
+  sector: Technology
+- ticker: PEP
+  sector: Consumer Staples
+- ticker: KLAC
+  sector: Technology
+- ticker: AMGN
+  sector: Health Care
+- ticker: TXN
+  sector: Technology
+- ticker: GILD
+  sector: Health Care
+- ticker: ISRG
+  sector: Health Care
+- ticker: ARM
+  sector: Unknown
+- ticker: SHOP
+  sector: Unknown
+- ticker: ADI
+  sector: Technology
+- ticker: PDD
+  sector: Unknown
+- ticker: HON
+  sector: Industrials
+- ticker: QCOM
+  sector: Technology
+- ticker: APP
+  sector: Technology
+- ticker: BKNG
+  sector: Consumer Discretionary
+- ticker: PANW
+  sector: Technology
+- ticker: INTU
+  sector: Technology
+- ticker: VRTX
+  sector: Health Care
+- ticker: SBUX
+  sector: Consumer Discretionary
+- ticker: CMCSA
+  sector: Communication Services
+- ticker: CEG
+  sector: Utilities
+- ticker: CRWD
+  sector: Technology
+- ticker: ADBE
+  sector: Technology
+- ticker: WDC
+  sector: Technology
+- ticker: STX
+  sector: Technology
+- ticker: MRVL
+  sector: Technology
+- ticker: MELI
+  sector: Unknown
+- ticker: MAR
+  sector: Consumer Discretionary
+- ticker: ADP
+  sector: Industrials
+- ticker: REGN
+  sector: Health Care
+- ticker: CDNS
+  sector: Technology
+- ticker: SNPS
+  sector: Technology
+- ticker: CSX
+  sector: Industrials
+- ticker: ORLY
+  sector: Consumer Discretionary
+- ticker: ABNB
+  sector: Consumer Discretionary
+- ticker: MDLZ
+  sector: Consumer Staples
+- ticker: MNST
+  sector: Consumer Staples
+- ticker: AEP
+  sector: Utilities
+- ticker: ROST
+  sector: Consumer Discretionary
+- ticker: WBD
+  sector: Communication Services
+- ticker: CTAS
+  sector: Industrials
+- ticker: DASH
+  sector: Consumer Discretionary
+- ticker: PCAR
+  sector: Industrials
+- ticker: FTNT
+  sector: Technology
+- ticker: BKR
+  sector: Energy
+- ticker: MPWR
+  sector: Technology
+- ticker: FANG
+  sector: Energy
+- ticker: FAST
+  sector: Industrials
+- ticker: EA
+  sector: Communication Services
+- ticker: ADSK
+  sector: Technology
+- ticker: EXC
+  sector: Utilities
+- ticker: NXPI
+  sector: Technology
+- ticker: XEL
+  sector: Utilities
+- ticker: FER
+  sector: Unknown
+- ticker: IDXX
+  sector: Health Care
+- ticker: ALNY
+  sector: Unknown
+- ticker: MSTR
+  sector: Unknown
+- ticker: DDOG
+  sector: Technology
+- ticker: PYPL
+  sector: Financials
+- ticker: ODFL
+  sector: Industrials
+- ticker: CCEP
+  sector: Unknown
+- ticker: TRI
+  sector: Unknown
+- ticker: TTWO
+  sector: Communication Services
+- ticker: ROP
+  sector: Technology
+- ticker: KDP
+  sector: Consumer Staples
+- ticker: INSM
+  sector: Unknown
+- ticker: MCHP
+  sector: Technology
+- ticker: AXON
+  sector: Industrials
+- ticker: WDAY
+  sector: Technology
+- ticker: PAYX
+  sector: Industrials
+- ticker: GEHC
+  sector: Health Care
+- ticker: CPRT
+  sector: Industrials
+- ticker: CTSH
+  sector: Technology
+- ticker: CHTR
+  sector: Communication Services
+- ticker: KHC
+  sector: Consumer Staples
+- ticker: VRSK
+  sector: Industrials
+- ticker: DXCM
+  sector: Health Care
+- ticker: ZS
+  sector: Unknown
+- ticker: TEAM
+  sector: Unknown
+- ticker: CSGP
+  sector: Real Estate

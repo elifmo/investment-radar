@@ -279,7 +279,27 @@
     .opp-card-rs     { font-size: 11px; font-weight: 700; }
     .opp-card-sector { font-size: 11px; color: #6366f1; margin-bottom: 5px; }
     .opp-card-reason { font-size: 12px; color: #94a3b8; line-height: 1.4; }
+    .opp-card-metrics { font-size: 11px; color: #64748b; margin-top: 6px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .opp-metric-deep  { color: #4ade80; font-weight: 600; }
+    .opp-metric-warn  { color: #fb923c; font-weight: 600; }
     .opp-empty { color: #4b5563; font-size: 12px; text-align: center; padding: 20px 0; }
+
+    .oversold-strip {
+      margin: 0 0 12px; padding: 10px 12px;
+      background: #131520; border: 1px solid #2d3148; border-radius: 8px;
+    }
+    .oversold-strip-title {
+      font-size: 11px; font-weight: 700; color: #4ade80;
+      text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px;
+    }
+    .oversold-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .oversold-chip {
+      font-size: 11px; padding: 4px 8px; border-radius: 6px; cursor: pointer;
+      background: #1a1d27; border: 1px solid #2d3148; color: #e2e8f0;
+    }
+    .oversold-chip:hover { border-color: #4ade80; }
+    .oversold-chip.deep { border-color: #166534; background: #14532d33; }
+    .oversold-chip .chip-meta { color: #64748b; margin-left: 4px; }
 
     /* ── Deep Dive ─────────────────────────────────────────────────── */
     #tab-deepdive {
@@ -718,6 +738,10 @@
     </div>
     <div id="regime-usa" style="display:none;"></div>
     <div id="scan-warning" class="scan-warning" hidden></div>
+    <div id="oversold-strip" class="oversold-strip" hidden>
+      <div class="oversold-strip-title">◎ Oversold Watch — limit-order zone</div>
+      <div class="oversold-chips" id="oversold-chips"></div>
+    </div>
     <table>
       <thead>
         <tr>
@@ -1092,6 +1116,7 @@
   ];
   let oppRendered = false;
   let candidates = [];
+  let oversoldWatch = [];
   let dataLoaded = false;
   let dataDate = null;
   let dataDaysAgo = null;
@@ -2320,6 +2345,42 @@
     }
   }
 
+  async function loadOversoldWatch() {
+    try {
+      const snap = await getDoc(doc(db, "oversold_watch", "current"));
+      oversoldWatch = snap.exists() ? (snap.data().items || []) : [];
+    } catch (err) {
+      console.warn("Oversold watch load failed:", err);
+      oversoldWatch = [];
+    }
+    renderOversoldStrip();
+  }
+
+  function renderOversoldStrip() {
+    const strip = document.getElementById("oversold-strip");
+    const chips = document.getElementById("oversold-chips");
+    if (!strip || !chips) return;
+    if (!oversoldWatch.length) {
+      strip.hidden = true;
+      chips.innerHTML = "";
+      return;
+    }
+    strip.hidden = false;
+    chips.innerHTML = oversoldWatch.map(item => {
+      const deep = item.tier === "deep" ? " deep" : "";
+      const meta = [
+        item.stoch_k != null ? `S${item.stoch_k}` : "",
+        item.rsi != null ? `R${item.rsi}` : "",
+      ].filter(Boolean).join(" ");
+      return `<button type="button" class="oversold-chip${deep}" data-ticker="${item.ticker}">
+        ${item.ticker}<span class="chip-meta">${meta}</span>
+      </button>`;
+    }).join("");
+    chips.querySelectorAll(".oversold-chip").forEach(btn => {
+      btn.addEventListener("click", () => showDetail(btn.dataset.ticker));
+    });
+  }
+
   // ── Load candidates ───────────────────────────────────────────────────────
   async function loadUSA() {
     const tbody = document.getElementById("tbody-usa");
@@ -2344,6 +2405,7 @@
       renderScanWarning(result);
       renderTable();
       renderRegimeStrip();
+      await loadOversoldWatch();
     } catch (err) {
       console.error("Error loading USA:", err);
       tbody.innerHTML = `<tr class="status-row"><td colspan="6">Firebase error — check DevTools (F12).</td></tr>`;
@@ -2572,10 +2634,38 @@
 
   function showDetail(ticker) {
     const c = candidates.find(x => x.ticker === ticker);
-    if (!c) return;
-    const score = c.score ?? 0;
+    const os = oversoldWatch.find(x => x.ticker === ticker);
+    if (!c && !os) return;
+
     const kv = (label, val, cls = "") =>
       val != null ? `<div class="kv-item"><div class="kv-label">${label}</div><div class="kv-value ${cls}">${val}</div></div>` : "";
+
+    if (!c && os) {
+      const tierLabel = os.tier === "deep" ? "Deep oversold (Stoch + RSI)" : os.tier === "stoch" ? "Stoch oversold" : "RSI oversold";
+      document.getElementById("detail-usa").innerHTML = `
+        <div style="margin-bottom:12px;">
+          <div class="detail-ticker">${os.ticker}</div>
+          ${COMPANY_NAMES[os.ticker] ? `<div style="font-size:12px;color:#94a3b8;margin-bottom:2px;">${COMPANY_NAMES[os.ticker]}</div>` : ""}
+          ${os.sector ? `<div style="font-size:11px;color:#6366f1;font-weight:600;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;">${os.sector}</div>` : ""}
+          <div class="detail-close">$${Number(os.close).toFixed(2)}</div>
+          <span class="badge" style="background:#14532d;color:#4ade80;margin-top:6px;">Oversold Watch</span>
+        </div>
+        <div class="detail-why">${tierLabel} — limit-order zone. Bounce not required; knife may still be falling.</div>
+        <div class="kv-grid">
+          ${kv("Close", "$" + Number(os.close).toFixed(2))}
+          ${kv("Support", os.support != null ? "$" + Number(os.support).toFixed(2) : null, "green")}
+          ${kv("Resistance", os.resistance != null ? "$" + Number(os.resistance).toFixed(2) : null, "red")}
+          ${kv("Stoch %K", os.stoch_k, os.stoch_k <= 20 ? "green" : "")}
+          ${kv("Stoch %D", os.stoch_d, "")}
+          ${kv("RSI", os.rsi, os.rsi < 35 ? "green" : os.rsi >= 70 ? "yellow" : "")}
+          ${os.quality_grade ? kv("Quality", os.quality_grade) : ""}
+        </div>
+        <button class="action-btn" style="width:100%;padding:10px;margin-top:8px;"
+          onclick="window._openModal('${os.ticker}')">+ Add to Radar</button>`;
+      return;
+    }
+
+    const score = c.score ?? 0;
     const hasLayers = c.rs_rating != null || c.quality_grade != null;
     const badgeRow = hasLayers ? `
       <div class="badge-row">
@@ -2609,7 +2699,9 @@
         ${kv("Resistance", c.resistance != null ? "$" + Number(c.resistance).toFixed(2) : null, "red")}
         ${rrVal  ? kv("Risk / Reward", `1:${rrVal}`,  rrVal  >= 1.5 ? "green" : "yellow") : ""}
         ${volVal ? kv("Volume",        `${volVal}x`,  volVal >= 1.5 ? "green" : "yellow") : ""}
-        ${kv("RSI", c.rsi != null ? c.rsi : null, c.rsi >= 70 ? "yellow" : "green")}
+        ${kv("RSI", c.rsi != null ? c.rsi : null, c.rsi < 35 ? "green" : c.rsi >= 70 ? "yellow" : "")}
+        ${kv("Stoch %K", c.stoch_k != null ? c.stoch_k : null, c.stoch_k <= 20 ? "green" : c.stoch_k >= 80 ? "yellow" : "")}
+        ${kv("Stoch %D", c.stoch_d != null ? c.stoch_d : null)}
         ${kv("Signals", c.triggers?.length ? c.triggers.length + " triggers" : null)}
       </div>
       ${c.triggers?.length ? `
@@ -2626,11 +2718,61 @@
   // ── Opportunities tab ─────────────────────────────────────────────────────
   async function renderOpportunities() {
     if (!oppRendered) { await loadSectorHistory(); oppRendered = true; }
+    await loadOversoldWatch();
     const grid = document.getElementById("opp-grid");
+
+    function oppCard(c, reasonOverride) {
+      const rs = c.rs_rating;
+      const rsColor = rs != null ? (rs >= RS_THRESHOLD ? "#4ade80" : "#fb923c") : "#64748b";
+      return `<div class="opp-card" data-ticker="${c.ticker}" style="cursor:pointer;">
+        <div class="opp-card-top">
+          <span class="opp-card-ticker">${c.ticker}</span>
+          ${rs != null ? `<span class="opp-card-rs" style="color:${rsColor}">RS ${rs}</span>` : ""}
+        </div>
+        ${c.sector ? `<div class="opp-card-sector">${c.sector}</div>` : ""}
+        <div class="opp-card-reason">${reasonOverride ?? c.reason ?? c.why_today ?? ""}</div>
+      </div>`;
+    }
+    function oversoldCard(item) {
+      const deep = item.tier === "deep";
+      const metrics = [
+        item.stoch_k != null ? `<span class="${deep ? "opp-metric-deep" : "opp-metric-warn"}">Stoch ${item.stoch_k}</span>` : "",
+        item.rsi != null ? `<span class="${deep ? "opp-metric-deep" : "opp-metric-warn"}">RSI ${item.rsi}</span>` : "",
+        item.quality_grade ? `<span>Grade ${item.quality_grade}</span>` : "",
+      ].filter(Boolean).join("");
+      const tierText = deep ? "Deep oversold — Stoch + RSI" : item.tier === "stoch" ? "Stoch oversold" : "RSI oversold";
+      return `<div class="opp-card" data-ticker="${item.ticker}" style="cursor:pointer;">
+        <div class="opp-card-top">
+          <span class="opp-card-ticker">${item.ticker}</span>
+          <span class="opp-card-rs" style="color:#4ade80">$${Number(item.close).toFixed(2)}</span>
+        </div>
+        ${item.sector ? `<div class="opp-card-sector">${item.sector}</div>` : ""}
+        <div class="opp-card-reason">${tierText} — consider limit near support $${Number(item.support).toFixed(2)}</div>
+        <div class="opp-card-metrics">${metrics}</div>
+      </div>`;
+    }
+    function section(icon, title, desc, items, emptyMsg, cardFn = oppCard) {
+      return `<div class="opp-section">
+        <div class="opp-section-title">${icon} ${title}</div>
+        <div class="opp-section-desc">${desc}</div>
+        ${items.length ? items.map(c => cardFn(c, null)).join("") : `<div class="opp-empty">${emptyMsg}</div>`}
+      </div>`;
+    }
+
+    let html =
+      section("◎", "Oversold Watch",
+        "Stoch &lt;20 or RSI &lt;35 — limit-order zone. Does not require bounce; separate from momentum radar.",
+        oversoldWatch, "No oversold setups today", oversoldCard);
+
     if (!dataLoaded) {
-      grid.innerHTML = `<div style="color:#64748b;font-size:13px;">Waiting for market data…</div>`;
+      html += `<div class="opp-section"><div class="opp-section-desc" style="margin:0;">Loading candidate buckets…</div></div>`;
+      grid.innerHTML = html;
+      grid.querySelectorAll(".opp-card[data-ticker]").forEach(card => {
+        card.addEventListener("click", () => showDetail(card.dataset.ticker));
+      });
       return;
     }
+
     const continuation = candidates.filter(c => {
       if (!["BUY", "WATCH"].includes(c.decision)) return false;
       if (c.sector_short_status !== "LEADING") return false;
@@ -2649,26 +2791,7 @@
     );
     const contrarian = candidates.filter(c => c.decision === "BUY_SMALL");
 
-    function oppCard(c, reasonOverride) {
-      const rs = c.rs_rating;
-      const rsColor = rs != null ? (rs >= RS_THRESHOLD ? "#4ade80" : "#fb923c") : "#64748b";
-      return `<div class="opp-card">
-        <div class="opp-card-top">
-          <span class="opp-card-ticker">${c.ticker}</span>
-          ${rs != null ? `<span class="opp-card-rs" style="color:${rsColor}">RS ${rs}</span>` : ""}
-        </div>
-        ${c.sector ? `<div class="opp-card-sector">${c.sector}</div>` : ""}
-        <div class="opp-card-reason">${reasonOverride ?? c.reason ?? c.why_today ?? ""}</div>
-      </div>`;
-    }
-    function section(icon, title, desc, items, emptyMsg) {
-      return `<div class="opp-section">
-        <div class="opp-section-title">${icon} ${title}</div>
-        <div class="opp-section-desc">${desc}</div>
-        ${items.length ? items.map(c => oppCard(c, null)).join("") : `<div class="opp-empty">${emptyMsg}</div>`}
-      </div>`;
-    }
-    grid.innerHTML =
+    html +=
       section("▲", "Continuation",
         "Strong RS + leading sector + small recent pullback — potential buy-the-dip entry.",
         continuation, "No continuation setups today") +
@@ -2678,15 +2801,19 @@
       section("↓", "Contrarian Dip",
         "Large drop in quality stocks with healthy long-term sector outlook — small position opportunity.",
         contrarian, "No contrarian dip setups today");
+    grid.innerHTML = html;
 
     if (earlyRotation.length) {
-      const rotSection = grid.children[1];
+      const rotSection = grid.children[2];
       const rotCards = rotSection.querySelectorAll(".opp-card");
       earlyRotation.forEach((c, i) => {
         const el = rotCards[i]?.querySelector(".opp-card-reason");
         if (el) el.textContent = "Sector turned Improving this week — watch for individual confirmation";
       });
     }
+    grid.querySelectorAll(".opp-card[data-ticker]").forEach(card => {
+      card.addEventListener("click", () => showDetail(card.dataset.ticker));
+    });
   }
 
   // ── My Radar ──────────────────────────────────────────────────────────────

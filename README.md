@@ -52,9 +52,13 @@ Günlük hisse tarama ve sinyal sistemi. Pipeline her gün BIST ve USA hisseleri
 
 ## Dokümantasyon
 
-| Dosya | İçerik |
-|-------|--------|
-| `CLAUDE_EN.md` | Sistem mimarisi ve tasarım kararları |
-| `DASHBOARD_DESIGN_EN.md` | Dashboard görsel spesifikasyonu |
-| `QUICK_START_DEPLOYMENT_EN.md` | Deployment adımları |
-| `CURSOR_QUICK_START_EN.md` | Geliştirici hızlı başlangıç |
+| Dosya | İçerik | Güncellik |
+|-------|--------|-----------|
+| `README_DOCUMENTATION.md` | Tüm dokümanların indeksi — **buradan başla** | ✅ Tem 2026 |
+| `CLAUDE_EN.md` | Sistem mimarisi, pipeline, Firestore, cron | ✅ Tem 2026 |
+| `DASHBOARD_DESIGN_EN.md` | Dashboard UI (7 tab) | ✅ Tem 2026 |
+| `QUICK_START_DEPLOYMENT_EN.md` | Kurulum, deploy, troubleshooting | ✅ Tem 2026 |
+| `CURSOR_QUICK_START_EN.md` | Cursor komut rehberi | 🟡 Kısmen |
+| `docs/YAPILACAKLAR_PLANI.md` | Türkçe yol haritası | ✅ Güncel |
+| `backtest/BACKTEST_OZET.md` | SRP/PAP backtest özeti | ✅ Güncel |
+| `backtest/stoch_candidates_backtest.md` | Stochastic backtest | ✅ Tem 2026 |
