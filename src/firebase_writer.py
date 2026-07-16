@@ -104,7 +104,7 @@ def write_daily_candidates(
     Uses trade_date (last market close date) rather than today's date so
     weekend/holiday runs correctly tag data to the actual trading day.
     Deletes existing records for that date + market before writing new ones.
-    Adds a `streak` field: consecutive days this ticker appeared in top 10.
+    Adds a `streak` field: consecutive days this ticker appeared in candidates.
     Returns number of documents written.
     """
     today = trade_date or date.today().isoformat()

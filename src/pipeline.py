@@ -155,7 +155,7 @@ def run_market(market: str, tickers: list[str], factors: dict) -> tuple[list[dic
         }
         for c in scored
         if c["score"] >= min_score
-    ][:10]
+    ]
 
     logger.info("  Final candidates: %d (min_score=%d, %s)", len(candidates), min_score, timeframe)
     for c in candidates:
@@ -212,7 +212,7 @@ def _enrich_usa_candidates(
 ) -> list[dict]:
     """
     Run enrichment layers (RS, Sector, Macro, Quality, Earnings) and the
-    decision engine on the USA top-10 candidates.
+    decision engine on all USA candidates passing min_score.
     """
     if not candidates:
         return candidates
