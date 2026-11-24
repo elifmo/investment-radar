@@ -21,22 +21,26 @@ On a weekday schedule (GitHub Actions), `src/pipeline.py`:
 The USA site currently shows:
 
 - **Momentum** — ranked setups with score, streak, and ticker detail (support / resistance, decision)
-
 <img width="2084" height="1156" alt="image" src="https://github.com/user-attachments/assets/7a71436c-82f6-4573-b744-62134a3db070" />
+
 
 - **Oversold** — Fib pullback + 4h EMA5/20 cross, daily confirm, 5-day window
 <img width="2868" height="1222" alt="image" src="https://github.com/user-attachments/assets/c1110498-040d-4bea-9562-d3731e4ef488" />
 
+
 - **Sector heatmap** — S&P 500 map + GICS / regime context
 <img width="2876" height="1294" alt="image" src="https://github.com/user-attachments/assets/207ca997-7b7d-4935-8c48-006813bcc9f7" />
+
 
 - **ETF scan** — EUR-listed ETFs with levels in the ticker panel
 <img width="2356" height="730" alt="image" src="https://github.com/user-attachments/assets/e5fa6032-a8de-47b0-9f9a-be0c16290c1c" />
 
+
 - **Deep Dive** — per-ticker AI brief (Cloud Function)
 <img width="1332" height="1452" alt="image" src="https://github.com/user-attachments/assets/d9bc5a30-bd48-467d-b964-889411960480" />
 
-Auth is only required for private **My Radar** data (watchlist / thesis). Scan results are public reads.
+
+- Auth is only required for private **My Radar** data (watchlist / thesis). Scan results are public reads.
 
 ---
 
