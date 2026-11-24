@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Investment Radar — All views mock</title>
+<style>
+  :root {
+    --bg: #0b0d12; --panel: #12151e; --line: #2d3148;
+    --text: #e2e8f0; --muted: #94a3b8; --dim: #64748b;
+    --green: #86efac; --green-bg: #14532d;
+    --amber: #fcd34d; --amber-bg: #422006;
+    --red: #fca5a5; --blue: #93c5fd; --accent: #a5b4fc;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--bg); color: var(--text);
+    padding: 24px 16px 80px; line-height: 1.45;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; }
+  .eyebrow {
+    font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--accent); font-weight: 700; margin-bottom: 6px;
+  }
+  h1 { font-size: 22px; font-weight: 650; margin-bottom: 6px; }
+  .lede { font-size: 13px; color: var(--muted); margin-bottom: 18px; max-width: 640px; }
+
+  .tabs {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px;
+    border-bottom: 1px solid var(--line); padding-bottom: 10px;
+  }
+  .tab {
+    font-size: 12px; font-weight: 600; color: var(--dim);
+    background: transparent; border: 1px solid transparent;
+    padding: 7px 12px; border-radius: 8px; cursor: pointer;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active {
+    color: var(--text); background: #1a1d2e; border-color: var(--line);
+  }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  .panel {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 12px; padding: 14px 16px; margin-bottom: 12px;
+  }
+  .panel h2 {
+    font-size: 11px; color: var(--dim); text-transform: uppercase;
+    letter-spacing: 0.07em; margin-bottom: 10px;
+  }
+  .one-liner {
+    font-size: 14px; color: var(--text); margin-bottom: 8px;
+  }
+  .sub { font-size: 12px; color: var(--muted); }
+
+  .pill {
+    display: inline-block; font-size: 10px; font-weight: 700;
+    padding: 2px 7px; border-radius: 6px; margin: 1px 2px 1px 0;
+    border: 1px solid #334155; background: #1e293b; color: #cbd5e1;
+  }
+  .pill.enter, .pill.hold, .pill.fits { background: var(--green-bg); color: var(--green); border-color: #16a34a; }
+  .pill.wait, .pill.overlap, .pill.pri-b { background: var(--amber-bg); color: var(--amber); border-color: #b45309; }
+  .pill.exit { background: #E24B4A; color: #fff; border-color: #b91c1c; }
+  .pill.trade { background: #1e3a5f; color: #7dd3fc; border-color: #0284c7; }
+  .pill.swing { background: #312e81; color: #c4b5fd; border-color: #6366f1; }
+  .pill.position { background: #1e293b; color: #cbd5e1; border-color: #475569; }
+  .pill.pri-a { background: #14532d; color: #bbf7d0; border-color: #22c55e; }
+  .pill.watch { background: #1e2233; color: var(--dim); border-color: #2d3148; }
+  .pill.euro { color: var(--blue); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th {
+    text-align: left; font-size: 10px; color: var(--dim); text-transform: uppercase;
+    letter-spacing: 0.05em; padding: 8px 6px; border-bottom: 1px solid var(--line);
+  }
+  td { padding: 10px 6px; border-bottom: 1px solid #1e2233; vertical-align: top; }
+  .t { font-weight: 700; }
+  .why { color: var(--muted); font-size: 11px; max-width: 240px; }
+  .guide { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+  .action {
+    display: grid; grid-template-columns: 56px 1fr auto; gap: 10px;
+    padding: 11px; border-radius: 10px; border: 1px solid var(--line);
+    background: #0f1117; margin-bottom: 8px; align-items: start;
+  }
+  .action.exit { border-color: #7f1d1d; background: #450a0a33; }
+  .action.a { border-color: #166534; background: #14532d22; }
+  .action .rank { font-size: 10px; color: var(--dim); font-weight: 700; padding-top: 3px; }
+  .action .sym { font-size: 15px; font-weight: 700; }
+  .action .thesis { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .action .right { text-align: right; font-size: 14px; font-weight: 650; color: var(--blue); }
+  .action .right small { display: block; font-size: 10px; color: var(--dim); font-weight: 500; }
+
+  .heat {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+  }
+  @media (max-width: 700px) { .heat { grid-template-columns: 1fr 1fr; } }
+  .heat .cell {
+    border-radius: 8px; padding: 12px 10px; min-height: 72px;
+    border: 1px solid #1e2233;
+  }
+  .heat .cell .n { font-size: 12px; font-weight: 650; }
+  .heat .cell .p { font-size: 16px; font-weight: 700; margin-top: 4px; }
+  .heat .cell .hint { font-size: 10px; color: var(--muted); margin-top: 4px; }
+  .up { background: #14532d55; }
+  .down { background: #450a0a55; }
+  .flat { background: #1e2233; }
+
+  .split { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 12px; }
+  @media (max-width: 800px) { .split { grid-template-columns: 1fr; } }
+
+  .callout {
+    font-size: 12px; color: var(--muted); background: #0f1117;
+    border: 1px dashed var(--line); border-radius: 8px; padding: 10px 12px; margin-top: 10px;
+  }
+  .callout b { color: var(--text); }
+
+  .principle {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0 8px;
+  }
+  @media (max-width: 700px) { .principle { grid-template-columns: 1fr; } }
+  .principle .p {
+    background: #0f1117; border: 1px solid #1e2233; border-radius: 8px;
+    padding: 10px; font-size: 12px; color: var(--muted);
+  }
+  .principle .p b { display: block; color: var(--text); margin-bottom: 4px; font-size: 12px; }
+
+  .note { margin-top: 20px; font-size: 12px; color: var(--dim); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">UI mock · all main tabs</div>
+  <h1>Other views — same language everywhere</h1>
+  <p class="lede">
+    One vocabulary across the app: <b>Priority</b> · <b>Enter / Wait / Exit / Hold / Watch</b> ·
+    <b>Trade / Swing / Position</b> · short <b>thesis</b>. Tap a row → full buy/exit card.
+  </p>
+
+  <div class="principle">
+    <div class="p"><b>Candidates</b>Scan list + guidance. Not 8 identical €100.</div>
+    <div class="p"><b>My Portfolio</b>Do-today plan first. Holds collapsed.</div>
+    <div class="p"><b>ETF / Heatmap</b>Regime context — “why these names exist today.”</div>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-tab="portfolio">My Portfolio</button>
+    <button class="tab" data-tab="candidates">Candidates</button>
+    <button class="tab" data-tab="etf">ETF Scan</button>
+    <button class="tab" data-tab="heatmap">Sector Heatmap</button>
+    <button class="tab" data-tab="card">Buy / Exit card</button>
+  </div>
+
+  <!-- ═══ PORTFOLIO ═══ -->
+  <section class="view active" id="view-portfolio">
+    <div class="panel">
+      <h2>My Portfolio · Daily Brief</h2>
+      <div class="one-liner">Do today: exit ASTS, then one Trade enter (ED). Everything else can wait.</div>
+      <div class="sub" style="margin-bottom:12px;">Market: risk-off → defensive names dominate the scan. Tech/energy overlap de-prioritized vs your book.</div>
+
+      <div class="action exit">
+        <div class="rank">1</div>
+        <div>
+          <div class="sym">ASTS <span class="pill exit">Exit now</span></div>
+          <div class="thesis">Your exit level broke (weekly close &lt; $66). Old thesis is done — sell before new buys.</div>
+        </div>
+        <div class="right">Sell<small>first</small></div>
+      </div>
+
+      <div class="action a">
+        <div class="rank">2</div>
+        <div>
+          <div class="sym">ED <span class="pill pri-a">A</span> <span class="pill enter">Enter</span> <span class="pill trade">Trade</span></div>
+          <div class="thesis">Utility near support in a defensive tape. ~2–3 week idea — not a forever hold.</div>
+        </div>
+        <div class="right">€150<small>~7% budget</small></div>
+      </div>
+
+      <div class="action">
+        <div class="rank">3</div>
+        <div>
+          <div class="sym">VUSA <span class="pill pri-b">B</span> <span class="pill wait">Wait</span> <span class="pill position">Position · ETF</span></div>
+          <div class="thesis">Core US ETF — fine long-term, no urgency today after the exit + ED.</div>
+        </div>
+        <div class="right">€200<small>later / quieter day</small></div>
+      </div>
+
+      <div class="callout">
+        <b>Holdings OK (collapsed):</b> INTC, NUKL, SEMI, VHYL, 8PSG — no exit flag.
+        Don’t spam six “Hold” rows in the hero brief.
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ CANDIDATES ═══ -->
+  <section class="view" id="view-candidates">
+    <div class="panel">
+      <h2>Candidates · pipeline + guidance</h2>
+      <div class="sub" style="margin-bottom:10px;">
+        Left = classic TA. Right = <b>what it means for you</b>. Identical Enter€100 rows are gone.
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Ticker</th><th>Score</th><th>Guidance</th><th>One-line thesis</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="t">ED</td>
+            <td>80</td>
+            <td>
+              <span class="pill pri-a">A · Enter</span>
+              <span class="pill trade">Trade</span>
+              <span class="pill euro">€150</span>
+              <div class="guide">Tap row → full thesis + exit</div>
+            </td>
+            <td class="why">Defensive regime + near support; short bounce/hold of the level.</td>
+          </tr>
+          <tr>
+            <td class="t">NEE</td>
+            <td>75</td>
+            <td>
+              <span class="pill watch">Watch</span>
+              <span class="pill swing">Swing</span>
+              <div class="guide">Same theme as ED — don’t double today</div>
+            </td>
+            <td class="why">Also utility setup; weaker priority vs ED.</td>
+          </tr>
+          <tr>
+            <td class="t">NVR</td>
+            <td>70</td>
+            <td>
+              <span class="pill watch">Watch</span>
+              <span class="pill trade">Trade</span>
+              <span class="pill overlap">Overlap</span>
+            </td>
+            <td class="why">Setup OK; not first ticket in this regime.</td>
+          </tr>
+          <tr>
+            <td class="t">FRT</td>
+            <td>90</td>
+            <td>
+              <span class="pill wait">Wait</span>
+              <span class="pill swing">Swing</span>
+              <span class="pill fits">Fits</span>
+            </td>
+            <td class="why">Strong score but wait for cleaner entry / budget after ED.</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="callout"><b>Beta column job:</b> Priority + horizon + size hint + one thesis line — not three cryptic pills only.</div>
+    </div>
+  </section>
+
+  <!-- ═══ ETF ═══ -->
+  <section class="view" id="view-etf">
+    <div class="split">
+      <div class="panel">
+        <h2>ETF Scan · same guidance language</h2>
+        <table>
+          <thead>
+            <tr><th>ETF</th><th>Signal</th><th>Guidance</th><th>Thesis</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="t">VUSA</td>
+              <td>Stable</td>
+              <td><span class="pill pri-b">B · Wait</span> <span class="pill position">Position</span></td>
+              <td class="why">Core S&amp;P exposure — longer hold, no FOMO today.</td>
+            </tr>
+            <tr>
+              <td class="t">VHYL</td>
+              <td>Hold trend</td>
+              <td><span class="pill watch">Watch</span> <span class="pill position">Position</span></td>
+              <td class="why">Income / quality sleeve; already related to defensive bias.</td>
+            </tr>
+            <tr>
+              <td class="t">NUKL</td>
+              <td>Volatile</td>
+              <td><span class="pill overlap">Overlap</span> <span class="pill watch">Watch</span></td>
+              <td class="why">You already hold nuclear/energy theme — don’t stack.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="panel">
+        <h2>How ETF differs from stock</h2>
+        <div class="sub">
+          Same words (Wait / Position / Watch).<br><br>
+          ETF default horizon = <span class="pill position">Position</span> (months), not
+          <span class="pill trade">Trade</span> (weeks), unless it’s a short sector rotation ETF.
+        </div>
+        <div class="callout" style="margin-top:12px;">
+          <b>Brief can mix:</b> stock Trade + ETF Position in one morning plan.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ HEATMAP ═══ -->
+  <section class="view" id="view-heatmap">
+    <div class="panel">
+      <h2>Sector Heatmap · explains the menu</h2>
+      <div class="one-liner">Not a buy list — answers “why is the scan full of utilities?”</div>
+      <div class="heat" style="margin-top:12px;">
+        <div class="cell up"><div class="n">Utilities</div><div class="p" style="color:var(--green)">+1.8%</div><div class="hint">Feeds ED / NEE candidates</div></div>
+        <div class="cell up"><div class="n">REITs</div><div class="p" style="color:var(--green)">+1.1%</div><div class="hint">Defensive bid</div></div>
+        <div class="cell down"><div class="n">Tech</div><div class="p" style="color:var(--red)">−0.9%</div><div class="hint">De-prioritize new tech adds</div></div>
+        <div class="cell flat"><div class="n">Energy</div><div class="p">0.2%</div><div class="hint">You already own theme</div></div>
+      </div>
+      <div class="callout">
+        <b>Link to Brief:</b> “Risk-off · Utilities lead → Priority A lives in that pocket.”
+        Heatmap = context strip, not another Enter wall.
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ CARD ═══ -->
+  <section class="view" id="view-card">
+    <div class="panel" style="border-color:#16653488;">
+      <h2>Shared detail · Buy / Exit card (opens from any tab)</h2>
+      <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
+        <div>
+          <div style="font-size:24px;font-weight:750;">ED</div>
+          <div class="sub">Utilities · Stock</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:16px;font-weight:700;color:var(--green);">Enter today</div>
+          <div style="font-size:18px;font-weight:700;color:var(--blue);">€150</div>
+        </div>
+      </div>
+      <div style="margin-bottom:10px;">
+        <span class="pill pri-a">Priority A</span>
+        <span class="pill trade">Trade · ~2–3 weeks</span>
+        <span class="pill fits">Fits</span>
+      </div>
+      <div style="font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;font-weight:700;">Thesis</div>
+      <div style="font-size:14px;background:#0f1117;border:1px solid #1e2233;border-radius:8px;padding:10px 12px;margin-bottom:10px;">
+        Defensive market. Buying the hold/bounce of support — not a multi-year story.
+      </div>
+      <div style="font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;font-weight:700;">You’re wrong if…</div>
+      <div style="font-size:13px;color:var(--muted);background:#0f1117;border:1px solid #1e2233;border-radius:8px;padding:10px 12px;">
+        Weekly close below ~$110 support → exit. Don’t average a broken level.
+      </div>
+      <div class="callout">Same card pattern for Exit (ASTS) and Wait (VUSA) — only the verdict line changes.</div>
+    </div>
+  </section>
+
+  <p class="note">
+    File: <code>beta-version/ui_mockup_all_views.html</code> · click the tabs above.
+    Live site unchanged until we implement.
+  </p>
+</div>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const views = {
+    portfolio: document.getElementById('view-portfolio'),
+    candidates: document.getElementById('view-candidates'),
+    etf: document.getElementById('view-etf'),
+    heatmap: document.getElementById('view-heatmap'),
+    card: document.getElementById('view-card'),
+  };
+  tabs.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      Object.values(views).forEach(v => v.classList.remove('active'));
+      views[btn.dataset.tab].classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

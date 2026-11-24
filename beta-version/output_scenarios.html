@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Investment Radar — Çıktı Senaryoları</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f1117; color: #e2e8f0; min-height: 100vh; }
+
+  /* NAV */
+  .nav { background: #1a1d2e; border-bottom: 1px solid #2d3148; padding: 0 24px; display: flex; align-items: center; gap: 0; height: 48px; position: sticky; top: 0; z-index: 100; }
+  .nav-logo { font-size: 14px; font-weight: 600; color: #7c85ff; margin-right: 24px; }
+  .nav-tab { padding: 0 16px; height: 48px; display: flex; align-items: center; font-size: 13px; color: #94a3b8; cursor: pointer; border-bottom: 2px solid transparent; transition: all .15s; }
+  .nav-tab.active { color: #e2e8f0; border-bottom-color: #7c85ff; }
+
+  /* SCENARIO TABS */
+  .scenario-bar { background: #13151f; border-bottom: 1px solid #2d3148; padding: 0 24px; display: flex; gap: 0; overflow-x: auto; }
+  .s-tab { padding: 10px 18px; font-size: 12px; color: #64748b; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: all .15s; }
+  .s-tab.active { color: #e2e8f0; border-bottom-color: #f59e0b; }
+  .s-tab .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 7px; }
+  .dot-ok { background: #22c55e; }
+  .dot-warn { background: #f59e0b; }
+  .dot-danger { background: #ef4444; }
+  .dot-blue { background: #3b82f6; }
+
+  /* LAYOUT */
+  .page { display: none; padding: 20px 24px; max-width: 1100px; margin: 0 auto; }
+  .page.active { display: block; }
+
+  /* BRIEF BANNER */
+  .brief { background: #1a1d2e; border: 1px solid #2d3148; border-radius: 12px; padding: 16px 20px; margin-bottom: 16px; }
+  .brief-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .brief-icon { width: 32px; height: 32px; border-radius: 8px; background: #7c85ff22; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .brief-title { font-size: 13px; font-weight: 600; }
+  .brief-time { font-size: 11px; color: #64748b; margin-left: auto; }
+  .brief-summary { font-size: 13px; color: #94a3b8; line-height: 1.6; }
+  .brief-macro { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 6px; margin-top: 10px; }
+  .macro-bull { background: #14532d33; color: #4ade80; border: 1px solid #14532d; }
+  .macro-neu { background: #1e3a5f33; color: #60a5fa; border: 1px solid #1e3a5f; }
+  .macro-cau { background: #7c2d1233; color: #fb923c; border: 1px solid #7c2d12; }
+
+  /* SECTION */
+  .section { margin-bottom: 20px; }
+  .section-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: #64748b; margin-bottom: 10px; }
+
+  /* RADAR ROWS */
+  .radar-list { display: flex; flex-direction: column; gap: 8px; }
+  .radar-row { background: #1a1d2e; border: 1px solid #2d3148; border-radius: 10px; padding: 12px 16px; display: grid; grid-template-columns: 12px 56px 1fr auto; gap: 12px; align-items: center; cursor: pointer; transition: border-color .15s; }
+  .radar-row:hover { border-color: #4a4f6b; }
+  .radar-row.exit { border-left: 3px solid #ef4444; }
+  .radar-row.review { border-left: 3px solid #f59e0b; }
+  .radar-row.ok { border-left: 3px solid #22c55e; }
+  .r-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .r-dot.red { background: #ef4444; }
+  .r-dot.yellow { background: #f59e0b; }
+  .r-dot.green { background: #22c55e; }
+  .r-ticker { font-size: 14px; font-weight: 600; }
+  .r-sub { font-size: 11px; color: #64748b; margin-top: 2px; }
+  .r-meta { display: flex; gap: 8px; align-items: center; font-size: 12px; color: #94a3b8; }
+  .r-score { background: #2d3148; padding: 2px 8px; border-radius: 5px; font-size: 11px; font-weight: 500; }
+  .r-pnl { font-size: 12px; font-weight: 500; }
+  .pnl-pos { color: #4ade80; }
+  .pnl-neg { color: #f87171; }
+  .r-pill { font-size: 11px; font-weight: 500; padding: 4px 12px; border-radius: 6px; white-space: nowrap; }
+  .pill-exit { background: #7f1d1d33; color: #f87171; border: 1px solid #7f1d1d; }
+  .pill-review { background: #78350f33; color: #fbbf24; border: 1px solid #78350f; }
+  .pill-hold { background: #14532d33; color: #4ade80; border: 1px solid #14532d; }
+  .tag { font-size: 10px; padding: 2px 7px; border-radius: 4px; font-weight: 500; }
+  .tag-earn { background: #78350f33; color: #fbbf24; }
+  .tag-sec { background: #1e3a5f33; color: #60a5fa; }
+  .tag-events { background: #4c1d9533; color: #c084fc; }
+
+  /* DETAIL PANEL */
+  .detail { background: #13151f; border: 1px solid #2d3148; border-radius: 10px; padding: 16px; margin-top: 8px; display: none; }
+  .detail.open { display: block; }
+  .detail-banner { border-radius: 8px; padding: 12px 14px; margin-bottom: 12px; }
+  .banner-exit { background: #7f1d1d22; border: 1px solid #7f1d1d; }
+  .banner-review { background: #78350f22; border: 1px solid #78350f; }
+  .banner-ok { background: #14532d22; border: 1px solid #14532d; }
+  .banner-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .banner-exit .banner-title { color: #f87171; }
+  .banner-review .banner-title { color: #fbbf24; }
+  .banner-ok .banner-title { color: #4ade80; }
+  .banner-note { font-size: 12px; color: #94a3b8; line-height: 1.5; }
+  .detail-btns { display: flex; gap: 8px; margin-top: 10px; }
+  .btn { font-size: 12px; font-weight: 500; padding: 7px 16px; border-radius: 7px; cursor: pointer; border: none; }
+  .btn-primary { background: #ef4444; color: white; }
+  .btn-primary.green { background: #22c55e; }
+  .btn-primary.yellow { background: #f59e0b; }
+  .btn-sec { background: #2d3148; color: #94a3b8; }
+  .detail-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .stat { background: #1a1d2e; border-radius: 8px; padding: 10px 12px; }
+  .stat-lbl { font-size: 10px; color: #64748b; margin-bottom: 3px; }
+  .stat-val { font-size: 16px; font-weight: 600; }
+  .stat-sub { font-size: 10px; color: #64748b; }
+  .agent-note { background: #1a1d2e; border-radius: 8px; padding: 10px 12px; margin-top: 10px; }
+  .agent-note-lbl { font-size: 10px; color: #7c85ff; font-weight: 500; margin-bottom: 4px; }
+  .agent-note-txt { font-size: 12px; color: #94a3b8; line-height: 1.5; }
+
+  /* CANDIDATES */
+  .cand-list { display: flex; flex-direction: column; gap: 8px; }
+  .cand-row { background: #1a1d2e; border: 1px solid #2d3148; border-radius: 10px; padding: 12px 16px; display: grid; grid-template-columns: 56px 1fr auto auto; gap: 12px; align-items: center; }
+  .cand-row.enter { border-left: 3px solid #22c55e; }
+  .cand-row.wait { border-left: 3px solid #f59e0b; }
+  .cand-row.nofit { border-left: 3px solid #64748b; opacity: .6; }
+  .cand-pill { font-size: 11px; font-weight: 500; padding: 4px 12px; border-radius: 6px; }
+  .cpill-enter { background: #14532d33; color: #4ade80; border: 1px solid #14532d; }
+  .cpill-wait { background: #78350f33; color: #fbbf24; border: 1px solid #78350f; }
+  .cpill-nofit { background: #2d3148; color: #64748b; }
+  .cand-amount { font-size: 13px; font-weight: 600; color: #e2e8f0; }
+  .cand-note { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+  /* EVENTS ALERT */
+  .events-alert { background: #4c1d9522; border: 1px solid #4c1d95; border-radius: 10px; padding: 12px 16px; margin-bottom: 12px; display: flex; gap: 12px; align-items: flex-start; }
+  .ev-icon { font-size: 18px; flex-shrink: 0; }
+  .ev-ticker { font-size: 12px; font-weight: 600; color: #c084fc; margin-bottom: 3px; }
+  .ev-headline { font-size: 12px; color: #94a3b8; line-height: 1.5; }
+  .ev-impact { font-size: 11px; color: #c084fc; margin-top: 4px; font-style: italic; }
+
+  /* AVG DOWN */
+  .avgdown { background: #1e3a5f22; border: 1px solid #1e3a5f; border-radius: 10px; padding: 12px 16px; margin-top: 8px; }
+  .avgdown-title { font-size: 12px; font-weight: 600; color: #60a5fa; margin-bottom: 6px; }
+  .avgdown-conditions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  .cond { font-size: 11px; padding: 3px 9px; border-radius: 5px; }
+  .cond.met { background: #14532d33; color: #4ade80; }
+  .cond.fail { background: #2d3148; color: #64748b; text-decoration: line-through; }
+  .avgdown-verdict { font-size: 12px; color: #94a3b8; }
+
+  /* PORTFOLIO SUMMARY */
+  .port-sum { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+  .ps-card { background: #1a1d2e; border: 1px solid #2d3148; border-radius: 10px; padding: 12px 14px; }
+  .ps-lbl { font-size: 10px; color: #64748b; margin-bottom: 4px; }
+  .ps-val { font-size: 20px; font-weight: 700; }
+  .ps-warn { font-size: 10px; margin-top: 3px; }
+  .warn-red { color: #f87171; }
+  .warn-yellow { color: #fbbf24; }
+  .warn-green { color: #4ade80; }
+
+  /* BUDGET */
+  .budget { background: #1a1d2e; border: 1px solid #2d3148; border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; }
+  .budget-title { font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 10px; }
+  .budget-bar { height: 8px; border-radius: 4px; background: #2d3148; overflow: hidden; margin-bottom: 8px; display: flex; }
+  .bar-enter { background: #22c55e; }
+  .bar-reserved { background: #f59e0b; }
+  .bar-hold { background: #3b82f6; }
+  .budget-legend { display: flex; gap: 16px; font-size: 11px; color: #94a3b8; }
+  .bl { display: flex; align-items: center; gap: 5px; }
+  .bld { width: 8px; height: 8px; border-radius: 2px; }
+
+  /* EMPTY STATE */
+  .empty { text-align: center; padding: 32px; color: #64748b; font-size: 13px; }
+  .empty-icon { font-size: 32px; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-logo">📡 Investment Radar</div>
+  <div class="nav-tab active">My Radar</div>
+  <div class="nav-tab">Candidates</div>
+  <div class="nav-tab">Decision Tracker</div>
+</div>
+
+<!-- SCENARIO TABS -->
+<div class="scenario-bar">
+  <div class="s-tab active" onclick="show(0)"><span class="dot dot-ok"></span>Senaryo 1 — Normal Sabah</div>
+  <div class="s-tab" onclick="show(1)"><span class="dot dot-danger"></span>Senaryo 2 — Sert Düzeltme</div>
+  <div class="s-tab" onclick="show(2)"><span class="dot dot-blue"></span>Senaryo 3 — Boğa Fırsatı</div>
+  <div class="s-tab" onclick="show(3)"><span class="dot dot-warn"></span>Senaryo 4 — Earnings Haftası</div>
+</div>
+
+<!-- ===================== SENARYO 1 ===================== -->
+<div class="page active" id="s0">
+
+  <!-- Daily Brief -->
+  <div class="brief">
+    <div class="brief-header">
+      <div class="brief-icon">🌅</div>
+      <div>
+        <div class="brief-title">Sabah Brifing</div>
+      </div>
+      <div class="brief-time">Pazartesi, 21 Temmuz 2026 • 09:28</div>
+    </div>
+    <div class="brief-summary">
+      Bugün 1 çıkış zorunlu: INTC $97.22 desteğini kırıyor. NVDA için earnings riski arttı, boyutu küçültmeyi değerlendir. Enerji sektöründe ENPH için iyi giriş fırsatı var.
+    </div>
+    <div>
+      <span class="brief-macro macro-neu">📊 Macro: Nötr — SPY 50 EMA üzerinde, VIX 18</span>
+    </div>
+  </div>
+
+  <!-- Portfolio Summary -->
+  <div class="port-sum">
+    <div class="ps-card"><div class="ps-lbl">Pozisyon</div><div class="ps-val">4</div></div>
+    <div class="ps-card"><div class="ps-lbl">Ort. Skor</div><div class="ps-val" style="color:#fbbf24">63</div></div>
+    <div class="ps-card"><div class="ps-lbl">Uyarı</div><div class="ps-val" style="color:#f87171">2</div><div class="ps-warn warn-red">Exit + Earnings</div></div>
+    <div class="ps-card"><div class="ps-lbl">Semikon Ağırlık</div><div class="ps-val" style="color:#fbbf24">40%</div><div class="ps-warn warn-yellow">⚠ Yüksek</div></div>
+  </div>
+
+  <!-- My Radar -->
+  <div class="section">
+    <div class="section-title">My Radar</div>
+    <div class="radar-list">
+
+      <!-- INTC - EXIT -->
+      <div class="radar-row exit" onclick="toggleDetail('d1')">
+        <div class="r-dot red"></div>
+        <div><div class="r-ticker">INTC</div><div class="r-sub">Semiconductors</div></div>
+        <div class="r-meta">
+          <span class="r-score">Skor 38</span>
+          <span class="r-pnl pnl-neg">-14.2%</span>
+          <span class="tag tag-sec">Sektör ⚠</span>
+        </div>
+        <div class="r-pill pill-exit">Exit now →</div>
+      </div>
+      <div class="detail banner-exit" id="d1">
+        <div class="detail-banner banner-exit">
+          <div class="banner-title">🚨 Exit this position</div>
+          <div class="banner-note">$97.22 desteği kırıldı. Skor 71'den 38'e geriledi. Semikon sektörü zayıflıyor. Çıkış koşulun tetiklendi.</div>
+        </div>
+        <div class="detail-btns">
+          <button class="btn btn-primary">Mark as sold</button>
+          <button class="btn btn-sec">Keep holding</button>
+        </div>
+        <div class="detail-stats">
+          <div class="stat"><div class="stat-lbl">Alış Fiyatı</div><div class="stat-val">$113.40</div></div>
+          <div class="stat"><div class="stat-lbl">Güncel</div><div class="stat-val" style="color:#f87171">$97.09</div></div>
+          <div class="stat"><div class="stat-lbl">Çıkış Koşulu</div><div class="stat-val">$97.22</div></div>
+        </div>
+        <div class="agent-note">
+          <div class="agent-note-lbl">🤖 Exit Signal Agent</div>
+          <div class="agent-note-txt">$97.22 desteği dün kapanışta kırıldı. Skor son 3 haftada 71→55→38 geriledi. Semikon sektörü "weakening" sinyali veriyor. Çıkış koşulun tetiklendi — beklemek riski artırır.</div>
+        </div>
+      </div>
+
+      <!-- NVDA - REVIEW -->
+      <div class="radar-row review" onclick="toggleDetail('d2')">
+        <div class="r-dot yellow"></div>
+        <div><div class="r-ticker">NVDA</div><div class="r-sub">Semiconductors</div></div>
+        <div class="r-meta">
+          <span class="r-score">Skor 71</span>
+          <span class="r-pnl pnl-pos">+22.1%</span>
+          <span class="tag tag-earn">Earnings 6g</span>
+        </div>
+        <div class="r-pill pill-review">Review →</div>
+      </div>
+      <div class="detail banner-review" id="d2">
+        <div class="detail-banner banner-review">
+          <div class="banner-title">⚠ Earnings riski — boyutu gözden geçir</div>
+          <div class="banner-note">NVDA son 8 earnings'de ortalama ±9.2% hareket etti. 6 gün sonra açıklama var. Pozisyonun büyükse küçültmeyi değerlendir.</div>
+        </div>
+        <div class="detail-btns">
+          <button class="btn btn-primary yellow">Trim position</button>
+          <button class="btn btn-sec">Keep full size</button>
+        </div>
+        <div class="detail-stats">
+          <div class="stat"><div class="stat-lbl">Alış</div><div class="stat-val">$512.00</div></div>
+          <div class="stat"><div class="stat-lbl">Güncel</div><div class="stat-val" style="color:#4ade80">$624.50</div></div>
+          <div class="stat"><div class="stat-lbl">Ort. Hareket</div><div class="stat-val">±9.2%</div></div>
+        </div>
+        <div class="agent-note">
+          <div class="agent-note-lbl">🤖 Earnings Preview Agent + Exit Signal Agent</div>
+          <div class="agent-note-txt">Earnings 6 gün sonra. Son 8 quarters'da ortalama ±9.2% hareket. Skor 71 — thesis sağlıklı ama volatilite riski yüksek. Boyutu küçültmek riski azaltır, pozisyonu korur.</div>
+        </div>
+      </div>
+
+      <!-- ASML - OK -->
+      <div class="radar-row ok" onclick="toggleDetail('d3')">
+        <div class="r-dot green"></div>
+        <div><div class="r-ticker">ASML</div><div class="r-sub">Semiconductors</div></div>
+        <div class="r-meta">
+          <span class="r-score">Skor 82</span>
+          <span class="r-pnl pnl-pos">+8.4%</span>
+        </div>
+        <div class="r-pill pill-hold">Hold ✓</div>
+      </div>
+      <div class="detail banner-ok" id="d3">
+        <div class="detail-banner banner-ok">
+          <div class="banner-title">✓ Pozisyon sağlıklı</div>
+          <div class="banner-note">Thesis geçerliliğini koruyor. Skor 82 seviyesinde, destek kırılmadı. Bekle.</div>
+        </div>
+        <div class="detail-stats">
+          <div class="stat"><div class="stat-lbl">Alış</div><div class="stat-val">$740.00</div></div>
+          <div class="stat"><div class="stat-lbl">Güncel</div><div class="stat-val" style="color:#4ade80">$802.20</div></div>
+          <div class="stat"><div class="stat-lbl">Hedef</div><div class="stat-val">$920</div></div>
+        </div>
+      </div>
+
+      <!-- ENPH - OK -->
+      <div class="radar-row ok" onclick="toggleDetail('d4')">
+        <div class="r-dot green"></div>
+        <div><div class="r-ticker">ENPH</div><div class="r-sub">Energy</div></div>
+        <div class="r-meta">
+          <span class="r-score">Skor 79</span>
+          <span class="r-pnl pnl-neg">-3.1%</span>
+        </div>
+        <div class="r-pill pill-hold">Hold ✓</div>
+      </div>
+      <div class="detail banner-ok" id="d4">
+        <div class="detail-banner banner-ok">
+          <div class="banner-title">✓ Thesis korunuyor</div>
+          <div class="banner-note">Enerji sektörü güçleniyor. ENPH destek üzerinde, bekle.</div>
+        </div>
+        <div class="detail-stats">
+          <div class="stat"><div class="stat-lbl">Alış</div><div class="stat-val">$108.50</div></div>
+          <div class="stat"><div class="stat-lbl">Güncel</div><div class="stat-val" style="color:#f87171">$105.10</div></div>
+          <div class="stat"><div class="stat-lbl">Destek</div><div class="stat-val">$101.20</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Candidates -->
+  <div class="section">
+    <div class="section-title">Candidates — Bugün</div>
+    <div class="budget">
+      <div class="budget-title">Aylık Bütçe — €2,000</div>
+      <div class="budget-bar">
+        <div class="bar-enter" style="width:30%"></div>
+        <div class="bar-reserved" style="width:20%"></div>
+        <div class="bar-hold" style="width:50%"></div>
+      </div>
+      <div class="budget-legend">
+        <div class="bl"><div class="bld" style="background:#22c55e"></div>Gir: €600</div>
+        <div class="bl"><div class="bld" style="background:#f59e0b"></div>Bekle: €400</div>
+        <div class="bl"><div class="bld" style="background:#3b82f6"></div>Beklemede: €1,000</div>
+      </div>
+    </div>
+    <div class="cand-list">
+      <div class="cand-row enter">
+        <div><div class="r-ticker">ENPH</div><div class="r-sub">Energy • Skor 79</div></div>
+        <div><div style="font-size:12px;color:#94a3b8">Enerji sektörü güçleniyor. Destekte, iyi giriş noktası.</div></div>
+        <div class="cand-amount">€600</div>
+        <div class="cand-pill cpill-enter">Enter now ↗</div>
+      </div>
+      <div class="cand-row wait">
+        <div><div class="r-ticker">MNST</div><div class="r-sub">Consumer • Skor 72</div></div>
+        <div><div style="font-size:12px;color:#94a3b8">$90.96'ya dönmesini bekle. Şu an %9.6 destekte.</div><div class="cand-note">Hedef giriş: $90.96</div></div>
+        <div class="cand-amount">€400</div>
+        <div class="cand-pill cpill-wait">Wait — $90.96</div>
+      </div>
+      <div class="cand-row nofit">
+        <div><div class="r-ticker">AMD</div><div class="r-sub">Semiconductors • Skor 74</div></div>
+        <div><div style="font-size:12px;color:#64748b">AMD eklemek semikon ağırlığını %55'e çıkarır.</div></div>
+        <div class="cand-amount" style="color:#64748b">—</div>
+        <div class="cand-pill cpill-nofit">No fit</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SENARYO 2 ===================== -->
+<div class="page" id="s1">
+
+  <div class="brief">
+    <div class="brief-header">
+      <div class="brief-icon">⚠️</div>
+      <div><div class="brief-title">Sabah Brifing — Sert Düzeltme</div></div>
+      <div class="brief-time">Çarşamba, 23 Temmuz 2026 • 09:31</div>
+    </div>
+    <div class="brief-summary">
+      Makro ortam bozuldu. SPY 200 günlük EMA'nın altına indi, VIX 31'e yükseldi. 2 pozisyon çıkış sinyali veriyor. Yeni giriş yapma — bütçeyi beklemede tut.
+    </div>
+    <div>
+      <span class="brief-macro macro-cau">🔴 Macro: Dikkatli — SPY 200 EMA altında, VIX 31</span>
+    </div>
+  </div>
+
+  <div class="port-sum">
+    <div class="ps-card"><div class="ps-lbl">Pozisyon</div><div class="ps-val">4</div></div>
+    <div class="ps-card"><div class="ps-lbl">Ort. Skor</div><div class="ps-val" style="color:#f87171">51</div></div>
+    <div class="ps-card"><div class="ps-lbl">Uyarı</div><div class="ps-val" style="color:#f87171">3</div><div class="ps-warn warn-red">2 Exit + 1 Review</div></div>
+    <div class="ps-card"><div class="ps-lbl">Makro</div><div class="ps-val" style="color:#f87171">⚠</div><div class="ps-warn warn-red">Cautious mod</div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">My Radar</div>
+    <div class="radar-list">
+      <div class="radar-row exit" onclick="toggleDetail('d2a')">
+        <div class="r-dot red"></div>
+        <div><div class="r-ticker">INTC</div><div class="r-sub">Semiconductors</div></div>
+        <div class="r-meta"><span class="r-score">Skor 29</span><span class="r-pnl pnl-neg">-21.3%</span></div>
+        <div class="r-pill pill-exit">Exit now →</div>
+      </div>
+      <div class="detail banner-exit" id="d2a">
+        <div class="detail-banner banner-exit">
+          <div class="banner-title">🚨 Exit this position</div>
+          <div class="banner-note">Destek kırıldı, skor çöktü, makro olumsuz. Üç koşul aynı anda — beklemek için neden yok.</div>
+        </div>
+        <div class="detail-btns"><button class="btn btn-primary">Mark as sold</button><button class="btn btn-sec">Keep holding</button></div>
+        <div class="agent-note">
+          <div class="agent-note-lbl">🤖 Exit Signal Agent</div>
+          <div class="agent-note-txt">$97.22 desteği kırıldı. Skor 71'den 29'a indi (3 haftada). Semikon sektörü "weakening". Makro "cautious". Çıkış gerekiyor.</div>
+        </div>
+      </div>
+
+      <div class="radar-row exit" onclick="toggleDetail('d2b')">
+        <div class="r-dot red"></div>
+        <div><div class="r-ticker">ENPH</div><div class="r-sub">Energy</div></div>
+        <div class="r-meta"><span class="r-score">Skor 44</span><span class="r-pnl pnl-neg">-12.8%</span><span class="tag tag-sec">Sektör ⚠</span></div>
+        <div class="r-pill pill-exit">Exit now →</div>
+      </div>
+      <div class="detail banner-exit" id="d2b">
+        <div class="detail-banner banner-exit">
+          <div class="banner-title">🚨 Exit this position</div>
+          <div class="banner-note">Enerji sektörü de zayıfladı. Makro "cautious" modda. ENPH $98 desteğini kırdı.</div>
+        </div>
+        <div class="detail-btns"><button class="btn btn-primary">Mark as sold</button><button class="btn btn-sec">Keep holding</button></div>
+      </div>
+
+      <div class="radar-row review">
+        <div class="r-dot yellow"></div>
+        <div><div class="r-ticker">NVDA</div><div class="r-sub">Semiconductors</div></div>
+        <div class="r-meta"><span class="r-score">Skor 62</span><span class="r-pnl pnl-pos">+8.3%</span></div>
+        <div class="r-pill pill-review">Review →</div>
+      </div>
+
+      <div class="radar-row ok">
+        <div class="r-dot green"></div>
+        <div><div class="r-ticker">ASML</div><div class="r-sub">Semiconductors</div></div>
+        <div class="r-meta"><span class="r-score">Skor 77</span><span class="r-pnl pnl-pos">+5.1%</span></div>
+        <div class="r-pill pill-hold">Hold ✓</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Candidates — Bugün</div>
+    <div class="empty">
+      <div class="empty-icon">🔴</div>
+      <div>Makro "cautious" modda — yeni giriş önerilmiyor.</div>
+      <div style="margin-top:6px;font-size:12px">Bütçe beklemede tutuldu. Sinyaller iyileşince adaylar görünecek.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SENARYO 3 ===================== -->
+<div class="page" id="s2">
+
+  <div class="brief">
+    <div class="brief-header">
+      <div class="brief-icon">🚀</div>
+      <div><div class="brief-title">Sabah Brifing — Boğa Fırsatı</div></div>
+      <div class="brief-time">Cuma, 25 Temmuz 2026 • 09:25</div>
+    </div>
+    <div class="brief-summary">
+      Güçlü risk-on ortamı. Portföydeki tüm pozisyonlar sağlıklı. Enerji ve healthcare sektörleri ivme kazanıyor. Bu hafta 3 aday için giriş fırsatı oluştu.
+    </div>
+    <div>
+      <span class="brief-macro macro-bull">🟢 Macro: Bullish — SPY 50 EMA üzerinde, VIX 14</span>
+    </div>
+  </div>
+
+  <div class="port-sum">
+    <div class="ps-card"><div class="ps-lbl">Pozisyon</div><div class="ps-val">3</div></div>
+    <div class="ps-card"><div class="ps-lbl">Ort. Skor</div><div class="ps-val" style="color:#4ade80">81</div></div>
+    <div class="ps-card"><div class="ps-lbl">Uyarı</div><div class="ps-val" style="color:#4ade80">0</div><div class="ps-warn warn-green">Temiz</div></div>
+    <div class="ps-card"><div class="ps-lbl">Makro</div><div class="ps-val" style="color:#4ade80">✓</div><div class="ps-warn warn-green">Bullish</div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">My Radar — Hepsi Sağlıklı</div>
+    <div class="radar-list">
+      <div class="radar-row ok">
+        <div class="r-dot green"></div>
+        <div><div class="r-ticker">ASML</div><div class="r-sub">Semiconductors</div></div>
+        <div class="r-meta"><span class="r-score">Skor 88</span><span class="r-pnl pnl-pos">+19.4%</span></div>
+        <div class="r-pill pill-hold">Hold ✓</div>
+      </div>
+      <div class="radar-row ok">
+        <div class="r-dot green"></div>
+        <div><div class="r-ticker">ENPH</div><div class="r-sub">Energy</div></div>
+        <div class="r-meta"><span class="r-score">Skor 81</span><span class="r-pnl pnl-pos">+6.2%</span></div>
+        <div class="r-pill pill-hold">Hold ✓</div>
+      </div>
+      <div class="radar-row ok">
+        <div class="r-dot green"></div>
+        <div><div class="r-ticker">LLY</div><div class="r-sub">Healthcare</div></div>
+        <div class="r-meta"><span class="r-score">Skor 79</span><span class="r-pnl pnl-pos">+11.0%</span></div>
+        <div class="r-pill pill-hold">Hold ✓</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Candidates — 3 Fırsat</div>
+    <div class="budget">
+      <div class="budget-title">Aylık Bütçe — €2,000</div>
+      <div class="budget-bar">
+        <div class="bar-enter" style="width:60%"></div>
+        <div class="bar-reserved" style="width:15%"></div>
+        <div class="bar-hold" style="width:25%"></div>
+      </div>
+      <div class="budget-legend">
+        <div class="bl"><div class="bld" style="background:#22c55e"></div>Gir: €1,200</div>
+        <div class="bl"><div class="bld" style="background:#f59e0b"></div>Bekle: €300</div>
+        <div class="bl"><div class="bld" style="background:#3b82f6"></div>Beklemede: €500</div>
+      </div>
+    </div>
+    <div class="cand-list">
+      <div class="cand-row enter">
+        <div><div class="r-ticker">FSLR</div><div class="r-sub">Energy • Skor 83</div></div>
+        <div><div style="font-size:12px;color:#94a3b8">Güneş enerjisi sektörü ivme kazanıyor. Destekte, bullish setup.</div></div>
+        <div class="cand-amount">€600</div>
+        <div class="cand-pill cpill-enter">Enter now ↗</div>
+      </div>
+      <div class="cand-row enter">
+        <div><div class="r-ticker">UNH</div><div class="r-sub">Healthcare • Skor 76</div></div>
+        <div><div style="font-size:12px;color:#94a3b8">Healthcare sektörü güçleniyor. Portföy çeşitlemesi için iyi.</div></div>
+        <div class="cand-amount">€600</div>
+        <div class="cand-pill cpill-enter">Enter now ↗</div>
+      </div>
+      <div class="cand-row wait">
+        <div><div class="r-ticker">MNST</div><div class="r-sub">Consumer • Skor 72</div></div>
+        <div><div style="font-size:12px;color:#94a3b8">Skor iyi ama %8 destekte. Biraz daha düşmesini bekle.</div><div class="cand-note">Hedef: $90.96</div></div>
+        <div class="cand-amount">€300</div>
+        <div class="cand-pill cpill-wait">Wait — $90.96</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SENARYO 4 ===================== -->
+<div class="page" id="s3">
+
+  <div class="brief">
+    <div class="brief-header">
+      <div class="brief-icon">📅</div>
+      <div><div class="brief-title">Sabah Brifing — Earnings Haftası</div></div>
+      <div class="brief-time">Salı, 29 Temmuz 2026 • 09:27</div>
+    </div>
+    <div class="brief-summary">
+      Bu hafta portföyde 2 hisse açıklama yapıyor. NVDA yüksek hareket riski taşıyor. INTC zararda — ortalama düşürme şartları değerlendirildi, şu an uygun değil. Gün içi Events Agent 2 uyarı gönderdi.
+    </div>
+    <div>
+      <span class="brief-macro macro-neu">📊 Macro: Nötr — VIX 19, yönszüz</span>
+    </div>
+  </div>
+
+  <!-- Events Alert -->
+  <div class="section">
+    <div class="section-title">⚡ Events Agent — Gün İçi Uyarılar</div>
+    <div class="events-alert">
+      <div class="ev-icon">📰</div>
+      <div>
+        <div class="ev-ticker">NVDA</div>
+        <div class="ev-headline">"NVIDIA announces new Blackwell Ultra GPU, supply constraints expected through Q4 2026"</div>
+        <div class="ev-impact">→ Thesis etkisi: Yüksek. Supply constraint kazanç tahminlerini etkileyebilir. Earnings öncesi dikkat.</div>
+      </div>
+    </div>
+    <div class="events-alert">
+      <div class="ev-icon">🏭</div>
+      <div>
+        <div class="ev-ticker">ASML</div>
+        <div class="ev-headline">"Dutch government reviews ASML export license policy for EUV machines to Asia"</div>
+        <div class="ev-impact">→ Thesis etkisi: Orta. Politika değişikliği gelir tahminini etkileyebilir. Açıklamayı takip et.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="port-sum">
+    <div class="ps-card"><div class="ps-lbl">Pozisyon</div><div class="ps-val">4</div></div>
+    <div class="ps-card"><div class="ps-lbl">Ort. Skor</div><div class="ps-val" style="color:#fbbf24">61</div></div>
+    <div class="ps-card"><div class="ps-lbl">Earnings Bu Hafta</div><div class="ps-val" style="color:#fbbf24">2</div><div class="ps-warn warn-yellow">NVDA + INTC</div></div>
+    <div class="ps-card"><div class="ps-lbl">Events Uyarı</div><div class="ps-val" style="color:#c084fc">2</div><div class="ps-warn" style="color:#c084fc">Yeni haber</div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">My Radar</div>
+    <div class="radar-list">
+
+      <div class="radar-row review" onclick="toggleDetail('d4a')">
+        <div class="r-dot yellow"></div>
+        <div><div class="r-ticker">NVDA</div><div class="r-sub">Semiconductors</div></div>
+        <div class="r-meta">
+          <span class="r-score">Skor 68</span>
+          <span class="r-pnl pnl-pos">+15.4%</span>
+          <span class="tag tag-earn">Earnings 3g</span>
+          <span class="tag tag-events">Events !</span>
+        </div>
+        <div class="r-pill pill-review">Review →</div>
+      </div>
+      <div class="detail banner-review" id="d4a">
+        <div class="detail-banner banner-review">
+          <div class="banner-title">⚠ Earnings + supply constraint haberi</div>
+          <div class="banner-note">3 gün sonra açıklama. Gün içi haber: yeni GPU arz kısıtı. Skor düşüyor (71→68). Pozisyonu küçültmek riski azaltır.</div>
+        </div>
+        <div class="detail-btns">
+          <button class="btn btn-primary yellow">Trim 50%</button>
+          <button class="btn btn-sec">Keep holding</button>
+        </div>
+        <div class="agent-note">
+          <div class="agent-note-lbl">🤖 Exit Signal + Events Agent</div>
+          <div class="agent-note-txt">Earnings 3 gün sonra, ortalama hareket ±9.2%. Bugün supply constraint haberi çıktı — thesis'i olumsuz etkileyebilir. Boyutu %50 küçültmek hem kârı korur hem pozisyonda kalır.</div>
+        </div>
+      </div>
+
+      <div class="radar-row exit" onclick="toggleDetail('d4b')">
+        <div class="r-dot red"></div>
+        <div><div class="r-ticker">INTC</div><div class="r-sub">Semiconductors</div></div>
+        <div class="r-meta">
+          <span class="r-score">Skor 41</span>
+          <span class="r-pnl pnl-neg">-18.5%</span>
+          <span class="tag tag-earn">Earnings 5g</span>
+        </div>
+        <div class="r-pill pill-exit">Exit now →</div>
+      </div>
+      <div class="detail banner-exit" id="d4b">
+        <div class="detail-banner banner-exit">
+          <div class="banner-title">🚨 Exit — destek kırıldı</div>
+          <div class="banner-note">$97.22 desteği kırıldı. Skor 41. Earnings öncesi bu seviyede tutmak risk içeriyor.</div>
+        </div>
+        <div class="detail-btns">
+          <button class="btn btn-primary">Mark as sold</button>
+          <button class="btn btn-sec">Keep holding</button>
+        </div>
+
+        <!-- Averaging Down -->
+        <div class="avgdown">
+          <div class="avgdown-title">📊 Averaging Down Analizi</div>
+          <div class="avgdown-conditions">
+            <span class="cond fail">Skor >40 ✓ (41)</span>
+            <span class="cond fail">Destekte değil ✗</span>
+            <span class="cond fail">Sektör sağlıklı değil ✗</span>
+            <span class="cond fail">Makro bullish değil ✗</span>
+          </div>
+          <div class="avgdown-verdict">
+            <strong style="color:#f87171">Ortalama düşürme önerilmiyor</strong> — 4 koşuldan yalnızca 1'i sağlandı. Sektör zayıflıyor ve destek kırılmış.
+          </div>
+        </div>
+      </div>
+
+      <div class="radar-row ok">
+        <div class="r-dot green"></div>
+        <div><div class="r-ticker">ASML</div><div class="r-sub">Semiconductors</div></div>
+        <div class="r-meta"><span class="r-score">Skor 80</span><span class="r-pnl pnl-pos">+10.2%</span><span class="tag tag-events">Events !</span></div>
+        <div class="r-pill pill-hold">Hold ✓</div>
+      </div>
+
+      <div class="radar-row ok">
+        <div class="r-dot green"></div>
+        <div><div class="r-ticker">LLY</div><div class="r-sub">Healthcare</div></div>
+        <div class="r-meta"><span class="r-score">Skor 84</span><span class="r-pnl pnl-pos">+13.7%</span></div>
+        <div class="r-pill pill-hold">Hold ✓</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Candidates — Bugün</div>
+    <div class="empty">
+      <div class="empty-icon">⏸</div>
+      <div>Earnings haftası — portföyde açıklama bekleyen hisseler var.</div>
+      <div style="margin-top:6px;font-size:12px">Yeni giriş bu hafta önerilmiyor. Açıklamalar sonrası fırsatlar değerlendirilecek.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+function show(idx) {
+  document.querySelectorAll('.page').forEach((p,i) => p.classList.toggle('active', i===idx));
+  document.querySelectorAll('.s-tab').forEach((t,i) => t.classList.toggle('active', i===idx));
+}
+function toggleDetail(id) {
+  const el = document.getElementById(id);
+  if(el) el.classList.toggle('open');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Investment Radar — Test Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0f1117; color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px; min-height: 100vh;
+    }
+    header {
+      background: #1a1d27; border-bottom: 1px solid #2d3148;
+      padding: 14px 24px; display: flex; align-items: center; justify-content: space-between;
+    }
+    header h1 { font-size: 18px; font-weight: 700; color: #fff; }
+    header h1 span { color: #6366f1; }
+    .test-banner {
+      background: #2e1065; border-bottom: 1px solid #4c1d95;
+      padding: 8px 24px; font-size: 12px; color: #a78bfa; font-weight: 600;
+    }
+    .tabs {
+      background: #1a1d27; border-bottom: 1px solid #2d3148;
+      display: flex; padding: 0 24px;
+    }
+    .tab-btn {
+      background: none; border: none; color: #94a3b8; cursor: pointer;
+      font-size: 13px; font-weight: 500; padding: 12px 20px;
+      border-bottom: 2px solid transparent; transition: all 0.15s;
+    }
+    .tab-btn:hover { color: #e2e8f0; }
+    .tab-btn.active { color: #6366f1; border-bottom-color: #6366f1; }
+
+    .layout {
+      display: grid; grid-template-columns: 1fr 400px;
+      height: calc(100vh - 121px); overflow: hidden;
+    }
+    .panel-left {
+      overflow-y: auto; padding: 20px 16px 20px 24px;
+      border-right: 1px solid #2d3148;
+    }
+    .panel-right { overflow-y: auto; padding: 20px; background: #131520; }
+    .panel-header {
+      display: flex; align-items: baseline; justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .panel-title { font-size: 13px; font-weight: 700; color: #e2e8f0; }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      text-align: left; padding: 8px 10px; font-size: 11px; font-weight: 600;
+      color: #64748b; text-transform: uppercase; letter-spacing: 0.06em;
+      border-bottom: 1px solid #2d3148; white-space: nowrap;
+    }
+    tbody tr { cursor: pointer; border-bottom: 1px solid #1e2130; transition: background 0.1s; }
+    tbody tr:hover  { background: #1e2130; }
+    tbody tr.selected { background: #1e2338; }
+    tbody td { padding: 10px; vertical-align: middle; }
+    .ticker-cell { font-weight: 700; color: #fff; font-size: 14px; }
+    .close-cell  { font-size: 13px; color: #cbd5e1; font-weight: 500; }
+    .score-cell  { font-weight: 700; font-size: 15px; }
+    .score-high  { color: #4ade80; }
+    .score-mid   { color: #facc15; }
+    .score-low   { color: #f87171; }
+    .why-cell    { color: #94a3b8; max-width: 200px; font-size: 12px; line-height: 1.4; }
+
+    .decision-pill {
+      display: inline-block; font-size: 10px; font-weight: 700;
+      padding: 2px 8px; border-radius: 20px; white-space: nowrap;
+    }
+    .pill-buy   { background: #14532d; color: #4ade80; }
+    .pill-watch { background: #451a03; color: #fb923c; }
+    .pill-small { background: #0c1a3b; color: #60a5fa; }
+
+    /* Regime strip */
+    .regime-strip {
+      display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+      padding: 9px 12px; border-radius: 8px; margin-bottom: 14px; font-size: 12px;
+    }
+    .regime-strip.risk-on  { background: #0d2b1a; border: 1px solid #14532d; }
+    .regime-strip.risk-off { background: #2b0d0d; border: 1px solid #7f1d1d; }
+    .regime-strip.neutral  { background: #1a1d27; border: 1px solid #2d3148; }
+    .regime-label { font-size: 12px; font-weight: 800; letter-spacing: 0.05em; }
+    .risk-on  .regime-label { color: #4ade80; }
+    .risk-off .regime-label { color: #f87171; }
+    .neutral  .regime-label { color: #94a3b8; }
+    .regime-meta { font-size: 11px; color: #64748b; }
+
+    /* Badges */
+    .badge-row { display: flex; align-items: center; gap: 7px; margin-bottom: 10px; flex-wrap: wrap; }
+    .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px; }
+    .badge-green  { background: #14532d; color: #4ade80; }
+    .badge-amber  { background: #451a03; color: #fb923c; }
+    .badge-red    { background: #450a0a; color: #f87171; }
+    .badge-purple { background: #2e1065; color: #a78bfa; }
+    .badge-blue   { background: #0c1a3b; color: #60a5fa; }
+    .badge-gray   { background: #1e2130; color: #64748b; }
+
+    /* RS bars */
+    .rs-bars { margin-bottom: 16px; }
+    .rs-bars h3 {
+      font-size: 11px; font-weight: 600; color: #64748b;
+      text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px;
+    }
+    .rs-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+    .rs-bar-label { font-size: 11px; color: #94a3b8; width: 40px; text-align: right; flex-shrink: 0; }
+    .rs-bar-track { flex: 1; height: 8px; background: #1e2130; border-radius: 4px; position: relative; overflow: hidden; }
+    .rs-bar-fill  { position: absolute; top: 0; height: 100%; border-radius: 4px; max-width: 50%; }
+    .rs-bar-fill.pos { background: #4ade80; left: 50%; }
+    .rs-bar-fill.neg { background: #f87171; right: 50%; }
+    .rs-bar-mid   { position: absolute; left: 50%; top: 0; width: 1px; height: 100%; background: #2d3148; }
+    .rs-bar-val   { font-size: 11px; font-weight: 700; min-width: 50px; }
+    .rs-bar-val.pos { color: #4ade80; }
+    .rs-bar-val.neg { color: #f87171; }
+
+    /* Detail */
+    .detail-empty { display: flex; align-items: center; justify-content: center; height: 100%; color: #4b5563; font-size: 13px; text-align: center; line-height: 1.8; }
+    .detail-ticker { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+    .detail-close  { font-size: 16px; color: #94a3b8; margin-bottom: 4px; }
+    .detail-score  { display: inline-block; font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+    .detail-why    { color: #94a3b8; font-size: 13px; line-height: 1.6; margin-bottom: 16px; background: #1a1d27; border-radius: 8px; padding: 12px; border-left: 3px solid #6366f1; }
+    .detail-section { margin-bottom: 16px; }
+    .detail-section h3 { font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+    .signal-list { list-style: none; }
+    .signal-list li { font-size: 12px; padding: 4px 0; line-height: 1.5; color: #cbd5e1; }
+    .kv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+    .kv-item { background: #1a1d27; border-radius: 6px; padding: 10px 12px; }
+    .kv-label { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; }
+    .kv-value { font-size: 15px; font-weight: 700; color: #fff; margin-top: 2px; }
+    .kv-value.green  { color: #4ade80; }
+    .kv-value.red    { color: #f87171; }
+    .kv-value.yellow { color: #facc15; }
+
+    /* Decision banner */
+    .decision-banner { border-radius: 8px; padding: 14px; margin-top: 12px; }
+    .decision-banner.buy   { background: #0d2b1a; border: 1px solid #14532d; }
+    .decision-banner.watch { background: #2b1a03; border: 1px solid #7c2d12; }
+    .decision-banner.small { background: #0c1a3b; border: 1px solid #1e3a8a; }
+    .decision-banner-title { font-size: 13px; font-weight: 800; margin-bottom: 5px; }
+    .buy   .decision-banner-title { color: #4ade80; }
+    .watch .decision-banner-title { color: #fb923c; }
+    .small .decision-banner-title { color: #60a5fa; }
+    .decision-banner-reason { font-size: 12px; color: #94a3b8; margin-bottom: 8px; line-height: 1.5; }
+    .decision-banner-size   { font-size: 11px; color: #64748b; margin-bottom: 10px; }
+    .banner-btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-primary   { background: #6366f1; border: none; border-radius: 6px; color: #fff; cursor: pointer; font-size: 12px; font-weight: 600; padding: 7px 14px; }
+    .btn-secondary { background: #1e2130; border: 1px solid #2d3148; border-radius: 6px; color: #94a3b8; cursor: pointer; font-size: 12px; padding: 7px 14px; }
+
+    /* Opportunities tab */
+    #tab-opportunities { padding: 24px; overflow-y: auto; height: calc(100vh - 121px); }
+    .opp-header { font-size: 13px; font-weight: 700; color: #e2e8f0; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 20px; }
+    .opp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 20px; }
+    .opp-section { background: #1a1d27; border: 1px solid #2d3148; border-radius: 10px; padding: 18px; }
+    .opp-section-title { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+    .opp-section-desc  { font-size: 12px; color: #64748b; margin-bottom: 14px; line-height: 1.5; }
+    .opp-card { background: #131520; border: 1px solid #2d3148; border-radius: 8px; padding: 12px; margin-bottom: 8px; }
+    .opp-card:last-child { margin-bottom: 0; }
+    .opp-card-top    { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 3px; }
+    .opp-card-ticker { font-weight: 700; color: #fff; font-size: 15px; }
+    .opp-card-rs     { font-size: 11px; font-weight: 700; }
+    .opp-card-sector { font-size: 11px; color: #6366f1; margin-bottom: 5px; }
+    .opp-card-reason { font-size: 12px; color: #94a3b8; line-height: 1.4; }
+    .opp-empty { color: #4b5563; font-size: 12px; text-align: center; padding: 20px 0; }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .layout.active { display: grid; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Investment <span>Radar</span></h1>
+  <span style="color:#64748b;font-size:12px;">2026-06-12 · Mock data</span>
+</header>
+<div class="test-banner">
+  TEST DASHBOARD — Firebase bağlantısı yok, tüm veriler mock. Gerçek pipeline çıktısını simüle eder.
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('usa')">🇺🇸 USA</button>
+  <button class="tab-btn" onclick="switchTab('opportunities')">Opportunities</button>
+</div>
+
+<!-- USA tab -->
+<div id="tab-usa" class="layout active">
+  <div class="panel-left">
+    <div class="panel-header">
+      <span class="panel-title">🇺🇸 USA</span>
+      <span style="font-size:12px;color:#4ade80;">Report from Thu, Jun 12, 2026</span>
+    </div>
+
+    <!-- Macro regime strip -->
+    <div class="regime-strip risk-on">
+      <span class="regime-label">RISK ON</span>
+      <span class="regime-meta">10Y Yield 20d: -0.18</span>
+      <span class="regime-meta">DXY 20d: -1.24</span>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Ticker</th><th>Close</th><th>Score</th><th>Decision</th><th>Why Today</th>
+        </tr>
+      </thead>
+      <tbody id="usa-tbody"></tbody>
+    </table>
+  </div>
+  <div class="panel-right" id="detail-panel">
+    <div class="detail-empty">← Bir hisse seç<br>detayları görmek için</div>
+  </div>
+</div>
+
+<!-- Opportunities tab -->
+<div id="tab-opportunities" class="tab-content">
+  <div class="opp-header">Market Opportunities</div>
+  <div class="opp-grid" id="opp-grid"></div>
+</div>
+
+<script>
+// ── Mock Data ─────────────────────────────────────────────────────────────────
+
+const MACRO = {
+  regime: "RISK_ON",
+  tnx_trend_20d: -0.18,
+  dxy_trend_20d: -1.24,
+};
+
+const CANDIDATES = [
+  {
+    ticker: "NVDA",
+    close: 1087.50,
+    score: 92,
+    streak: 5,
+    why_today: "Strong setup, Volume 2.3x, 52-week high break",
+    triggers: ["volume_spike", "52w_high_break", "ema_crossover"],
+    signals: ["✅ EMA fully aligned", "✅ Volume 2.3x average", "✅ Above BB upper band"],
+    support: 1040.00, resistance: 1120.00, volume_ratio: 2.3, rsi: 67, risk_reward: 2.1,
+    // Enrichment fields
+    rs_rating: 94, return_30d: 0.18, spy_return_30d: 0.04,
+    quality_grade: "A", sector: "Technology",
+    sector_short_status: "LEADING", sector_long_status: "LEADING",
+    macro_regime: "RISK_ON", days_to_earnings: 22,
+    decision: "BUY", reason: "All layers aligned",
+    position_size_multiplier: 1.0,
+  },
+  {
+    ticker: "META",
+    close: 512.30,
+    score: 83,
+    streak: 3,
+    why_today: "Volume 1.8x, EMA crossover",
+    triggers: ["volume_spike", "ema_crossover"],
+    signals: ["✅ EMA aligned", "✅ Volume 1.8x average", "⚠ RSI 71 — slightly extended"],
+    support: 490.00, resistance: 535.00, volume_ratio: 1.8, rsi: 71, risk_reward: 1.7,
+    rs_rating: 78, return_30d: 0.09, spy_return_30d: 0.04,
+    quality_grade: "B", sector: "Communication Services",
+    sector_short_status: "IMPROVING", sector_long_status: "LAGGING",
+    macro_regime: "RISK_ON", days_to_earnings: 45,
+    decision: "WATCH",
+    reason: "RS strong but sector=IMPROVING, volume=1.80x — wait 1-2 days for confirmation",
+    position_size_multiplier: 1.0,
+  },
+  {
+    ticker: "MSFT",
+    close: 415.80,
+    score: 79,
+    streak: 2,
+    why_today: "Price surge, Near support",
+    triggers: ["price_move", "support_proximity"],
+    signals: ["✅ EMA aligned", "✅ Price near support", "✅ Volume 1.2x average"],
+    support: 408.00, resistance: 430.00, volume_ratio: 1.2, rsi: 55, risk_reward: 1.5,
+    rs_rating: 66, return_30d: 0.03, spy_return_30d: 0.04,
+    quality_grade: "A", sector: "Technology",
+    sector_short_status: "LEADING", sector_long_status: "LEADING",
+    macro_regime: "RISK_ON", days_to_earnings: 18,
+    decision: "WATCH",
+    reason: "Weak RS without a large drop — unclear, monitor",
+    position_size_multiplier: 1.0,
+  },
+  {
+    ticker: "INTC",
+    close: 29.40,
+    score: 71,
+    streak: 1,
+    why_today: "RSI bounce, Near support",
+    triggers: ["rsi_bounce", "support_proximity"],
+    signals: ["✅ RSI bounce from oversold", "✅ Near key support $28.50"],
+    support: 28.50, resistance: 33.00, volume_ratio: 1.4, rsi: 38, risk_reward: 1.8,
+    rs_rating: 22, return_30d: -0.24, spy_return_30d: 0.04,
+    quality_grade: "B", sector: "Technology",
+    sector_short_status: "LAGGING", sector_long_status: "IMPROVING",
+    macro_regime: "RISK_ON", days_to_earnings: 33,
+    decision: "BUY_SMALL",
+    reason: "Contrarian dip — quality intact, sector healthy long-term",
+    position_size_multiplier: 0.4,
+  },
+  {
+    ticker: "AMZN",
+    close: 182.60,
+    score: 76,
+    streak: 2,
+    why_today: "Volume 1.6x, EMA crossover",
+    triggers: ["volume_spike", "ema_crossover"],
+    signals: ["✅ EMA aligned", "✅ Volume 1.6x average"],
+    support: 175.00, resistance: 192.00, volume_ratio: 1.6, rsi: 61, risk_reward: 1.9,
+    rs_rating: 81, return_30d: 0.11, spy_return_30d: 0.04,
+    quality_grade: "A", sector: "Consumer Discretionary",
+    sector_short_status: "LEADING", sector_long_status: "LEADING",
+    macro_regime: "RISK_ON", days_to_earnings: 4,
+    decision: "BUY",
+    reason: "All layers aligned | Earnings within 5 days: size reduced further",
+    position_size_multiplier: 0.70,
+  },
+];
+
+const SECTOR_STATUS = {
+  XLK:  { sector: "Technology",             short_status: "LEADING",   long_status: "LEADING"   },
+  XLC:  { sector: "Communication Services", short_status: "IMPROVING", long_status: "LAGGING"   },
+  XLY:  { sector: "Consumer Discretionary", short_status: "LEADING",   long_status: "LEADING"   },
+  XLF:  { sector: "Financials",             short_status: "WEAKENING", long_status: "IMPROVING" },
+  XLV:  { sector: "Health Care",            short_status: "LAGGING",   long_status: "LAGGING"   },
+  XLI:  { sector: "Industrials",            short_status: "IMPROVING", long_status: "WEAKENING" },
+  XLE:  { sector: "Energy",                 short_status: "LAGGING",   long_status: "LAGGING"   },
+  XLB:  { sector: "Materials",              short_status: "WEAKENING", long_status: "WEAKENING" },
+  XLU:  { sector: "Utilities",             short_status: "LEADING",   long_status: "IMPROVING" },
+  XLRE: { sector: "Real Estate",            short_status: "LAGGING",   long_status: "LAGGING"   },
+  XLP:  { sector: "Consumer Staples",       short_status: "LAGGING",   long_status: "LAGGING"   },
+};
+
+// Simulated "2 weeks ago" history for Early Rotation demo
+const SECTOR_HIST = {
+  XLC: { short_status: "LAGGING"   },
+  XLI: { short_status: "WEAKENING" },
+};
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function scoreClass(s) { return s >= 75 ? "score-high" : s >= 65 ? "score-mid" : "score-low"; }
+
+function decisionPill(d) {
+  if (!d) return "";
+  if (d === "BUY")       return `<span class="decision-pill pill-buy">BUY</span>`;
+  if (d === "BUY_SMALL") return `<span class="decision-pill pill-small">BUY SMALL</span>`;
+  if (d === "WATCH")     return `<span class="decision-pill pill-watch">WATCH</span>`;
+  return "";
+}
+
+function rsBar(label, value) {
+  if (value == null) return "";
+  const pct = Math.min(Math.abs(value) * 100, 50);
+  const pos = value >= 0;
+  const sign = pos ? "+" : "";
+  return `
+    <div class="rs-bar-row">
+      <span class="rs-bar-label">${label}</span>
+      <div class="rs-bar-track">
+        <div class="rs-bar-mid"></div>
+        <div class="rs-bar-fill ${pos ? "pos" : "neg"}" style="width:${pct}%;"></div>
+      </div>
+      <span class="rs-bar-val ${pos ? "pos" : "neg"}">${sign}${(value * 100).toFixed(1)}%</span>
+    </div>`;
+}
+
+function gradeBadge(g) {
+  if (!g) return "";
+  const cls = g === "A" || g === "B" ? "badge-green" : g === "C" ? "badge-amber" : "badge-red";
+  return `<span class="badge ${cls}">Grade ${g}</span>`;
+}
+
+function rsBadge(rs) {
+  if (rs == null) return "";
+  const cls = rs >= 70 ? "badge-green" : "badge-amber";
+  return `<span class="badge ${cls}">RS ${rs}</span>`;
+}
+
+function sectorBadge(s) {
+  if (!s) return "";
+  const cls = s === "LEADING" ? "badge-green" : s === "IMPROVING" ? "badge-blue"
+            : s === "WEAKENING" ? "badge-amber" : "badge-gray";
+  return `<span class="badge ${cls}">${s}</span>`;
+}
+
+function decisionBanner(c) {
+  const d = c.decision;
+  if (!d || d === "SKIP") return "";
+  const size = c.position_size_multiplier;
+  const sizeStr = size != null ? `Position size: ${Math.round(size * 100)}%` : "";
+  const reason = c.reason || "";
+
+  if (d === "BUY") return `
+    <div class="decision-banner buy">
+      <div class="decision-banner-title">Confirmed — All layers aligned</div>
+      ${reason ? `<div class="decision-banner-reason">${reason}</div>` : ""}
+      ${sizeStr ? `<div class="decision-banner-size">${sizeStr}</div>` : ""}
+      <div class="banner-btn-row">
+        <button class="btn-primary">+ Add to Radar</button>
+      </div>
+    </div>`;
+
+  if (d === "WATCH") return `
+    <div class="decision-banner watch">
+      <div class="decision-banner-title">Watch — Waiting for confirmation</div>
+      ${reason ? `<div class="decision-banner-reason">${reason}</div>` : ""}
+      <div class="banner-btn-row">
+        <button class="btn-secondary">Add to watchlist</button>
+        <button class="btn-primary">Add to radar anyway</button>
+      </div>
+    </div>`;
+
+  if (d === "BUY_SMALL") return `
+    <div class="decision-banner small">
+      <div class="decision-banner-title">Contrarian opportunity (small position)</div>
+      ${reason ? `<div class="decision-banner-reason">${reason}</div>` : ""}
+      ${sizeStr ? `<div class="decision-banner-size">${sizeStr}</div>` : ""}
+      <div class="banner-btn-row">
+        <button class="btn-primary">+ Add to Radar</button>
+      </div>
+    </div>`;
+
+  return "";
+}
+
+// ── Render table ──────────────────────────────────────────────────────────────
+
+function renderTable() {
+  const tbody = document.getElementById("usa-tbody");
+  tbody.innerHTML = CANDIDATES
+    .filter(c => c.decision !== "SKIP")
+    .map(c => `
+      <tr onclick="showDetail('${c.ticker}')">
+        <td class="ticker-cell">${c.ticker}</td>
+        <td class="close-cell">$${c.close.toLocaleString("en-US", {minimumFractionDigits: 2})}</td>
+        <td class="score-cell ${scoreClass(c.score)}">${c.score}</td>
+        <td>${decisionPill(c.decision)}</td>
+        <td class="why-cell">${c.why_today}</td>
+      </tr>`).join("");
+}
+
+// ── Detail panel ──────────────────────────────────────────────────────────────
+
+function showDetail(ticker) {
+  const c = CANDIDATES.find(x => x.ticker === ticker);
+  if (!c) return;
+
+  document.querySelectorAll("#usa-tbody tr").forEach(r => r.classList.remove("selected"));
+  const row = [...document.querySelectorAll("#usa-tbody tr")]
+    .find(r => r.querySelector(".ticker-cell")?.textContent === ticker);
+  if (row) row.classList.add("selected");
+
+  const score = c.score;
+
+  document.getElementById("detail-panel").innerHTML = `
+    <div style="margin-bottom:12px;">
+      <div class="detail-ticker">${c.ticker}</div>
+      <div class="detail-close">$${c.close.toLocaleString("en-US", {minimumFractionDigits: 2})}</div>
+      <div class="detail-score ${scoreClass(score)}">${score}<span style="font-size:14px;color:#64748b;"> / 100</span></div>
+      <div class="badge-row">
+        ${rsBadge(c.rs_rating)}
+        ${gradeBadge(c.quality_grade)}
+        ${sectorBadge(c.sector_short_status)}
+        ${c.days_to_earnings != null ? `<span class="badge badge-purple">Earnings in ${c.days_to_earnings}d</span>` : ""}
+      </div>
+    </div>
+
+    <div class="detail-why">${c.why_today}</div>
+
+    <div class="rs-bars">
+      <h3>30-Day Returns</h3>
+      ${rsBar(c.ticker, c.return_30d)}
+      ${rsBar("SPY", c.spy_return_30d)}
+    </div>
+
+    <div class="kv-grid">
+      <div class="kv-item"><div class="kv-label">Close</div><div class="kv-value">$${c.close.toLocaleString("en-US",{minimumFractionDigits:2})}</div></div>
+      <div class="kv-item"><div class="kv-label">Volume</div><div class="kv-value ${c.volume_ratio >= 1.5 ? "green" : "yellow"}">${c.volume_ratio}x</div></div>
+      <div class="kv-item"><div class="kv-label">Support</div><div class="kv-value green">$${c.support.toFixed(2)}</div></div>
+      <div class="kv-item"><div class="kv-label">Resistance</div><div class="kv-value red">$${c.resistance.toFixed(2)}</div></div>
+      <div class="kv-item"><div class="kv-label">RSI</div><div class="kv-value ${c.rsi >= 70 ? "yellow" : "green"}">${c.rsi}</div></div>
+      <div class="kv-item"><div class="kv-label">Risk / Reward</div><div class="kv-value ${c.risk_reward >= 1.5 ? "green" : "yellow"}">1:${c.risk_reward}</div></div>
+      <div class="kv-item"><div class="kv-label">Sector</div><div class="kv-value" style="font-size:12px;">${c.sector}</div></div>
+      <div class="kv-item"><div class="kv-label">Macro</div><div class="kv-value green" style="font-size:12px;">${c.macro_regime.replace("_", " ")}</div></div>
+    </div>
+
+    ${c.triggers?.length ? `
+      <div class="detail-section">
+        <h3>Triggered by</h3>
+        <ul class="signal-list">${c.triggers.map(t => `<li>• ${t.replace(/_/g," ")}</li>`).join("")}</ul>
+      </div>` : ""}
+
+    ${c.signals?.length ? `
+      <div class="detail-section">
+        <h3>Signals</h3>
+        <ul class="signal-list">${c.signals.map(s => `<li>${s}</li>`).join("")}</ul>
+      </div>` : ""}
+
+    ${decisionBanner(c)}`;
+}
+
+// ── Opportunities tab ─────────────────────────────────────────────────────────
+
+function renderOpportunities() {
+  const RS_THRESHOLD = 70;
+
+  const continuation = CANDIDATES.filter(c =>
+    ["BUY", "WATCH"].includes(c.decision) &&
+    c.sector_short_status === "LEADING" &&
+    (c.rs_rating ?? 0) >= RS_THRESHOLD
+  );
+
+  // Early Rotation: currently IMPROVING AND was LAGGING/WEAKENING 2 weeks ago
+  const rotationSectors = new Set(
+    Object.entries(SECTOR_STATUS)
+      .filter(([etf, s]) => {
+        if (s.short_status !== "IMPROVING") return false;
+        const hist = SECTOR_HIST[etf];
+        return !hist || hist.short_status === "LAGGING" || hist.short_status === "WEAKENING";
+      })
+      .map(([, s]) => s.sector)
+  );
+
+  const earlyRotation = CANDIDATES.filter(c =>
+    rotationSectors.has(c.sector) &&
+    ["A", "B"].includes(c.quality_grade)
+  );
+
+  const contrarian = CANDIDATES.filter(c => c.decision === "BUY_SMALL");
+
+  function oppCard(c, reasonOverride) {
+    const rs = c.rs_rating;
+    const rsColor = rs != null ? (rs >= RS_THRESHOLD ? "#4ade80" : "#fb923c") : "#64748b";
+    return `
+      <div class="opp-card">
+        <div class="opp-card-top">
+          <span class="opp-card-ticker">${c.ticker}</span>
+          ${rs != null ? `<span class="opp-card-rs" style="color:${rsColor}">RS ${rs}</span>` : ""}
+        </div>
+        ${c.sector ? `<div class="opp-card-sector">${c.sector}</div>` : ""}
+        <div class="opp-card-reason">${reasonOverride ?? c.reason ?? c.why_today ?? ""}</div>
+      </div>`;
+  }
+
+  function section(icon, title, desc, items, emptyMsg, reasonFn) {
+    const cards = items.map(c => oppCard(c, reasonFn ? reasonFn(c) : null)).join("");
+    return `
+      <div class="opp-section">
+        <div class="opp-section-title">${icon} ${title}</div>
+        <div class="opp-section-desc">${desc}</div>
+        ${items.length ? cards : `<div class="opp-empty">${emptyMsg}</div>`}
+      </div>`;
+  }
+
+  document.getElementById("opp-grid").innerHTML =
+    section("▲", "Continuation",
+      "Strong RS + leading sector + momentum setup.",
+      continuation, "No continuation setups today") +
+
+    section("↻", "Early Rotation",
+      "Sector just turned Improving after being Lagging/Weakening — early movers with quality fundamentals.",
+      earlyRotation, "No early rotation sectors today",
+      () => "Sector turned Improving this week — watch for individual confirmation") +
+
+    section("↓", "Contrarian Dip",
+      "Large drop in quality stocks with healthy long-term sector — small position opportunity.",
+      contrarian, "No contrarian dip setups today");
+}
+
+// ── Sector Status Table ───────────────────────────────────────────────────────
+
+function renderSectorTable() {
+  const statusColor = s =>
+    s === "LEADING"   ? "#4ade80" :
+    s === "IMPROVING" ? "#60a5fa" :
+    s === "WEAKENING" ? "#fb923c" : "#64748b";
+
+  const rows = Object.entries(SECTOR_STATUS).map(([etf, s]) => `
+    <tr>
+      <td style="font-weight:700;color:#fff;padding:8px 10px;">${etf}</td>
+      <td style="padding:8px 10px;color:#94a3b8;font-size:12px;">${s.sector}</td>
+      <td style="padding:8px 10px;font-weight:700;color:${statusColor(s.short_status)};">${s.short_status}</td>
+      <td style="padding:8px 10px;font-weight:700;color:${statusColor(s.long_status)};">${s.long_status}</td>
+    </tr>`).join("");
+
+  return `
+    <div class="opp-section" style="margin-top:20px;grid-column:1/-1;">
+      <div class="opp-section-title">📊 Sector Status (11 ETFs)</div>
+      <div class="opp-section-desc">Short-term (20d) and long-term (6mo) relative strength vs SPY.</div>
+      <table>
+        <thead>
+          <tr>
+            <th style="text-align:left;padding:8px 10px;font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #2d3148;">ETF</th>
+            <th style="text-align:left;padding:8px 10px;font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #2d3148;">Sector</th>
+            <th style="text-align:left;padding:8px 10px;font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #2d3148;">Short-term</th>
+            <th style="text-align:left;padding:8px 10px;font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #2d3148;">Long-term</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+
+function switchTab(tabId) {
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  document.querySelector(`[onclick="switchTab('${tabId}')"]`).classList.add("active");
+
+  document.getElementById("tab-usa").style.display          = tabId === "usa"          ? "grid"  : "none";
+  document.getElementById("tab-opportunities").style.display = tabId === "opportunities" ? "block" : "none";
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+
+renderTable();
+renderOpportunities();
+document.getElementById("opp-grid").innerHTML += renderSectorTable();
+
+// Auto-select first candidate
+setTimeout(() => showDetail("NVDA"), 100);
+</script>
+
+</body>
+</html>

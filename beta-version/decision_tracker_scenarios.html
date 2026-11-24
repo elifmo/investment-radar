@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Investment Radar — Decision Tracker Senaryoları</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f1117; color: #e2e8f0; }
+
+.nav { background: #1a1d2e; border-bottom: 1px solid #2d3148; padding: 0 24px; display: flex; align-items: center; height: 48px; position: sticky; top: 0; z-index: 100; gap: 0; }
+.nav-logo { font-size: 14px; font-weight: 600; color: #7c85ff; margin-right: 24px; }
+.nav-tab { padding: 0 16px; height: 48px; display: flex; align-items: center; font-size: 13px; color: #64748b; cursor: pointer; border-bottom: 2px solid transparent; }
+.nav-tab.active { color: #e2e8f0; border-bottom-color: #7c85ff; }
+
+.scenario-bar { background: #13151f; border-bottom: 1px solid #2d3148; padding: 0 24px; display: flex; }
+.s-tab { padding: 10px 18px; font-size: 12px; color: #64748b; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; }
+.s-tab.active { color: #e2e8f0; border-bottom-color: #f59e0b; }
+
+.page { display: none; padding: 20px 24px; max-width: 1100px; margin: 0 auto; }
+.page.active { display: block; }
+
+/* CARDS */
+.cards-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+.card { background: #1a1d2e; border: 1px solid #2d3148; border-radius: 11px; padding: 14px 16px; }
+.card-lbl { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+.card-val { font-size: 28px; font-weight: 700; line-height: 1; }
+.card-sub { font-size: 11px; color: #64748b; margin-top: 5px; }
+.c-green { color: #4ade80; }
+.c-yellow { color: #fbbf24; }
+.c-red { color: #f87171; }
+.c-blue { color: #60a5fa; }
+.c-purple { color: #c084fc; }
+
+/* SECTION */
+.sec { margin-bottom: 24px; }
+.sec-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: #64748b; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.sec-badge { font-size: 10px; padding: 2px 8px; border-radius: 4px; background: #2d3148; color: #94a3b8; font-weight: 400; text-transform: none; letter-spacing: 0; }
+
+/* AGENT SCORECARD */
+.scorecard { background: #1a1d2e; border: 1px solid #2d3148; border-radius: 11px; overflow: hidden; }
+.sc-row { display: grid; grid-template-columns: 200px 1fr 80px 90px; align-items: center; padding: 12px 16px; border-bottom: 1px solid #2d3148; gap: 12px; }
+.sc-row:last-child { border: none; }
+.sc-row.header { background: #13151f; font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: .06em; padding: 8px 16px; }
+.sc-agent { font-size: 12px; font-weight: 500; }
+.sc-sub { font-size: 10px; color: #64748b; }
+.bar-wrap { height: 6px; background: #2d3148; border-radius: 3px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 3px; }
+.sc-pct { font-size: 13px; font-weight: 600; text-align: right; }
+.sc-count { font-size: 11px; color: #64748b; text-align: right; }
+.trend-up { color: #4ade80; font-size: 11px; }
+.trend-dn { color: #f87171; font-size: 11px; }
+.trend-flat { color: #64748b; font-size: 11px; }
+
+/* DECISION LOG TABLE */
+.dt { background: #1a1d2e; border: 1px solid #2d3148; border-radius: 11px; overflow: hidden; }
+.dt-header { display: grid; grid-template-columns: 90px 100px 110px 90px 90px 80px 1fr; gap: 8px; padding: 8px 16px; background: #13151f; font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: .06em; }
+.dt-row { display: grid; grid-template-columns: 90px 100px 110px 90px 90px 80px 1fr; gap: 8px; padding: 12px 16px; border-top: 1px solid #2d3148; align-items: center; font-size: 12px; cursor: pointer; transition: background .1s; }
+.dt-row:hover { background: #1f2340; }
+.dt-ticker { font-weight: 600; }
+.dt-date { color: #64748b; }
+.decision-pill { font-size: 10px; font-weight: 500; padding: 3px 8px; border-radius: 5px; display: inline-block; }
+.dp-exit { background: #7f1d1d33; color: #f87171; }
+.dp-enter { background: #14532d33; color: #4ade80; }
+.dp-wait { background: #78350f33; color: #fbbf24; }
+.dp-review { background: #312e8133; color: #818cf8; }
+.outcome-pill { font-size: 11px; font-weight: 600; }
+.op-correct { color: #4ade80; }
+.op-incorrect { color: #f87171; }
+.op-pending { color: #64748b; }
+.pct-pos { color: #4ade80; font-weight: 500; }
+.pct-neg { color: #f87171; font-weight: 500; }
+.dt-reason { font-size: 11px; color: #64748b; }
+
+/* PATTERN INSIGHTS */
+.patterns { display: flex; flex-direction: column; gap: 10px; }
+.pattern { background: #1a1d2e; border: 1px solid #2d3148; border-radius: 10px; padding: 14px 16px; }
+.pat-hdr { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.pat-agent { font-size: 11px; font-weight: 600; color: #7c85ff; }
+.pat-severity { font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 500; }
+.sev-high { background: #7f1d1d33; color: #f87171; }
+.sev-med { background: #78350f33; color: #fbbf24; }
+.sev-low { background: #14532d33; color: #4ade80; }
+.pat-title { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+.pat-desc { font-size: 12px; color: #94a3b8; line-height: 1.6; }
+.pat-data { display: flex; gap: 16px; margin-top: 10px; }
+.pd { background: #13151f; border-radius: 7px; padding: 8px 12px; }
+.pd-lbl { font-size: 10px; color: #64748b; margin-bottom: 2px; }
+.pd-val { font-size: 14px; font-weight: 600; }
+.pat-suggestion { margin-top: 10px; background: #312e8122; border: 1px solid #312e81; border-radius: 7px; padding: 10px 12px; }
+.ps-lbl { font-size: 10px; font-weight: 600; color: #818cf8; margin-bottom: 4px; }
+.ps-txt { font-size: 12px; color: #a5b4fc; line-height: 1.5; }
+.ps-btns { display: flex; gap: 8px; margin-top: 8px; }
+.ps-btn { font-size: 11px; font-weight: 500; padding: 5px 12px; border-radius: 6px; cursor: pointer; border: none; }
+.ps-btn-acc { background: #7c85ff; color: white; }
+.ps-btn-ign { background: #2d3148; color: #94a3b8; }
+
+/* COUNTERFACTUAL */
+.cf-summary { background: #1a1d2e; border: 1px solid #2d3148; border-radius: 11px; padding: 16px; margin-bottom: 16px; }
+.cf-row { display: grid; grid-template-columns: 100px 1fr 120px 120px 120px; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid #2d3148; font-size: 12px; }
+.cf-row:last-child { border: none; }
+.cf-row.hdr { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: .06em; padding-bottom: 8px; }
+.cf-ticker { font-weight: 600; font-size: 13px; }
+.cf-action { }
+.cf-result { font-size: 12px; }
+.cf-num { font-size: 13px; font-weight: 600; }
+.cf-diff { font-size: 12px; font-weight: 500; }
+.diff-pos { color: #4ade80; }
+.diff-neg { color: #f87171; }
+.diff-flat { color: #64748b; }
+
+.cf-total { background: #13151f; border-radius: 10px; padding: 14px 16px; margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.cft-item { }
+.cft-lbl { font-size: 10px; color: #64748b; margin-bottom: 4px; }
+.cft-val { font-size: 18px; font-weight: 700; }
+
+/* LEARNING AGENT REPORT */
+.learn-report { background: #1a1d2e; border: 1px solid #7c85ff44; border-radius: 11px; padding: 18px 20px; }
+.lr-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid #2d3148; }
+.lr-icon { width: 36px; height: 36px; border-radius: 9px; background: #7c85ff22; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.lr-title { font-size: 14px; font-weight: 600; }
+.lr-sub { font-size: 11px; color: #64748b; margin-top: 2px; }
+.lr-date { font-size: 11px; color: #64748b; margin-left: auto; }
+.lr-section { margin-bottom: 16px; }
+.lr-sec-lbl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: #7c85ff; margin-bottom: 8px; }
+.lr-finding { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid #2d3148; }
+.lr-finding:last-child { border: none; }
+.lr-bullet { width: 6px; height: 6px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+.lb-red { background: #ef4444; }
+.lb-yellow { background: #f59e0b; }
+.lb-green { background: #22c55e; }
+.lr-txt { font-size: 12px; color: #94a3b8; line-height: 1.6; }
+.lr-txt strong { color: #e2e8f0; }
+.lr-suggest { background: #312e8122; border: 1px solid #312e81; border-radius: 8px; padding: 12px 14px; margin-top: 12px; }
+.lr-s-lbl { font-size: 10px; font-weight: 600; color: #818cf8; margin-bottom: 8px; }
+.lr-s-item { font-size: 12px; color: #a5b4fc; padding: 5px 0; border-bottom: 1px solid #2d324855; display: flex; gap: 8px; }
+.lr-s-item:last-child { border: none; }
+.lr-s-num { font-weight: 600; flex-shrink: 0; }
+.lr-btns { display: flex; gap: 8px; margin-top: 12px; }
+.lr-btn { font-size: 12px; font-weight: 500; padding: 8px 16px; border-radius: 7px; cursor: pointer; border: none; }
+.lr-btn-acc { background: #7c85ff; color: white; }
+.lr-btn-sec { background: #2d3148; color: #94a3b8; }
+
+/* TRUST METER */
+.trust-meter { background: #1a1d2e; border: 1px solid #2d3148; border-radius: 11px; padding: 16px 20px; margin-bottom: 20px; }
+.tm-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.tm-title { font-size: 13px; font-weight: 600; }
+.tm-age { font-size: 11px; color: #64748b; }
+.tm-bar { height: 10px; background: #2d3148; border-radius: 5px; overflow: hidden; margin-bottom: 8px; }
+.tm-fill { height: 100%; border-radius: 5px; background: linear-gradient(90deg, #f59e0b, #22c55e); }
+.tm-labels { display: flex; justify-content: space-between; font-size: 10px; color: #64748b; }
+.tm-phases { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
+.tm-phase { background: #13151f; border-radius: 8px; padding: 10px 12px; border: 1px solid #2d3148; }
+.tm-phase.active-phase { border-color: #f59e0b; }
+.tmp-num { font-size: 10px; color: #64748b; margin-bottom: 3px; }
+.tmp-name { font-size: 12px; font-weight: 500; margin-bottom: 3px; }
+.tmp-desc { font-size: 10px; color: #64748b; line-height: 1.4; }
+.tmp-status { font-size: 10px; font-weight: 500; margin-top: 5px; }
+.st-done { color: #4ade80; }
+.st-active { color: #f59e0b; }
+.st-wait { color: #64748b; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-logo">📡 Investment Radar</div>
+  <div class="nav-tab">My Radar</div>
+  <div class="nav-tab">Candidates</div>
+  <div class="nav-tab active">Decision Tracker</div>
+</div>
+
+<div class="scenario-bar">
+  <div class="s-tab active" onclick="show(0)">📊 Tracker Dashboard</div>
+  <div class="s-tab" onclick="show(1)">🔍 Pattern Insights + Learning Agent</div>
+  <div class="s-tab" onclick="show(2)">↩ Counterfactual — Yapsaydın Ne Olurdu?</div>
+</div>
+
+<!-- ============ SENARYO 1: DASHBOARD ============ -->
+<div class="page active" id="s0">
+
+  <!-- Trust Meter -->
+  <div class="trust-meter">
+    <div class="tm-header">
+      <div class="tm-title">Sisteme Güven Gelişimi</div>
+      <div class="tm-age">Sistem aktif: 47 gün</div>
+    </div>
+    <div class="tm-bar"><div class="tm-fill" style="width: 42%"></div></div>
+    <div class="tm-labels"><span>Gözlem</span><span>→</span><span>Kalibre</span><span>→</span><span>Güven</span></div>
+    <div class="tm-phases">
+      <div class="tm-phase">
+        <div class="tmp-num">Ay 1</div>
+        <div class="tmp-name">Gözlem</div>
+        <div class="tmp-desc">Sistem önerir, sen kendi kararını verirsin. Notlar alırsın.</div>
+        <div class="tmp-status st-done">✓ Tamamlandı</div>
+      </div>
+      <div class="tm-phase active-phase">
+        <div class="tmp-num">Ay 1–2</div>
+        <div class="tmp-name">Karşılaştır</div>
+        <div class="tmp-desc">Sistemin önerileri vs kendi kararların — kim daha iyi?</div>
+        <div class="tmp-status st-active">→ Şu an buradasın</div>
+      </div>
+      <div class="tm-phase">
+        <div class="tmp-num">Ay 2–3</div>
+        <div class="tmp-name">Kalibre</div>
+        <div class="tmp-desc">Tutarsız ajanları tespit et, threshold'ları ayarla.</div>
+        <div class="tmp-status st-wait">Bekliyor</div>
+      </div>
+      <div class="tm-phase">
+        <div class="tmp-num">Ay 3+</div>
+        <div class="tmp-name">Güven</div>
+        <div class="tmp-desc">Sisteme güveniyorsun, büyük sapmalar için devreye giriyorsun.</div>
+        <div class="tmp-status st-wait">Bekliyor</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="cards-row">
+    <div class="card">
+      <div class="card-lbl">Toplam Karar</div>
+      <div class="card-val c-blue">34</div>
+      <div class="card-sub">Son 47 gün</div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Genel Hit Rate</div>
+      <div class="card-val c-yellow">68%</div>
+      <div class="card-sub">23 doğru / 11 yanlış</div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Beklemede</div>
+      <div class="card-val c-purple">8</div>
+      <div class="card-sub">14 gün dolmadı</div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">En İyi Ajan</div>
+      <div class="card-val c-green" style="font-size:16px;padding-top:4px">Entry Timing</div>
+      <div class="card-sub">%83 hit rate</div>
+    </div>
+  </div>
+
+  <!-- Agent Scorecard -->
+  <div class="sec">
+    <div class="sec-title">Agent Scorecard <span class="sec-badge">Son 45 gün</span></div>
+    <div class="scorecard">
+      <div class="sc-row header">
+        <div>Agent</div>
+        <div>Hit Rate</div>
+        <div>Oran</div>
+        <div>Trend</div>
+      </div>
+      <div class="sc-row">
+        <div><div class="sc-agent">Entry Timing Agent</div><div class="sc-sub">enter_now / wait kararları</div></div>
+        <div><div class="bar-wrap"><div class="bar-fill" style="width:83%;background:#22c55e"></div></div></div>
+        <div><div class="sc-pct c-green">83%</div><div class="sc-count">10/12</div></div>
+        <div><span class="trend-up">↑ İyileşiyor</span></div>
+      </div>
+      <div class="sc-row">
+        <div><div class="sc-agent">Macro Agent</div><div class="sc-sub">bullish / neutral / cautious</div></div>
+        <div><div class="bar-wrap"><div class="bar-fill" style="width:78%;background:#22c55e"></div></div></div>
+        <div><div class="sc-pct c-green">78%</div><div class="sc-count">7/9</div></div>
+        <div><span class="trend-flat">→ Stabil</span></div>
+      </div>
+      <div class="sc-row">
+        <div><div class="sc-agent">Sector Rotation Agent</div><div class="sc-sub">strengthening / weakening</div></div>
+        <div><div class="bar-wrap"><div class="bar-fill" style="width:71%;background:#f59e0b"></div></div></div>
+        <div><div class="sc-pct c-yellow">71%</div><div class="sc-count">5/7</div></div>
+        <div><span class="trend-flat">→ Stabil</span></div>
+      </div>
+      <div class="sc-row">
+        <div><div class="sc-agent">Exit Signal Agent</div><div class="sc-sub">exit / review / ok kararları</div></div>
+        <div><div class="bar-wrap"><div class="bar-fill" style="width:58%;background:#f59e0b"></div></div></div>
+        <div><div class="sc-pct c-yellow">58%</div><div class="sc-count">7/12</div></div>
+        <div><span class="trend-dn">↓ Düşüyor</span></div>
+      </div>
+      <div class="sc-row">
+        <div><div class="sc-agent">Portfolio Fit Agent</div><div class="sc-sub">good_fit / no_fit kararları</div></div>
+        <div><div class="bar-wrap"><div class="bar-fill" style="width:90%;background:#22c55e"></div></div></div>
+        <div><div class="sc-pct c-green">90%</div><div class="sc-count">9/10</div></div>
+        <div><span class="trend-up">↑ İyi</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Decision Log Table -->
+  <div class="sec">
+    <div class="sec-title">Karar Logu <span class="sec-badge">Son kararlar</span></div>
+    <div class="dt">
+      <div class="dt-header">
+        <div>Tarih</div>
+        <div>Hisse</div>
+        <div>Karar</div>
+        <div>O anki fiyat</div>
+        <div>14g sonra</div>
+        <div>Değişim</div>
+        <div>Gerekçe</div>
+      </div>
+      <div class="dt-row">
+        <div class="dt-date">14 Tem</div>
+        <div class="dt-ticker">INTC</div>
+        <div><span class="decision-pill dp-exit">Exit</span></div>
+        <div>$97.41</div>
+        <div>$89.20</div>
+        <div class="pct-pos">-8.4% ✓</div>
+        <div class="dt-reason">Destek kırıldı</div>
+      </div>
+      <div class="dt-row">
+        <div class="dt-date">12 Tem</div>
+        <div class="dt-ticker">ENPH</div>
+        <div><span class="decision-pill dp-enter">Enter now</span></div>
+        <div>$104.80</div>
+        <div>$118.30</div>
+        <div class="pct-pos">+12.9% ✓</div>
+        <div class="dt-reason">Enerji güçleniyor, destekte</div>
+      </div>
+      <div class="dt-row">
+        <div class="dt-date">08 Tem</div>
+        <div class="dt-ticker">NVDA</div>
+        <div><span class="decision-pill dp-exit">Exit</span></div>
+        <div>$598.00</div>
+        <div>$641.50</div>
+        <div class="pct-neg">+7.3% ✗</div>
+        <div class="dt-reason">Earnings öncesi — erken çıkış</div>
+      </div>
+      <div class="dt-row">
+        <div class="dt-date">05 Tem</div>
+        <div class="dt-ticker">MNST</div>
+        <div><span class="decision-pill dp-wait">Wait</span></div>
+        <div>$99.20</div>
+        <div>$91.40</div>
+        <div class="pct-pos">-7.8% ✓</div>
+        <div class="dt-reason">%8 destekte — bekle</div>
+      </div>
+      <div class="dt-row">
+        <div class="dt-date">01 Tem</div>
+        <div class="dt-ticker">ASML</div>
+        <div><span class="decision-pill dp-review">Review</span></div>
+        <div>$790.00</div>
+        <div>$802.20</div>
+        <div class="pct-neg">+1.5% ✗</div>
+        <div class="dt-reason">Skor düşüşü — gereksiz uyarı</div>
+      </div>
+      <div class="dt-row">
+        <div class="dt-date">28 Haz</div>
+        <div class="dt-ticker">LLY</div>
+        <div><span class="decision-pill dp-enter">Enter now</span></div>
+        <div>$820.00</div>
+        <div>$924.00</div>
+        <div class="pct-pos">+12.7% ✓</div>
+        <div class="dt-reason">Healthcare güçleniyor</div>
+      </div>
+      <div class="dt-row">
+        <div class="dt-date">22 Haz</div>
+        <div class="dt-ticker">META</div>
+        <div><span class="decision-pill dp-exit">Exit</span></div>
+        <div>$520.00</div>
+        <div>$498.00</div>
+        <div class="pct-pos">-4.2% ✓</div>
+        <div class="dt-reason">Skor 71→39, sektör zayıf</div>
+      </div>
+      <div class="dt-row" style="opacity:.5">
+        <div class="dt-date">19 Tem</div>
+        <div class="dt-ticker">FSLR</div>
+        <div><span class="decision-pill dp-enter">Enter now</span></div>
+        <div>$210.40</div>
+        <div>—</div>
+        <div class="outcome-pill op-pending">⏳ Bekliyor</div>
+        <div class="dt-reason">Enerji momentum, destekte</div>
+      </div>
+      <div class="dt-row" style="opacity:.5">
+        <div class="dt-date">20 Tem</div>
+        <div class="dt-ticker">UNH</div>
+        <div><span class="decision-pill dp-enter">Enter now</span></div>
+        <div>$580.00</div>
+        <div>—</div>
+        <div class="outcome-pill op-pending">⏳ Bekliyor</div>
+        <div class="dt-reason">Healthcare güçleniyor</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SENARYO 2: PATTERN INSIGHTS + LEARNING AGENT ============ -->
+<div class="page" id="s1">
+
+  <!-- Learning Agent Report -->
+  <div class="sec">
+    <div class="sec-title">🤖 Learning Agent — Haftalık Rapor</div>
+    <div class="learn-report">
+      <div class="lr-header">
+        <div class="lr-icon">🧠</div>
+        <div>
+          <div class="lr-title">Haftalık Sistem Değerlendirmesi</div>
+          <div class="lr-sub">Son 45 gün • 26 değerlendirilebilir karar</div>
+        </div>
+        <div class="lr-date">21 Temmuz 2026</div>
+      </div>
+
+      <div class="lr-section">
+        <div class="lr-sec-lbl">Tespit Edilen Problemler</div>
+        <div class="lr-finding">
+          <div class="lr-bullet lb-red"></div>
+          <div class="lr-txt"><strong>Exit Signal Agent — earnings öncesi erken tetiklenme.</strong> Earnings 7 gün içindeyken çıkan exit sinyallerinin %67'si yanlış çıktı. Hisse çıkış sonrası yükselmeye devam etti. 6 örnekten 4'ü bu kategoride.</div>
+        </div>
+        <div class="lr-finding">
+          <div class="lr-bullet lb-yellow"></div>
+          <div class="lr-txt"><strong>Exit Signal Agent — skor bazlı review çok hassas.</strong> Skor 20 puan düşünce "review" uyarısı veriyor, ancak bu uyarıların %40'ında hisse recovery yapıyor. Eşik biraz geniş tutulmuş.</div>
+        </div>
+        <div class="lr-finding">
+          <div class="lr-bullet lb-green"></div>
+          <div class="lr-txt"><strong>Entry Timing Agent çok iyi çalışıyor.</strong> "Enter now" kararlarının %83'ü 14 gün sonra pozitif. Özellikle sektör momentum + destek kombinasyonu güçlü sinyal. Değişiklik önerilmiyor.</div>
+        </div>
+        <div class="lr-finding">
+          <div class="lr-bullet lb-green"></div>
+          <div class="lr-txt"><strong>Macro Agent güvenilir.</strong> Bullish/cautious geçişlerinin %78'i piyasa yönüyle örtüştü. VIX 25-30 arası "neutral" yerine "cautious" eşiği düşürülebilir.</div>
+        </div>
+      </div>
+
+      <div class="lr-suggest">
+        <div class="lr-s-lbl">📋 Önerilen Değişiklikler — Sen Onaylayana Kadar Uygulanmaz</div>
+        <div class="lr-s-item"><div class="lr-s-num">1.</div><div>Exit Signal Agent: Earnings 7 gün içindeyse exit sinyali üretme — sadece "review" ver. Bu, earnings öncesi yanlış çıkışları önler.</div></div>
+        <div class="lr-s-item"><div class="lr-s-num">2.</div><div>Exit Signal Agent: Review eşiğini "20 puan düşüş" yerine "25 puan düşüş" yap. Gürültüyü azaltır.</div></div>
+        <div class="lr-s-item"><div class="lr-s-num">3.</div><div>Macro Agent: VIX 25 üzerinde "cautious" ver (şu an 30). Piyasa dönüşlerini daha erken yakala.</div></div>
+      </div>
+      <div class="lr-btns">
+        <button class="lr-btn lr-btn-acc">1. Değişikliği Uygula</button>
+        <button class="lr-btn lr-btn-acc">2. Değişikliği Uygula</button>
+        <button class="lr-btn lr-btn-sec">Hepsini Reddet</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pattern Cards -->
+  <div class="sec">
+    <div class="sec-title">Pattern Insights — Agent bazlı hata analizi</div>
+    <div class="patterns">
+
+      <div class="pattern">
+        <div class="pat-hdr">
+          <div class="pat-agent">Exit Signal Agent</div>
+          <div class="pat-severity sev-high">Yüksek öncelik</div>
+        </div>
+        <div class="pat-title">Earnings öncesi erken tetiklenme</div>
+        <div class="pat-desc">Exit sinyalinin üretildiği tarihte earnings 7 gün içindeyse, karar %67 ihtimalle yanlış çıkıyor. Hisse genellikle earnings sonrası yükseliyor. Örnek: NVDA 8 Temmuz'da exit → 14 gün sonra +%7.3.</div>
+        <div class="pat-data">
+          <div class="pd"><div class="pd-lbl">Bu Hata Kaç Kez</div><div class="pd-val c-red">4 / 6</div></div>
+          <div class="pd"><div class="pd-lbl">Ortalama Kayıp (erken çıkış)</div><div class="pd-val c-red">-%6.8</div></div>
+          <div class="pd"><div class="pd-lbl">Koşul</div><div class="pd-val" style="font-size:12px">Earnings ≤7g</div></div>
+        </div>
+        <div class="pat-suggestion">
+          <div class="ps-lbl">🤖 Learning Agent önerisi</div>
+          <div class="ps-txt">Exit Signal Agent'a kural ekle: earnings ≤ 7 gün ise exit sinyali üretme. Sadece "review" ver, kullanıcı kendisi karar versin. Bu 4 yanlış kararı önleyebilirdi.</div>
+          <div class="ps-btns">
+            <button class="ps-btn ps-btn-acc">Uygula</button>
+            <button class="ps-btn ps-btn-ign">Reddet</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="pattern">
+        <div class="pat-hdr">
+          <div class="pat-agent">Exit Signal Agent</div>
+          <div class="pat-severity sev-med">Orta öncelik</div>
+        </div>
+        <div class="pat-title">Skor düşüşü "review" eşiği çok hassas</div>
+        <div class="pat-desc">Skor 20 puan düşünce "review" uyarısı veriyor. Ama bu durumların %40'ında hisse 14 gün içinde recovery yapıyor. Özellikle bullish makro ortamda bu uyarı güvenilir değil.</div>
+        <div class="pat-data">
+          <div class="pd"><div class="pd-lbl">Yanlış Review Sayısı</div><div class="pd-val c-yellow">5 / 12</div></div>
+          <div class="pd"><div class="pd-lbl">Makro Koşul</div><div class="pd-val" style="font-size:12px">Bullish iken</div></div>
+          <div class="pd"><div class="pd-lbl">Öneri</div><div class="pd-val" style="font-size:12px">Eşik → 25p</div></div>
+        </div>
+        <div class="pat-suggestion">
+          <div class="ps-lbl">🤖 Learning Agent önerisi</div>
+          <div class="ps-txt">Review eşiğini 20 → 25 puana çıkar. Ayrıca makro "bullish" iken review için ek koşul ekle: sector da weakening olmalı.</div>
+          <div class="ps-btns">
+            <button class="ps-btn ps-btn-acc">Uygula</button>
+            <button class="ps-btn ps-btn-ign">Reddet</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="pattern">
+        <div class="pat-hdr">
+          <div class="pat-agent">Macro Agent</div>
+          <div class="pat-severity sev-low">Düşük öncelik</div>
+        </div>
+        <div class="pat-title">VIX 25–30 arası sinyal gecikmesi</div>
+        <div class="pat-desc">Macro Agent VIX 30'da "cautious" veriyor. Ama VIX 25'e çıktığında piyasa zaten %4–6 düşmüş oluyor. Eşiği 25'e çekmek dönüşleri daha erken yakalayabilir.</div>
+        <div class="pat-data">
+          <div class="pd"><div class="pd-lbl">Gecikme Örnek Sayısı</div><div class="pd-val c-yellow">2</div></div>
+          <div class="pd"><div class="pd-lbl">Ortalama Gecikme</div><div class="pd-val">3.2 gün</div></div>
+          <div class="pd"><div class="pd-lbl">Öneri</div><div class="pd-val" style="font-size:12px">VIX → 25</div></div>
+        </div>
+        <div class="pat-suggestion">
+          <div class="ps-lbl">🤖 Learning Agent önerisi</div>
+          <div class="ps-txt">Macro Agent'ın cautious eşiğini VIX 30 → 25'e çek. Dikkat: bu daha fazla "cautious" sinyal üretir, false positive riskini de artırabilir. Test et.</div>
+          <div class="ps-btns">
+            <button class="ps-btn ps-btn-acc">Uygula</button>
+            <button class="ps-btn ps-btn-ign">Reddet</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SENARYO 3: COUNTERFACTUAL ============ -->
+<div class="page" id="s2">
+
+  <div class="sec">
+    <div class="sec-title">↩ Counterfactual — Önerileri Uygulasaydın Ne Olurdu?</div>
+    <div class="cf-summary">
+      <div class="cf-row hdr">
+        <div>Hisse</div>
+        <div>Sistemin önerisi</div>
+        <div>Sen ne yaptın</div>
+        <div>Sistem sonucu</div>
+        <div>Senin sonucun</div>
+      </div>
+      <div class="cf-row">
+        <div><div class="dt-ticker">INTC</div><div style="font-size:10px;color:#64748b">14 Tem</div></div>
+        <div><span class="decision-pill dp-exit">Exit at $97.41</span></div>
+        <div style="font-size:12px;color:#64748b">Bekledi</div>
+        <div>
+          <div class="cf-num c-green">+$8.21/hisse</div>
+          <div style="font-size:10px;color:#64748b">14g sonra $89.20</div>
+        </div>
+        <div>
+          <div class="cf-num c-red">-$16.50/hisse</div>
+          <div style="font-size:10px;color:#64748b">Şu an $80.91</div>
+        </div>
+      </div>
+      <div class="cf-row">
+        <div><div class="dt-ticker">ENPH</div><div style="font-size:10px;color:#64748b">12 Tem</div></div>
+        <div><span class="decision-pill dp-enter">Enter at $104.80</span></div>
+        <div style="font-size:12px;color:#64748b">Uygulad</div>
+        <div>
+          <div class="cf-num c-green">+€174</div>
+          <div style="font-size:10px;color:#64748b">€600 → €774</div>
+        </div>
+        <div>
+          <div class="cf-num c-green">+€174</div>
+          <div style="font-size:10px;color:#64748b">Aynı sonuç</div>
+        </div>
+      </div>
+      <div class="cf-row">
+        <div><div class="dt-ticker">NVDA</div><div style="font-size:10px;color:#64748b">08 Tem</div></div>
+        <div><span class="decision-pill dp-exit">Exit at $598</span></div>
+        <div style="font-size:12px;color:#64748b">Uygulad</div>
+        <div>
+          <div class="cf-num c-red">-€43</div>
+          <div style="font-size:10px;color:#64748b">Erken çıkış hatası</div>
+        </div>
+        <div>
+          <div class="cf-num c-red">-€43</div>
+          <div style="font-size:10px;color:#64748b">Aynı (sistem yanlıştı)</div>
+        </div>
+      </div>
+      <div class="cf-row">
+        <div><div class="dt-ticker">LLY</div><div style="font-size:10px;color:#64748b">28 Haz</div></div>
+        <div><span class="decision-pill dp-enter">Enter at $820</span></div>
+        <div style="font-size:12px;color:#64748b">Bekledi</div>
+        <div>
+          <div class="cf-num c-green">+€152</div>
+          <div style="font-size:10px;color:#64748b">€600 → €752</div>
+        </div>
+        <div>
+          <div class="cf-num c-red">€0</div>
+          <div style="font-size:10px;color:#64748b">Kaçırıldı</div>
+        </div>
+      </div>
+      <div class="cf-row">
+        <div><div class="dt-ticker">META</div><div style="font-size:10px;color:#64748b">22 Haz</div></div>
+        <div><span class="decision-pill dp-exit">Exit at $520</span></div>
+        <div style="font-size:12px;color:#64748b">Bekledi</div>
+        <div>
+          <div class="cf-num c-green">+€22</div>
+          <div style="font-size:10px;color:#64748b">14g sonra $498</div>
+        </div>
+        <div>
+          <div class="cf-num c-red">-€62</div>
+          <div style="font-size:10px;color:#64748b">Şu an $458</div>
+        </div>
+      </div>
+
+      <div class="cf-total">
+        <div class="cft-item">
+          <div class="cft-lbl">Sistem öneri sonucu (tüm kararlar uygulandı)</div>
+          <div class="cft-val c-green">+€305</div>
+        </div>
+        <div class="cft-item">
+          <div class="cft-lbl">Gerçek sonuç (kısmi uygulama)</div>
+          <div class="cft-val c-yellow">+€69</div>
+        </div>
+        <div class="cft-item">
+          <div class="cft-lbl">Fark (sistemi tamamen takip etseydin)</div>
+          <div class="cft-val c-green">+€236 fazla</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Note -->
+    <div style="background:#1a1d2e;border:1px solid #2d3148;border-radius:10px;padding:14px 16px;margin-top:12px;">
+      <div style="font-size:10px;color:#7c85ff;font-weight:600;margin-bottom:6px;">🤖 Learning Agent yorumu</div>
+      <div style="font-size:12px;color:#94a3b8;line-height:1.7">
+        Son 47 günde sistemi tam takip etseydin <strong style="color:#4ade80">+€236 daha fazla</strong> kazanırdın. En büyük fark: <strong style="color:#e2e8f0">INTC exit'i (sistem doğruydu, bekledi)</strong> ve <strong style="color:#e2e8f0">LLY girişi (sistem doğruydu, bekledi)</strong>.
+        <br><br>
+        Tek hata: NVDA erken exit (earnings öncesi) — bu Learning Agent'ın tespit ettiği pattern. Düzeltme önerisi zaten gönderildi.
+        <br><br>
+        <strong style="color:#fbbf24">Önerim:</strong> Sisteme daha fazla güven. En büyük kayıplar sistemi dinlemediğinde oluştu.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function show(idx) {
+  document.querySelectorAll('.page').forEach((p,i) => p.classList.toggle('active', i===idx));
+  document.querySelectorAll('.s-tab').forEach((t,i) => t.classList.toggle('active', i===idx));
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,245 @@
+<h2 class="sr-only">My Radar — action-first redesign with clear action labels on each row and decision banner in detail panel</h2>
+
+<style>
+* { box-sizing: border-box; }
+.page { font-family: var(--font-sans); color: var(--text-primary); padding: 1rem 0; }
+
+.nav { display: flex; border-bottom: 1px solid var(--border); background: var(--surface-0); margin-bottom: 0; }
+.nav-tab { padding: 9px 16px; font-size: 12px; color: var(--text-secondary); }
+.nav-tab.active { color: var(--text-accent); border-bottom: 2px solid var(--text-accent); font-weight: 500; }
+
+.sec-lbl { font-size: 10px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin: 20px 0 6px; padding-bottom: 5px; border-bottom: 1px solid var(--border); }
+.sec-lbl:first-of-type { margin-top: 14px; }
+
+.ps { background: var(--surface-0); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin: 12px 0 8px; }
+.ps-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.ps-lbl { font-size: 11px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.badge-on { font-size: 11px; padding: 3px 10px; border-radius: 99px; background: var(--bg-success); color: var(--text-success); font-weight: 500; }
+.ps-stats { display: flex; }
+.ps-stat { flex: 1; text-align: center; padding: 0 8px; border-right: 1px solid var(--border); }
+.ps-stat:last-child { border-right: none; }
+.ps-stat .v { font-size: 20px; font-weight: 500; }
+.ps-stat .l { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+.ps-warn { background: var(--bg-warning); border: 1px solid var(--border-warning); border-radius: 6px; padding: 6px 10px; font-size: 11px; color: var(--text-warning); margin-top: 10px; display: flex; align-items: center; gap: 6px; }
+
+.list-hdr { display: flex; justify-content: space-between; align-items: center; margin: 12px 0 5px; }
+.list-hdr .l { font-size: 11px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.list-hdr .r { font-size: 11px; color: var(--text-muted); }
+
+.row { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; border: 0.5px solid var(--border); margin-bottom: 5px; background: var(--surface-1); cursor: pointer; }
+.row.active { border-color: var(--border-accent); background: var(--bg-accent); }
+.row.row-red { border-color: var(--border-danger); background: var(--bg-danger); }
+
+.dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.dot.g { background: #639922; }
+.dot.a { background: #BA7517; }
+.dot.r { background: #E24B4A; }
+
+.ticker { font-size: 13px; font-weight: 500; width: 44px; flex-shrink: 0; }
+.spill { font-size: 10px; padding: 2px 7px; border-radius: 99px; font-weight: 500; flex-shrink: 0; }
+.spill-w { background: var(--bg-accent); color: var(--text-accent); }
+.spill-h { background: var(--bg-success); color: var(--text-success); }
+
+.tags { display: flex; gap: 4px; flex: 1; flex-wrap: wrap; align-items: center; }
+.tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
+.tag-ok { background: var(--bg-success); color: var(--text-success); }
+.tag-earn { background: var(--bg-warning); color: var(--text-warning); }
+.tag-sec { background: var(--bg-warning); color: var(--text-warning); }
+
+.row-mid { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
+.price-sm { font-size: 11px; color: var(--text-secondary); }
+.pl { font-size: 12px; font-weight: 500; }
+.pl.pos { color: #3B6D11; }
+.pl.neg { color: #A32D2D; }
+.pl.none { color: var(--text-muted); }
+
+.action-pill { font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 6px; white-space: nowrap; flex-shrink: 0; }
+.ap-hold { background: var(--bg-success); color: var(--text-success); }
+.ap-wait { background: var(--bg-warning); color: var(--text-warning); }
+.ap-review { background: var(--bg-warning); color: var(--text-warning); }
+.ap-exit { background: #E24B4A; color: #fff; font-weight: 600; }
+
+.detail { border: 1px solid var(--border-danger); border-radius: 10px; overflow: hidden; margin-top: 8px; background: var(--surface-0); }
+
+.action-banner { padding: 12px 14px; display: flex; align-items: flex-start; gap: 10px; background: var(--bg-danger); border-bottom: 1px solid var(--border-danger); }
+.banner-icon { width: 32px; height: 32px; border-radius: 50%; background: #E24B4A; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+.banner-body { flex: 1; }
+.banner-action { font-size: 14px; font-weight: 500; color: #A32D2D; margin-bottom: 2px; }
+.banner-reason { font-size: 12px; color: #A32D2D; opacity: 0.85; }
+.banner-btns { display: flex; gap: 7px; flex-shrink: 0; align-items: center; }
+.btn-exit { padding: 6px 14px; border-radius: 7px; font-size: 12px; font-weight: 500; background: #E24B4A; color: #fff; border: none; cursor: default; }
+.btn-keep { padding: 6px 12px; border-radius: 7px; font-size: 12px; background: var(--surface-2); color: var(--text-secondary); border: 0.5px solid var(--border); cursor: default; }
+
+.detail-inner { padding: 12px 14px; }
+.detail-cards { display: flex; gap: 8px; margin-bottom: 10px; }
+.dc { flex: 1; background: var(--surface-1); border: 0.5px solid var(--border); border-radius: 6px; padding: 7px 10px; }
+.dc .dl { font-size: 10px; color: var(--text-muted); margin-bottom: 2px; }
+.dc .dv { font-size: 13px; font-weight: 500; }
+.dc .dv.red { color: #A32D2D; }
+
+.agent-note { background: var(--surface-1); border: 0.5px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+.agent-lbl { font-size: 10px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px; }
+.agent-txt { font-size: 12px; color: var(--text-secondary); line-height: 1.6; }
+
+.detail-b { border: 1px solid var(--border-accent); border-radius: 10px; overflow: hidden; margin-top: 8px; background: var(--surface-0); }
+
+.action-banner-b { padding: 12px 14px; display: flex; align-items: flex-start; gap: 10px; background: var(--bg-warning); border-bottom: 1px solid var(--border-warning); }
+.banner-action-b { font-size: 14px; font-weight: 500; color: #633806; margin-bottom: 2px; }
+.banner-reason-b { font-size: 12px; color: #854F0B; }
+.banner-btns-b { display: flex; gap: 7px; flex-shrink: 0; align-items: center; }
+.btn-reduce { padding: 6px 14px; border-radius: 7px; font-size: 12px; font-weight: 500; background: #BA7517; color: #fff; border: none; cursor: default; }
+
+.comp-note { background: var(--surface-1); border-left: 3px solid #BA7517; border-radius: 0 6px 6px 0; padding: 8px 12px; margin-top: 10px; font-size: 11px; color: var(--text-secondary); line-height: 1.5; }
+
+.divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+.note-box { background: var(--bg-accent); border: 0.5px solid var(--border-accent); border-radius: 8px; padding: 8px 12px; margin-top: 8px; }
+.note-lbl { font-size: 10px; font-weight: 500; color: var(--text-accent); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+.note-txt { font-size: 11px; color: var(--text-secondary); }
+</style>
+
+<div class="page">
+
+<div class="nav">
+  <div class="nav-tab">Candidates</div>
+  <div class="nav-tab">Sector Heatmap</div>
+  <div class="nav-tab">Opportunities</div>
+  <div class="nav-tab active">My Radar</div>
+  <div class="nav-tab">Deep Dive</div>
+</div>
+
+<div class="ps">
+  <div class="ps-top">
+    <div class="ps-lbl">Portfolio summary</div>
+    <div class="badge-on">RISK_ON</div>
+  </div>
+  <div class="ps-stats">
+    <div class="ps-stat"><div class="v">4</div><div class="l">Positions</div></div>
+    <div class="ps-stat"><div class="v">71</div><div class="l">Avg score</div></div>
+    <div class="ps-stat"><div class="v">40%</div><div class="l">Semicon</div></div>
+    <div class="ps-stat"><div class="v" style="color:#A32D2D">2</div><div class="l">Warnings</div></div>
+  </div>
+  <div class="ps-warn"><i class="ti ti-alert-triangle" aria-hidden="true"></i> Concentration warning: Semicon >33% — ASML + NVDA same sector</div>
+</div>
+
+<div class="list-hdr"><div class="l">Watching (1)</div><div class="r">Waiting for entry</div></div>
+
+<div class="row">
+  <div class="dot a"></div>
+  <div class="ticker">MNST</div>
+  <div class="spill spill-w">Watching</div>
+  <div class="tags"><div class="tag tag-ok">Thesis valid</div></div>
+  <div style="flex:1"></div>
+  <div class="row-mid">
+    <div class="price-sm">$99.73 · target $90.96</div>
+    <div class="pl none">—</div>
+  </div>
+  <div class="action-pill ap-wait">Wait · 9.6% above</div>
+</div>
+
+<div class="list-hdr" style="margin-top:14px"><div class="l">Holding (3)</div><div class="r">Monitored nightly</div></div>
+
+<div class="row">
+  <div class="dot g"></div>
+  <div class="ticker">ASML</div>
+  <div class="spill spill-h">Holding</div>
+  <div class="tags"><div class="tag tag-ok">Thesis valid</div></div>
+  <div style="flex:1"></div>
+  <div class="row-mid">
+    <div class="price-sm">$224.10</div>
+    <div class="pl pos">+6.5%</div>
+  </div>
+  <div class="action-pill ap-hold">Hold ✓</div>
+</div>
+
+<div class="row">
+  <div class="dot a"></div>
+  <div class="ticker">NVDA</div>
+  <div class="spill spill-h">Holding</div>
+  <div class="tags">
+    <div class="tag tag-earn">Earnings 6d</div>
+    <div class="tag tag-sec">Sector ⚠</div>
+  </div>
+  <div style="flex:1"></div>
+  <div class="row-mid">
+    <div class="price-sm">$131.20</div>
+    <div class="pl pos">+2.1%</div>
+  </div>
+  <div class="action-pill ap-review">Review →</div>
+</div>
+
+<div class="row row-red active">
+  <div class="dot r"></div>
+  <div class="ticker">INTC</div>
+  <div class="spill spill-h">Holding</div>
+  <div style="flex:1"></div>
+  <div class="row-mid">
+    <div class="price-sm">$97.41</div>
+    <div class="pl neg">-29.3%</div>
+  </div>
+  <div class="action-pill ap-exit">Exit now →</div>
+</div>
+
+<div class="sec-lbl">Detail panel — INTC (red row selected)</div>
+
+<div class="detail">
+  <div class="action-banner">
+    <div class="banner-icon"><i class="ti ti-alert-triangle" style="color:#fff;font-size:16px" aria-hidden="true"></i></div>
+    <div class="banner-body">
+      <div class="banner-action">Exit this position</div>
+      <div class="banner-reason">Support at $97.22 breached · thesis no longer holds · score declining 3 weeks</div>
+    </div>
+    <div class="banner-btns">
+      <div class="btn-exit">Mark as sold</div>
+      <div class="btn-keep">Keep holding</div>
+    </div>
+  </div>
+  <div class="detail-inner">
+    <div class="detail-cards">
+      <div class="dc"><div class="dl">Current score</div><div class="dv red">38/100</div></div>
+      <div class="dc"><div class="dl">Entry thesis</div><div class="dv">Semicon cycle</div></div>
+      <div class="dc"><div class="dl">Exit condition</div><div class="dv">$97 support break</div></div>
+    </div>
+    <div class="agent-note">
+      <div class="agent-lbl">Agent note</div>
+      <div class="agent-txt">EMA alignment broken. Price closed below $97.22 support for the second day. Score has declined from 71 → 38 over 3 weeks. Original thesis (semicon cycle recovery) is not playing out. Waiting longer increases downside risk.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sec-lbl" style="margin-top:20px">Detail panel — NVDA (amber row, earnings approaching)</div>
+
+<div class="detail-b">
+  <div class="action-banner-b">
+    <div class="banner-icon" style="background:#BA7517"><i class="ti ti-chart-line-down" style="color:#fff;font-size:16px" aria-hidden="true"></i></div>
+    <div class="banner-body">
+      <div class="banner-action-b">Review your position size</div>
+      <div class="banner-reason-b">Earnings in 6 days · sector rotation risk · consider reducing before report</div>
+    </div>
+    <div class="banner-btns-b">
+      <div class="btn-reduce">Reduce size</div>
+      <div class="btn-keep">Keep full</div>
+    </div>
+  </div>
+  <div class="detail-inner">
+    <div class="detail-cards">
+      <div class="dc"><div class="dl">Current score</div><div class="dv">64/100</div></div>
+      <div class="dc"><div class="dl">Entry thesis</div><div class="dv">AI cycle play</div></div>
+      <div class="dc"><div class="dl">Exit condition</div><div class="dv">$118 support</div></div>
+    </div>
+    <div class="agent-note">
+      <div class="agent-lbl">Agent note</div>
+      <div class="agent-txt">Earnings in 6 days — historical move is ±9%. Sector showing early rotation signals. Thesis still intact but risk/reward changes around earnings. Score stable but not improving.</div>
+    </div>
+    <div class="comp-note"><strong>What to do:</strong> If you want to stay in, that's fine — but consider sizing down 30–50% before the report and re-adding after if the reaction is positive.</div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<div class="note-box">
+  <div class="note-lbl">What changed vs. before</div>
+  <div class="note-txt">Each row now ends with a plain-language action: <strong>Hold ✓ · Wait · Review → · Exit now →</strong>. The detail panel leads with the action decision at the top — not buried in the agent note. Buttons are concrete: "Mark as sold", "Reduce size", "Keep holding" — not just information.</div>
+</div>
+
+</div>

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Investment Radar — Buy card mock (clear thesis)</title>
+<style>
+  :root {
+    --bg: #0b0d12;
+    --panel: #12151e;
+    --line: #2d3148;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --dim: #64748b;
+    --green: #86efac;
+    --green-bg: #14532d;
+    --amber: #fcd34d;
+    --amber-bg: #422006;
+    --red: #fca5a5;
+    --blue: #93c5fd;
+    --accent: #a5b4fc;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--bg); color: var(--text);
+    padding: 28px 18px 70px; line-height: 1.45;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; }
+  .eyebrow {
+    font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--accent); font-weight: 700; margin-bottom: 8px;
+  }
+  h1 { font-size: 22px; font-weight: 650; margin-bottom: 8px; }
+  .lede { font-size: 13px; color: var(--muted); margin-bottom: 22px; }
+
+  .problem {
+    background: #450a0a33; border: 1px solid #7f1d1d66; border-radius: 10px;
+    padding: 12px 14px; margin-bottom: 22px; font-size: 13px; color: var(--muted);
+  }
+  .problem b { color: var(--red); }
+
+  .buy-card {
+    background: linear-gradient(180deg, #151827 0%, #0f1117 100%);
+    border: 1px solid #16653488; border-radius: 14px; padding: 18px;
+    margin-bottom: 16px;
+  }
+  .buy-card.wait {
+    border-color: #92400e88;
+  }
+  .buy-card.exit {
+    border-color: #7f1d1d88;
+  }
+
+  .head {
+    display: flex; justify-content: space-between; gap: 12px; align-items: flex-start;
+    margin-bottom: 14px; flex-wrap: wrap;
+  }
+  .ticker-block .sym {
+    font-size: 26px; font-weight: 750; letter-spacing: 0.02em;
+  }
+  .ticker-block .kind {
+    font-size: 12px; color: var(--dim); margin-top: 2px;
+  }
+  .verdict {
+    text-align: right;
+  }
+  .verdict .do {
+    font-size: 18px; font-weight: 700; color: var(--green);
+  }
+  .buy-card.wait .verdict .do { color: var(--amber); }
+  .buy-card.exit .verdict .do { color: var(--red); }
+  .verdict .amt {
+    font-size: 20px; font-weight: 700; color: var(--blue); margin-top: 2px;
+  }
+  .verdict .amt span { font-size: 11px; color: var(--dim); font-weight: 500; display: block; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+  .chip {
+    font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 6px;
+    border: 1px solid #334155; background: #1e293b; color: #cbd5e1;
+  }
+  .chip.green { background: var(--green-bg); color: var(--green); border-color: #16a34a; }
+  .chip.amber { background: var(--amber-bg); color: var(--amber); border-color: #b45309; }
+  .chip.blue { background: #1e3a5f; color: #7dd3fc; border-color: #0284c7; }
+  .chip.purple { background: #312e81; color: #c4b5fd; border-color: #6366f1; }
+
+  .qa { margin-bottom: 12px; }
+  .qa .q {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.07em;
+    text-transform: uppercase; color: var(--dim); margin-bottom: 4px;
+  }
+  .qa .a {
+    font-size: 14px; color: var(--text); background: #0f1117;
+    border: 1px solid #1e2233; border-radius: 8px; padding: 10px 12px;
+  }
+  .qa .a.muted { color: var(--muted); font-size: 13px; }
+
+  .grid2 {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px;
+  }
+  @media (max-width: 560px) { .grid2 { grid-template-columns: 1fr; } }
+
+  .foot {
+    margin-top: 14px; padding-top: 12px; border-top: 1px solid #1e2233;
+    font-size: 12px; color: var(--dim);
+  }
+
+  .mini-list { margin-top: 28px; }
+  .mini-list h2 {
+    font-size: 11px; color: var(--dim); text-transform: uppercase;
+    letter-spacing: 0.07em; margin-bottom: 10px;
+  }
+  .row {
+    display: grid; grid-template-columns: 64px 1fr; gap: 10px;
+    padding: 10px 0; border-bottom: 1px solid #1e2233; font-size: 13px;
+  }
+  .row .t { font-weight: 700; }
+  .row .s { color: var(--muted); font-size: 12px; margin-top: 2px; }
+
+  .note { margin-top: 24px; font-size: 12px; color: var(--dim); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">UI mock · buy decision card</div>
+  <h1>When you buy — what you must see</h1>
+  <p class="lede">
+    Not a wall of identical pills. One card per idea: action, size, horizon,
+    <b>thesis</b>, and <b>when you’re wrong</b>.
+  </p>
+
+  <div class="problem">
+    <b>Today’s problem:</b> “Fits · Enter now · €100” does not tell you
+    <i>why</i> to own it or <i>when</i> to quit. Below = the card that should open
+    when you tap a Priority A name (or “+ Radar”).
+  </div>
+
+  <!-- ═══════════ BUY CARD ═══════════ -->
+  <div class="buy-card">
+    <div class="head">
+      <div class="ticker-block">
+        <div class="sym">ED</div>
+        <div class="kind">Consolidated Edison · Stock · Utilities</div>
+      </div>
+      <div class="verdict">
+        <div class="do">Enter today</div>
+        <div class="amt">€150 <span>~7% of €2000 monthly budget</span></div>
+      </div>
+    </div>
+
+    <div class="chips">
+      <span class="chip green">Priority A</span>
+      <span class="chip blue">Trade · ~2–3 weeks</span>
+      <span class="chip green">Fits your portfolio</span>
+      <span class="chip">Score 80</span>
+    </div>
+
+    <div class="qa">
+      <div class="q">1 · Thesis — why own this?</div>
+      <div class="a">
+        Defensive market (risk-off). ED is a utility sitting near support —
+        you’re buying the bounce/hold of that level, not a multi-year story.
+      </div>
+    </div>
+
+    <div class="qa">
+      <div class="q">2 · Why today (not last week / next month)?</div>
+      <div class="a">
+        Price is within ~2% of support ($110). Volume confirms interest.
+        Same day the scan is full of utilities — regime matches the name.
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="qa">
+        <div class="q">3 · Horizon</div>
+        <div class="a muted">
+          <b style="color:#7dd3fc">Trade</b><br>
+          Plan for ~2–3 weeks. This is not “buy and forget.”
+        </div>
+      </div>
+      <div class="qa">
+        <div class="q">4 · You’re wrong if…</div>
+        <div class="a muted">
+          Weekly close <b style="color:#fca5a5">below support ~$110</b>
+          → exit. Don’t average down on a broken level.
+        </div>
+      </div>
+    </div>
+
+    <div class="qa">
+      <div class="q">5 · Why this size?</div>
+      <div class="a muted">
+        €150 = small slice of monthly budget. Fit is clean (no utility pile-up in your book).
+        Not €100×8 clones — this is the only Priority A enter today.
+      </div>
+    </div>
+
+    <div class="foot">
+      Save to Radar = stores this thesis + exit text so Exit Agent can watch it.
+    </div>
+  </div>
+
+  <!-- WAIT CARD -->
+  <div class="buy-card wait">
+    <div class="head">
+      <div class="ticker-block">
+        <div class="sym">VUSA</div>
+        <div class="kind">Vanguard S&amp;P 500 · ETF · Core</div>
+      </div>
+      <div class="verdict">
+        <div class="do">Wait — don’t chase</div>
+        <div class="amt">€200 <span>only if you still have room later</span></div>
+      </div>
+    </div>
+    <div class="chips">
+      <span class="chip amber">Priority B</span>
+      <span class="chip purple">Position · longer hold</span>
+      <span class="chip amber">Wait</span>
+    </div>
+    <div class="qa">
+      <div class="q">Thesis — why might you own this?</div>
+      <div class="a">
+        Core US market exposure for the portfolio — not a 2-week trade.
+        Fine to hold for months if you want beta to the index.
+      </div>
+    </div>
+    <div class="qa">
+      <div class="q">Why wait?</div>
+      <div class="a muted">
+        No urgency vs ED today. Add on a quieter session or a clearer pullback —
+        don’t spend the budget on “also fine” names the same morning you exit ASTS.
+      </div>
+    </div>
+  </div>
+
+  <!-- EXIT CARD -->
+  <div class="buy-card exit">
+    <div class="head">
+      <div class="ticker-block">
+        <div class="sym">ASTS</div>
+        <div class="kind">Your holding · exit triggered</div>
+      </div>
+      <div class="verdict">
+        <div class="do">Exit now</div>
+        <div class="amt">Sell <span>before new buys</span></div>
+      </div>
+    </div>
+    <div class="qa">
+      <div class="q">What broke?</div>
+      <div class="a">
+        Your exit was “weekly close below $66.” Price printed below that.
+        The original trade thesis is done — holding is a new bet, not the old one.
+      </div>
+    </div>
+  </div>
+
+  <div class="mini-list">
+    <h2>List row can stay short — detail opens the card</h2>
+    <div class="row">
+      <div class="t">ED</div>
+      <div>
+        <div>Enter · Trade · €150 · Priority A</div>
+        <div class="s">Tap → full thesis + exit (card above)</div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="t">NEE</div>
+      <div>
+        <div>Watch · same theme as ED</div>
+        <div class="s">No full buy card unless you promote it</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="note">
+    File: <code>beta-version/ui_mockup_buy_thesis.html</code><br>
+    Open: Finder → investment-radar → beta-version → double-click the file
+    (or paste path in browser).
+  </p>
+</div>
+</body>
+</html>

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Investment Radar — Slim Beta · Akış Haritası</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f1117;color:#e2e8f0;padding:24px;max-width:920px;margin:0 auto}
+h1{font-size:16px;font-weight:600;color:#7c85ff;margin-bottom:4px}
+.sub{font-size:12px;color:#64748b;margin-bottom:8px}
+.vs{font-size:11px;color:#94a3b8;margin-bottom:24px;padding:8px 12px;background:#1a1d2e;border:1px solid #2d3148;border-radius:8px}
+.vs b{color:#a5b4fc;font-weight:500}
+
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:28px;padding:14px;background:#13151f;border:1px solid #2d3148;border-radius:11px}
+.flow-box{font-size:11px;padding:8px 12px;border-radius:8px;border:1px solid #2d3148;background:#1a1d2e;white-space:nowrap}
+.flow-box.pipeline{border-color:#334155;color:#94a3b8}
+.flow-box.shared{border-color:#1d4ed855;background:#1e3a5f33;color:#60a5fa}
+.flow-box.radar{border-color:#92400e55;background:#78350f22;color:#fbbf24}
+.flow-box.cand{border-color:#6b21a855;background:#3b076422;color:#c084fc}
+.flow-box.brief{border-color:#15803d55;background:#14532d22;color:#4ade80}
+.flow-box.ui{border-color:#9f123955;background:#4c051922;color:#f87171}
+.flow-box.opt{border-color:#0369a155;background:#0c4a6e22;color:#38bdf8;border-style:dashed}
+.flow-arr{color:#4a4f6b;font-size:14px}
+.flow-note{width:100%;font-size:10px;color:#64748b;margin-top:4px}
+
+.layer-lbl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#64748b;padding:6px 0 8px;margin-top:20px;border-top:1px solid #2d3148}
+.layer-lbl:first-of-type{margin-top:0;border-top:none}
+
+.agent{border:1px solid #2d3148;border-radius:11px;margin-bottom:8px;overflow:hidden}
+.agent-hdr{display:grid;grid-template-columns:28px 1fr auto;gap:8px;align-items:center;padding:10px 13px;border-bottom:1px solid #2d3148;background:#1a1d2e}
+.anum{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0}
+.aname{font-size:13px;font-weight:500}
+.adesc{font-size:10px;color:#94a3b8}
+.abadge{font-size:9px;padding:2px 8px;border-radius:4px;white-space:nowrap;font-weight:500}
+
+.agent-body{display:grid;grid-template-columns:1fr 32px 1fr;align-items:stretch}
+.col{padding:10px 13px}
+.col-lbl{font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;color:#64748b}
+.col-out .col-lbl{color:#7c85ff}
+.row{font-size:11px;padding:3px 0;border-bottom:1px solid #2d3148;display:flex;gap:6px;align-items:flex-start;color:#94a3b8;line-height:1.4}
+.row:last-child{border:none}
+.row-ic{flex-shrink:0;margin-top:1px;font-size:10px}
+.arrow{display:flex;align-items:center;justify-content:center;color:#4a4f6b;font-size:16px;border-left:1px solid #2d3148;border-right:1px solid #2d3148;background:#13151f}
+.col-out .row{color:#a5b4fc}
+.tag{font-size:8px;padding:1px 5px;border-radius:3px;font-weight:500;margin-left:4px;white-space:nowrap}
+.tag-code{background:#33415555;color:#94a3b8}
+.tag-llm{background:#312e8155;color:#a5b4fc}
+.tag-new{background:#78350f33;color:#fbbf24}
+.tag-later{background:#1e293b;color:#64748b;border:1px dashed #334155}
+
+.l0 .anum{background:#334155;color:#e2e8f0}
+.l1 .anum{background:#dbeafe;color:#1d4ed8}
+.l2 .anum{background:#fef3c7;color:#92400e}
+.l3 .anum{background:#f3e8ff;color:#6b21a8}
+.l4 .anum{background:#dcfce7;color:#15803d}
+.l5 .anum{background:#ffe4e6;color:#9f1239}
+.l6 .anum{background:#e0f2fe;color:#0369a1}
+
+.l0 .abadge{background:#33415533;color:#94a3b8;border:1px solid #47556955}
+.l1 .abadge{background:#dbeafe22;color:#60a5fa;border:1px solid #1d4ed833}
+.l2 .abadge{background:#fef3c722;color:#fbbf24;border:1px solid #92400e33}
+.l3 .abadge{background:#f3e8ff22;color:#c084fc;border:1px solid #6b21a833}
+.l4 .abadge{background:#dcfce722;color:#4ade80;border:1px solid #15803d33}
+.l5 .abadge{background:#ffe4e622;color:#f87171;border:1px solid #9f123933}
+.l6 .abadge{background:#e0f2fe22;color:#38bdf8;border:1px solid #0369a133}
+
+.merge{font-size:10px;color:#64748b;padding:6px 12px;margin:4px 0 12px;border-left:2px solid #2d3148}
+.merge b{color:#94a3b8;font-weight:500}
+
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px;padding-top:16px;border-top:1px solid #2d3148;font-size:10px;color:#64748b}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+</style>
+</head>
+<body>
+
+<h1>Investment Radar — Slim Beta · Akış Haritası</h1>
+<div class="sub">3 LLM grubu + kod katmanı · 11 agent yerine sadeleştirilmiş beta</div>
+<div class="vs"><b>Eski:</b> Macro · Sector · Earnings · Exit · AvgDown · Risk · Fit · Timing · Sizing · Orchestrator · Events
+&nbsp;→&nbsp; <b>Yeni:</b> Shared Context · Radar Agent · Candidates Agent · Brief Builder &nbsp;(+ monitors / Deep Dive sonra)</div>
+
+<!-- TIMELINE FLOW -->
+<div class="flow">
+  <div class="flow-box pipeline">Pipeline<br><small style="opacity:.7">mevcut · değişmez</small></div>
+  <div class="flow-arr">→</div>
+  <div class="flow-box shared">1. Shared Context<br><small style="opacity:.7">kod (+ ince haber)</small></div>
+  <div class="flow-arr">→</div>
+  <div class="flow-box radar">2. Radar Agent</div>
+  <div class="flow-arr">↘</div>
+  <div class="flow-box cand">3. Candidates Agent</div>
+  <div class="flow-arr">→</div>
+  <div class="flow-box brief">4. Brief Builder</div>
+  <div class="flow-arr">→</div>
+  <div class="flow-box ui">UI · daily_brief</div>
+  <div class="flow-note">Paralel: 2 ve 3, Shared’dan sonra aynı anda çalışabilir. Brief en sonda. Price Alert / Events / Deep Dive ayrı (dashed).</div>
+  <div class="flow-box opt" style="margin-top:2px">Price Alert (kod)</div>
+  <div class="flow-box opt">Events (sonra)</div>
+  <div class="flow-box opt">Deep Dive debate (on-demand)</div>
+</div>
+
+<!-- LAYER 0 -->
+<div class="layer-lbl">Katman 0 — Mevcut pipeline · Gece ~23:00 · Değişmez</div>
+
+<div class="agent l0">
+  <div class="agent-hdr">
+    <div class="anum">0</div>
+    <div><div class="aname">Code Pipeline</div><div class="adesc">event_filter → scorer → decision_engine + macro/sector layers</div></div>
+    <div class="abadge">Kod only</div>
+  </div>
+  <div class="agent-body">
+    <div class="col col-in">
+      <div class="col-lbl">Girdi</div>
+      <div class="row"><span class="row-ic">•</span>Universe (~521 hisse), OHLCV</div>
+      <div class="row"><span class="row-ic">•</span>TNX / DXY, sektör ETF’leri</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="col col-out">
+      <div class="col-lbl">Çıktı (mevcut koleksiyonlar)</div>
+      <div class="row"><span class="row-ic">•</span>daily_candidates</div>
+      <div class="row"><span class="row-ic">•</span>macro_regime/current</div>
+      <div class="row"><span class="row-ic">•</span>sector_status</div>
+      <div class="row"><span class="row-ic">•</span>oversold_watch, heatmap, …</div>
+    </div>
+  </div>
+</div>
+
+<!-- LAYER 1 -->
+<div class="layer-lbl">Katman 1 — Shared Context · Gece 23:30 · Eski agent 1–3 birleşti</div>
+
+<div class="agent l1">
+  <div class="agent-hdr">
+    <div class="anum">1</div>
+    <div><div class="aname">Shared Context</div><div class="adesc">Macro + sektör + earnings tag’leri. Rejim hesabı kodda kalır; haber sadece açıklama.</div></div>
+    <div class="abadge">Kod + opsiyonel Haiku</div>
+  </div>
+  <div class="agent-body">
+    <div class="col col-in">
+      <div class="col-lbl">Girdi</div>
+      <div class="row"><span class="row-ic">🔥</span>macro_regime/current</div>
+      <div class="row"><span class="row-ic">📊</span>sector_status (LEADING / WEAKENING…)</div>
+      <div class="row"><span class="row-ic">📋</span>radar_items + candidates → days_to_earnings</div>
+      <div class="row"><span class="row-ic">📰</span>Opsiyonel: 5 makro + sektör sektör headline <span class="tag tag-new">ince haber</span></div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="col col-out">
+      <div class="col-lbl">Çıktı → agents/shared_context</div>
+      <div class="row"><span class="row-ic">•</span>macro: bullish / neutral / cautious <span class="tag tag-code">kod</span></div>
+      <div class="row"><span class="row-ic">•</span>sectors: {XLK: weakening, …} <span class="tag tag-code">kod</span></div>
+      <div class="row"><span class="row-ic">•</span>earnings_tags: [{ticker, days, risk}] <span class="tag tag-code">kod</span></div>
+      <div class="row"><span class="row-ic">•</span>macro_note: 1–2 cümle <span class="tag tag-llm">LLM opsiyonel</span></div>
+      <div class="row"><span class="row-ic">→</span>UI tag: Sector ⚠ · Earnings 6d</div>
+    </div>
+  </div>
+</div>
+<div class="merge">Eski <b>Macro + Sector Rotation + Earnings Preview</b> agent’ları → tek Shared Context. Haber regime’i değiştirmez.</div>
+
+<!-- LAYER 2 -->
+<div class="layer-lbl">Katman 2 — Radar Agent · Gece 23:45 · Eski agent 4–6 birleşti · Holding’ler</div>
+
+<div class="agent l2">
+  <div class="agent-hdr">
+    <div class="anum">2</div>
+    <div><div class="aname">Radar Agent</div><div class="adesc">Exit / review / hold (+ isteğe avg-down kuralı + uyarı sayısı)</div></div>
+    <div class="abadge">Kod karar + Haiku not</div>
+  </div>
+  <div class="agent-body">
+    <div class="col col-in">
+      <div class="col-lbl">Girdi</div>
+      <div class="row"><span class="row-ic">📋</span>radar_items (holding) + exit_condition + thesis</div>
+      <div class="row"><span class="row-ic">📊</span>Fiyat, skor, destek (daily_candidates)</div>
+      <div class="row"><span class="row-ic">🔗</span>agents/shared_context</div>
+      <div class="row"><span class="row-ic">📈</span>P&L (trade_entries) — avg-down için</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="col col-out">
+      <div class="col-lbl">Çıktı → agents/radar_actions + trade notları</div>
+      <div class="row"><span class="row-ic">•</span>per position: flag exit / review / ok <span class="tag tag-code">kod</span></div>
+      <div class="row"><span class="row-ic">•</span>note: 2–3 cümle <span class="tag tag-llm">Haiku</span></div>
+      <div class="row"><span class="row-ic">•</span>avg_down?: wait / avg_down (P&amp;L&lt;-10%) <span class="tag tag-code">4 kural</span></div>
+      <div class="row"><span class="row-ic">•</span>portfolio: positions, warnings, top_sector_pct</div>
+      <div class="row"><span class="row-ic">→</span>UI: Exit now → / Review → / Hold ✓</div>
+    </div>
+  </div>
+</div>
+<div class="merge">Eski <b>Exit + Averaging Down + Risk Summary</b> → tek Radar Agent. Karar if-else; LLM sadece gerekçe yazar.</div>
+
+<!-- LAYER 3 -->
+<div class="layer-lbl">Katman 3 — Candidates Agent · Gece 23:45 · Eski agent 7–9 birleşti · Yeni adaylar</div>
+
+<div class="agent l3">
+  <div class="agent-hdr">
+    <div class="anum">3</div>
+    <div><div class="aname">Candidates Agent</div><div class="adesc">Portföye uyuyor mu? Şimdi mi? Ne kadar?</div></div>
+    <div class="abadge">Kod karar + Haiku reason</div>
+  </div>
+  <div class="agent-body">
+    <div class="col col-in">
+      <div class="col-lbl">Girdi</div>
+      <div class="row"><span class="row-ic">📊</span>daily_candidates (skor, destek, RSI, decision)</div>
+      <div class="row"><span class="row-ic">📋</span>radar_items → sektör yoğunluğu</div>
+      <div class="row"><span class="row-ic">🔗</span>agents/shared_context (macro / sektör)</div>
+      <div class="row"><span class="row-ic">⚙️</span>monthly_budget_eur (config)</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="col col-out">
+      <div class="col-lbl">Çıktı → agents/candidate_actions/{ticker}</div>
+      <div class="row"><span class="row-ic">•</span>fit: good_fit / overlap / no_fit <span class="tag tag-code">kod</span></div>
+      <div class="row"><span class="row-ic">•</span>timing: enter_now / wait + target <span class="tag tag-code">kod</span></div>
+      <div class="row"><span class="row-ic">•</span>amount_eur + weight_pct <span class="tag tag-code">math</span></div>
+      <div class="row"><span class="row-ic">•</span>reason: 1 cümle <span class="tag tag-llm">Haiku</span></div>
+      <div class="row"><span class="row-ic">→</span>UI: Fits ✓ · Enter now · €600</div>
+    </div>
+  </div>
+</div>
+<div class="merge">Eski <b>Portfolio Fit + Entry Timing + Position Sizing</b> → tek Candidates Agent. Tek doküman / ticker.</div>
+
+<!-- LAYER 4 -->
+<div class="layer-lbl">Katman 4 — Brief Builder · Gece 00:00 · Eski Orchestrator sadeleşti</div>
+
+<div class="agent l4">
+  <div class="agent-hdr">
+    <div class="anum">4</div>
+    <div><div class="aname">Brief Builder</div><div class="adesc">Sıralama kodda; LLM sadece 2 cümle sabah özeti</div></div>
+    <div class="abadge">Kod sort + Haiku/Sonnet summary</div>
+  </div>
+  <div class="agent-body">
+    <div class="col col-in">
+      <div class="col-lbl">Girdi</div>
+      <div class="row"><span class="row-ic">🔗</span>agents/shared_context</div>
+      <div class="row"><span class="row-ic">🔗</span>agents/radar_actions</div>
+      <div class="row"><span class="row-ic">🔗</span>agents/candidate_actions/*</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="col col-out">
+      <div class="col-lbl">Çıktı → agents/daily_brief</div>
+      <div class="row"><span class="row-ic">•</span>my_radar_actions: exit &gt; review &gt; ok <span class="tag tag-code">sort</span></div>
+      <div class="row"><span class="row-ic">•</span>candidates_ranked: enter_now &gt; wait <span class="tag tag-code">sort</span></div>
+      <div class="row"><span class="row-ic">•</span>budget_allocation</div>
+      <div class="row"><span class="row-ic">•</span>summary: 2 cümle <span class="tag tag-llm">LLM</span></div>
+      <div class="row"><span class="row-ic">→</span>UI: Daily Brief banner (tek okuma noktası)</div>
+    </div>
+  </div>
+</div>
+<div class="merge">Eski <b>Orchestrator Agent</b> artık sinyalleri yeniden “tartışmaz”; sadece birleştirir ve özetler. Frontend tercihen sadece <b>daily_brief</b> okur.</div>
+
+<!-- LAYER 5 UI -->
+<div class="layer-lbl">Katman 5 — Kullanıcı çıktısı · Sabah</div>
+
+<div class="agent l5">
+  <div class="agent-hdr">
+    <div class="anum">5</div>
+    <div><div class="aname">Frontend</div><div class="adesc">My Radar + Candidates — action-first</div></div>
+    <div class="abadge">Firestore read</div>
+  </div>
+  <div class="agent-body">
+    <div class="col col-in">
+      <div class="col-lbl">Girdi</div>
+      <div class="row"><span class="row-ic">⭐</span>agents/daily_brief (birincil)</div>
+      <div class="row"><span class="row-ic">🔗</span>radar_actions / candidate_actions (detay panel)</div>
+      <div class="row"><span class="row-ic">📋</span>radar_items, daily_candidates (mevcut)</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="col col-out">
+      <div class="col-lbl">Kullanıcı görür</div>
+      <div class="row"><span class="row-ic">•</span>Brief: bugün exit / review / enter</div>
+      <div class="row"><span class="row-ic">•</span>My Radar: renk noktası + action pill</div>
+      <div class="row"><span class="row-ic">•</span>Candidates: fit · timing · € · sıralı</div>
+      <div class="row"><span class="row-ic">•</span>Tag’ler: Earnings · Sector ⚠</div>
+    </div>
+  </div>
+</div>
+
+<!-- LAYER 6 optional -->
+<div class="layer-lbl">Katman 6 — Sonra / opsiyonel · MVP dışı</div>
+
+<div class="agent l6">
+  <div class="agent-hdr">
+    <div class="anum">A</div>
+    <div><div class="aname">Price Alert</div><div class="adesc">Watching hedef fiyata gelince bildir</div></div>
+    <div class="abadge">Kod only · 15 dk</div>
+  </div>
+  <div class="agent-body">
+    <div class="col col-in">
+      <div class="col-lbl">Girdi</div>
+      <div class="row"><span class="row-ic">📋</span>radar_items status=watching + entry_target</div>
+      <div class="row"><span class="row-ic">📊</span>Canlı fiyat (yfinance)</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="col col-out">
+      <div class="col-lbl">Çıktı → alerts/{ticker}_{date}</div>
+      <div class="row"><span class="row-ic">•</span>Push / in-app: hedefe geldi</div>
+    </div>
+  </div>
+</div>
+
+<div class="agent l6">
+  <div class="agent-hdr">
+    <div class="anum">B</div>
+    <div><div class="aname">Events Monitor</div><div class="adesc">Eski Events Agent — keyword filter + nadir Haiku</div></div>
+    <div class="abadge"><span class="tag tag-later">SONRA</span></div>
+  </div>
+  <div class="agent-body">
+    <div class="col col-in">
+      <div class="col-lbl">Girdi</div>
+      <div class="row"><span class="row-ic">📰</span>RSS / haber · radar ticker + tutulan sektör</div>
+      <div class="row"><span class="row-ic">📋</span>thesis (radar_items)</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="col col-out">
+      <div class="col-lbl">Çıktı → agents/events/{id}</div>
+      <div class="row"><span class="row-ic">•</span>Material ise uyarı; değilse sessizce at</div>
+    </div>
+  </div>
+</div>
+
+<div class="agent l6">
+  <div class="agent-hdr">
+    <div class="anum">C</div>
+    <div><div class="aname">Deep Dive Debate</div><div class="adesc">TradingAgents esintisi — bull/bear · on-demand</div></div>
+    <div class="abadge"><span class="tag tag-later">ON-DEMAND</span></div>
+  </div>
+  <div class="agent-body">
+    <div class="col col-in">
+      <div class="col-lbl">Girdi</div>
+      <div class="row"><span class="row-ic">📋</span>Tek ticker + thesis + exit_condition</div>
+      <div class="row"><span class="row-ic">📊</span>Skor / teknik + opsiyonel haber</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="col col-out">
+      <div class="col-lbl">Çıktı → Deep Dive paneli</div>
+      <div class="row"><span class="row-ic">•</span>Bull vs Bear + risk notu</div>
+      <div class="row"><span class="row-ic">•</span>Nightly pipeline’a girmez</div>
+    </div>
+  </div>
+</div>
+
+<div class="legend">
+  <span><span class="tag tag-code">kod</span> karar / hesap</span>
+  <span><span class="tag tag-llm">LLM</span> açıklama / özet</span>
+  <span><span class="tag tag-new">ince haber</span> regime’i değiştirmez</span>
+  <span><span class="tag tag-later">SONRA</span> MVP dışı</span>
+  <span>Karşılaştır: <a href="agent_io_map.html" style="color:#7c85ff">agent_io_map.html</a> (11 agent)</span>
+</div>
+
+</body>
+</html>

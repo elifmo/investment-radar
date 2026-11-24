@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Investment Radar — Agent Girdi / Çıktı Haritası</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f1117;color:#e2e8f0;padding:24px}
+h1{font-size:16px;font-weight:600;color:#7c85ff;margin-bottom:4px}
+.sub{font-size:12px;color:#64748b;margin-bottom:24px}
+
+.layer-lbl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#64748b;padding:6px 0 8px;margin-top:20px;border-top:1px solid #2d3148}
+.layer-lbl:first-of-type{margin-top:0;border-top:none}
+
+.agent{border:1px solid #2d3148;border-radius:11px;margin-bottom:8px;overflow:hidden}
+.agent-hdr{display:grid;grid-template-columns:28px 1fr auto;gap:8px;align-items:center;padding:10px 13px;border-bottom:1px solid #2d3148;background:#1a1d2e}
+.anum{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0}
+.aname{font-size:13px;font-weight:500}
+.adesc{font-size:10px;color:#94a3b8}
+.abadge{font-size:9px;padding:2px 8px;border-radius:4px;white-space:nowrap;font-weight:500}
+
+.agent-body{display:grid;grid-template-columns:1fr 32px 1fr;align-items:stretch}
+.col{padding:10px 13px}
+.col-lbl{font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;color:#64748b}
+.col-out .col-lbl{color:#7c85ff}
+.row{font-size:11px;padding:3px 0;border-bottom:1px solid #2d3148;display:flex;gap:6px;align-items:flex-start;color:#94a3b8;line-height:1.4}
+.row:last-child{border:none}
+.row-ic{flex-shrink:0;margin-top:1px;font-size:10px}
+.arrow{display:flex;align-items:center;justify-content:center;color:#4a4f6b;font-size:16px;border-left:1px solid #2d3148;border-right:1px solid #2d3148;background:#13151f}
+.col-out .row{color:#a5b4fc}
+.new-tag{font-size:8px;background:#78350f33;color:#fbbf24;padding:1px 5px;border-radius:3px;font-weight:500;margin-left:4px}
+
+.l3 .anum{background:#dbeafe;color:#1d4ed8}
+.l4a .anum{background:#fef3c7;color:#92400e}
+.l4b .anum{background:#f3e8ff;color:#6b21a8}
+.l45 .anum{background:#dcfce7;color:#15803d}
+.l5 .anum{background:#ffe4e6;color:#9f1239}
+.l6 .anum{background:#e0f2fe;color:#0369a1}
+
+.l3 .abadge{background:#dbeafe22;color:#60a5fa;border:1px solid #1d4ed833}
+.l4a .abadge{background:#fef3c722;color:#fbbf24;border:1px solid #92400e33}
+.l4b .abadge{background:#f3e8ff22;color:#c084fc;border:1px solid #6b21a833}
+.l45 .abadge{background:#dcfce722;color:#4ade80;border:1px solid #15803d33}
+.l5 .abadge{background:#ffe4e622;color:#f87171;border:1px solid #9f123933}
+.l6 .abadge{background:#e0f2fe22;color:#38bdf8;border:1px solid #0369a133}
+</style>
+</head>
+<body>
+
+<h1>📡 Investment Radar — Agent Girdi / Çıktı Haritası</h1>
+<div class="sub">11 agent • Her birinin ne aldığı ve ne ürettiği</div>
+
+<!-- LAYER 3 -->
+<div class="layer-lbl">Katman 3 — Shared Agents · Gece 23:30 · Tüm diğer agentlara girdi sağlar</div>
+
+<div class="agent l3">
+  <div class="agent-hdr">
+    <div class="anum">1</div>
+    <div><div class="aname">Macro Agent</div><div class="adesc">Piyasa ortamı — risk açık mı kapalı mı?</div></div>
+    <div class="abadge">Haiku 4.5</div>
+  </div>
+  <div class="agent-body">
+    <div class="col col-in">
+      <div class="col-lbl">Girdi</div>
+      <div class="row"><span class="row-ic">📊</span>SPY, QQQ fiyatı + 50/200 günlük EMA (yfinance)</div>
+      <div class="row"><span class="row-ic">📊</span>VIX seviyesi</div>
+      <div class="row"><span class="row-ic">🔥</span>macro_regime/current (Firestore)</div>
+      <div class="row"><span class="row-ic">📰</span>Son 5 makro haber başlığı (Fed, GDP, faiz) <span class="new-tag">YENİ</span></div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="col col-out">
+      <div class="col-lbl">Çıktı → agents/macro_signal</div>
+      <div class="row"><span class="row-ic">•</span>signal: bullish / neutral / cautious</div>
+      <div class="row"><span class="row-ic">•</span>summary: 2 cümle Türkçe açıklama</div>
+    </div>
+  </div>
+</div>
+
+<div class="agent l3">
+  <div class="agent-hdr">
+    <div class="anum">2</div>
+    <div><div class="aname">Sector Rotation Agent</div><div class="adesc">Hangi sektörler güçleniyor, hangiler zayıflıyor?</div></div>
+    <div class="abadge">Haiku 4.5</div>
+  </div>
+  <div class="agent-body">
+    <div class="col col-in">
+      <div class="col-lbl">Girdi</div>
+      <div class="row"><span class="row-ic">📊</span>sector_status (Firestore — mevcut pipeline'dan)</div>
+      <div class="row"><span class="row-ic">📊</span>5g + 20g sektör ETF momentumu</div>
+      <div class="row"><span class="row-ic">📰</span>Her sektör ETF için 3 haber başlığı <span class="new-tag">YENİ</span></div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="col col-out">
+      <div class="col-lbl">Çıktı → agents/sector_rotation</div>
+      <div class="row"><span class="row-ic">•</span>sectors: {semiconductors: "weakening", energy: "strengthening"…}</div>
+      <div class="row"><span class="row-ic">•</span>summary: 2 cümle, sektör haberleri dahil</div>
+    </div>
+  </div>
+</div>
+
+<div class="agent l3">
+  <div class="agent-hdr">
+    <div class="anum">3</div>
+    <div><div class="aname">Earnings Preview Agent</div><div class="adesc">14 gün içinde earnings var mı? Risk ne kadar?</div></div>
+    <div class="abadge">Haiku 4.5</div>
+  </div>
+  <div class="agent-body">
+    <div class="col col-in">
+      <div class="col-lbl">Girdi</div>
+      <div class="row"><span class="row-ic">📋</span>radar_items + daily_candidates (Firestore)</div>
+      <div class="row"><span class="row-ic">📊</span>days_to_earnings ≤ 14 olan hisseler</div>
+      <div class="row"><span class="row-ic">📈</span>Son 8 earnings'deki ort. fiyat hareketi (yfinance)</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="col col-out">
+      <div class="col-lbl">Çıktı → agents/earnings_preview/{ticker}</div>
+      <div class="row"><span class="row-ic">•</span>days_to_earnings: 6</div>
+      <div class="row"><span class="row-ic">•</span>avg_move_pct: 9.2%</div>
+      <div class="row"><span class="row-ic">•</span>risk_level: high / medium / low</div>
+      <div class="row"><span class="row-ic">•</span>note: 1 cümle uyarı</div>
+    </div>
+  </div>
+</div>
+
+<!-- LAYER 4A -->
+<div class="layer-lbl">Katman 4A — My Radar Agents · Gece 23:45 · Senin mevcut pozisyonların için</div>
+
+<div class="agent l4a">
+  <div class="agent-hdr">
+    <div class="anum">4</div>
+    <div><div class="aname">Exit Signal Agent</div><div class="adesc">Çık mı, tut mu, gözden geçir mi?</div></div>
+    <div class="abadge">Haiku 4.5</div>
+  </div>
+  <div class="agent-body">
+    <div class="col col-in">
+      <div class="col-lbl">Girdi</div>
+      <div class="row"><span class="row-ic">📋</span>radar_items — senin pozisyonların + exit_condition</div>
+      <div class="row"><span class="row-ic">📊</span>Güncel fiyat + skor (daily_candidates)</div>
+      <div class="row"><span class="row-ic">🔗</span>agents/sector_rotation çıktısı</div>
+      <div class="row"><span class="row-ic">🔗</span>agents/macro_signal çıktısı</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="col col-out">
+      <div class="col-lbl">Çıktı → trade_entries/{id}/daily_notes</div>
+      <div class="row"><span class="row-ic">•</span>flag: exit / review / ok</div>
+      <div class="row"><span class="row-ic">•</span>note: 2–3 cümle Türkçe gerekçe</div>
+      <div class="row"><span class="row-ic">•</span>action: "Exit this position"</div>
+      <div class="row"><span class="row-ic">→</span>UI: kırmızı/sarı/yeşil nokta + pill</div>
+    </div>
+  </div>
+</div>
+
+<div class="agent l4a">
+  <div class="agent-hdr">
+    <div class="anum">5</div>
+    <div><div class="aname">Averaging Down Agent</div><div class="adesc">Zarar eden pozisyonu ortalamak mantıklı mı?</div></div>
+    <div class="abadge">Haiku 4.5</div>
+  </div>
+  <div class="agent-body">
+    <div class="col col-in">
+      <div class="col-lbl">Girdi</div>
+      <div class="row"><span class="row-ic">📋</span>P&L &lt; -10% olan pozisyonlar</div>
+      <div class="row"><span class="row-ic">📊</span>Güncel skor (&gt;40 şartı)</div>
+      <div class="row"><span class="row-ic">📊</span>Destek seviyesine yakınlık (%3 şartı)</div>
+      <div class="row"><span class="row-ic">🔗</span>Sektör durumu + makro sinyal</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="col col-out">
+      <div class="col-lbl">Çıktı → trade_entries/{id}/avg_down_signal</div>
+      <div class="row"><span class="row-ic">•</span>recommendation: avg_down / wait</div>
+      <div class="row"><span class="row-ic">•</span>conditions_met: 1/4</div>
+      <div class="row"><span class="row-ic">•</span>note: 2 cümle gerekçe</div>
+    </div>
+  </div>
+</div>
+
+<div class="agent l4a">
+  <div class="agent-hdr">
+    <div class="anum">6</div>
+    <div><div class="aname">Risk Summary Agent</div><div class="adesc">Portföy sağlığı — konsantrasyon, uyarılar</div></div>
+    <div class="abadge">Haiku / Haftalık Sonnet 5</div>
+  </div>
+  <div class="agent-body">
+    <div class="col col-in">
+      <div class="col-lbl">Girdi</div>
+      <div class="row"><span class="row-ic">📋</span>Tüm radar_items + daily_notes</div>
+      <div class="row"><span class="row-ic">🔗</span>agents/macro_signal + sector_rotation</div>
+      <div class="row"><span class="row-ic">🧮</span>Sektör konsantrasyon hesabı (% ağırlık)</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="col col-out">
+      <div class="col-lbl">Çıktı → agents/portfolio_summary</div>
+      <div class="row"><span class="row-ic">•</span>positions, avg_score, warnings sayısı</div>
+      <div class="row"><span class="row-ic">•</span>top_sector_pct (&gt;%33 → uyarı)</div>
+      <div class="row"><span class="row-ic">•</span>weekly_summary (Cuma, Sonnet 5)</div>
+    </div>
+  </div>
+</div>
+
+<!-- LAYER 4B -->
+<div class="layer-lbl">Katman 4B — Candidates Agents · Gece 23:45 · Yeni fırsatlar için</div>
+
+<div class="agent l4b">
+  <div class="agent-hdr">
+    <div class="anum">7</div>
+    <div><div class="aname">Portfolio Fit Agent</div><div class="adesc">Bu hisse portföye uyar mı? Konsantrasyon sorunu var mı?</div></div>
+    <div class="abadge">Haiku (sadece no_fit için)</div>
+  </div>
+  <div class="agent-body">
+    <div class="col col-in">
+      <div class="col-lbl">Girdi</div>
+      <div class="row"><span class="row-ic">📋</span>daily_candidates (tüm adaylar)</div>
+      <div class="row"><span class="row-ic">📋</span>radar_items (mevcut sektör ağırlıkları)</div>
+      <div class="row"><span class="row-ic">🧮</span>Sektör konsantrasyon hesabı</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="col col-out">
+      <div class="col-lbl">Çıktı → agents/candidate_fit/{ticker}</div>
+      <div class="row"><span class="row-ic">•</span>fit: good_fit / no_fit / overlap</div>
+      <div class="row"><span class="row-ic">•</span>reason: "Semikon ağırlığı %55'e çıkar"</div>
+    </div>
+  </div>
+</div>
+
+<div class="agent l4b">
+  <div class="agent-hdr">
+    <div class="anum">8</div>
+    <div><div class="aname">Entry Timing Agent</div><div class="adesc">Şimdi mi girilir, beklenir mi?</div></div>
+    <div class="abadge">Haiku 4.5</div>
+  </div>
+  <div class="agent-body">
+    <div class="col col-in">
+      <div class="col-lbl">Girdi</div>
+      <div class="row"><span class="row-ic">✅</span>fit = 'good_fit' olan adaylar</div>
+      <div class="row"><span class="row-ic">📊</span>Güncel fiyat, destek, RSI, EMA (daily_candidates)</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="col col-out">
+      <div class="col-lbl">Çıktı → agents/entry_timing/{ticker}</div>
+      <div class="row"><span class="row-ic">•</span>timing: enter_now / wait</div>
+      <div class="row"><span class="row-ic">•</span>entry_target: $90.96 (bekleme durumunda)</div>
+      <div class="row"><span class="row-ic">•</span>note: 1 cümle gerekçe</div>
+    </div>
+  </div>
+</div>
+
+<div class="agent l4b">
+  <div class="agent-hdr">
+    <div class="anum">9</div>
+    <div><div class="aname">Position Sizing Agent</div><div class="adesc">Ne kadar para koyayım?</div></div>
+    <div class="abadge">Saf matematik — Haiku yok</div>
+  </div>
+  <div class="agent-body">
+    <div class="col col-in">
+      <div class="col-lbl">Girdi</div>
+      <div class="row"><span class="row-ic">💰</span>monthly_budget_eur (config)</div>
+      <div class="row"><span class="row-ic">📊</span>Hisse skoru + fit + timing</div>
+      <div class="row"><span class="row-ic">🔗</span>Makro sinyali (cautious → yarıya indir)</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="col col-out">
+      <div class="col-lbl">Çıktı → agents/position_sizing/{ticker}</div>
+      <div class="row"><span class="row-ic">•</span>suggested_amount_eur: 600</div>
+      <div class="row"><span class="row-ic">•</span>portfolio_weight_pct: %12</div>
+      <div class="row"><span class="row-ic">•</span>reasoning: 1 cümle</div>
+    </div>
+  </div>
+</div>
+
+<!-- LAYER 4.5 -->
+<div class="layer-lbl">Katman 4.5 — Orchestrator · Gece 00:00 · Tüm agent çıktılarını birleştirir</div>
+
+<div class="agent l45">
+  <div class="agent-hdr">
+    <div class="anum">10</div>
+    <div><div class="aname">Orchestrator Agent</div><div class="adesc">Tüm sinyalleri topla, sabah brief'ini yaz</div></div>
+    <div class="abadge">Sonnet 5</div>
+  </div>
+  <div class="agent-body">
+    <div class="col col-in">
+      <div class="col-lbl">Girdi (tüm agent çıktıları)</div>
+      <div class="row"><span class="row-ic">🔗</span>macro_signal + sector_rotation</div>
+      <div class="row"><span class="row-ic">🔗</span>Tüm daily_notes (exit/review/ok)</div>
+      <div class="row"><span class="row-ic">🔗</span>candidate_fit + entry_timing + position_sizing</div>
+      <div class="row"><span class="row-ic">🔗</span>earnings_preview + portfolio_summary</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="col col-out">
+      <div class="col-lbl">Çıktı → agents/daily_brief</div>
+      <div class="row"><span class="row-ic">•</span>my_radar_actions: exit &gt; review &gt; ok sıralı</div>
+      <div class="row"><span class="row-ic">•</span>candidates_ranked: enter_now önce</div>
+      <div class="row"><span class="row-ic">•</span>budget_allocation: €600 gir, €400 bekle</div>
+      <div class="row"><span class="row-ic">•</span>summary: 2 cümle — sabah push bildirimi</div>
+    </div>
+  </div>
+</div>
+
+<!-- LAYER 6 -->
+<div class="layer-lbl">Katman 6 — Gün İçi · Her 15–30 dakikada bir</div>
+
+<div class="agent l6">
+  <div class="agent-hdr">
+    <div class="anum">11</div>
+    <div><div class="aname">Events Agent</div><div class="adesc">Gün içi haber — thesis'i etkiler mi?</div></div>
+    <div class="abadge">Haiku (sadece thesis hit olunca)</div>
+  </div>
+  <div class="agent-body">
+    <div class="col col-in">
+      <div class="col-lbl">Girdi</div>
+      <div class="row"><span class="row-ic">📋</span>radar_items (senin hisselerin + thesis)</div>
+      <div class="row"><span class="row-ic">📰</span>yfinance news — son haberler</div>
+      <div class="row"><span class="row-ic">🔍</span>Adım 1: keyword filtresi (API çağrısı yok)</div>
+      <div class="row"><span class="row-ic">🔍</span>Adım 2: "thesis'i etkiler mi?" → Haiku</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="col col-out">
+      <div class="col-lbl">Çıktı → agents/events/{event_id}</div>
+      <div class="row"><span class="row-ic">•</span>ticker, headline, materiality: high/low</div>
+      <div class="row"><span class="row-ic">•</span>thesis_impact: "Enerji sektörü olumsuz etkilenir"</div>
+      <div class="row"><span class="row-ic">•</span>Push bildirimi → sadece high materiality</div>
+    </div>
+  </div>
+</div>
+
+<div class="agent l5">
+  <div class="agent-hdr">
+    <div class="anum">⚡</div>
+    <div><div class="aname">Price Alert</div><div class="adesc">Destek/direnç kırıldı mı? — AI yok, saf kod</div></div>
+    <div class="abadge">Kod — Haiku yok</div>
+  </div>
+  <div class="agent-body">
+    <div class="col col-in">
+      <div class="col-lbl">Girdi</div>
+      <div class="row"><span class="row-ic">📊</span>Güncel fiyat (yfinance, 15 dk'da bir)</div>
+      <div class="row"><span class="row-ic">📋</span>Her pozisyon için support_level</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="col col-out">
+      <div class="col-lbl">Çıktı → alerts/{ticker}_{date}</div>
+      <div class="row"><span class="row-ic">•</span>alert_type: support_broken / target_hit</div>
+      <div class="row"><span class="row-ic">•</span>Push bildirimi — anında</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- LAYER 7: DECISION TRACKING -->
+<div class="layer-lbl">Katman 7 — Decision Tracking · Gece (nightly) · Sistemin kendi kendini değerlendirmesi</div>
+
+<div class="agent" style="border-color:#2d3148">
+  <div class="agent-hdr" style="background:#1a1d2e">
+    <div class="anum" style="background:#fdf4ff;color:#7e22ce">DL</div>
+    <div><div class="aname">Decision Logger</div><div class="adesc">Her agent kararını fiyatıyla birlikte kaydet</div></div>
+    <div class="abadge" style="background:#fdf4ff22;color:#c084fc;border:1px solid #7e22ce33">Saf kod — Haiku yok</div>
+  </div>
+  <div class="agent-body">
+    <div class="col col-in">
+      <div class="col-lbl">Girdi</div>
+      <div class="row"><span class="row-ic">🔗</span>Exit Signal Agent → flag = 'exit' olan kararlar</div>
+      <div class="row"><span class="row-ic">🔗</span>Entry Timing Agent → timing = 'enter_now' / 'wait'</div>
+      <div class="row"><span class="row-ic">🔗</span>Orchestrator → review önerileri</div>
+      <div class="row"><span class="row-ic">📊</span>O anki fiyat (yfinance — karar anındaki)</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="col col-out">
+      <div class="col-lbl">Çıktı → agents/decision_log/{decision_id}</div>
+      <div class="row"><span class="row-ic">•</span>ticker, decision_type: exit / enter / wait / review</div>
+      <div class="row"><span class="row-ic">•</span>agent_name, reasoning</div>
+      <div class="row"><span class="row-ic">•</span>recommended_price: $97.41 (karar anındaki fiyat)</div>
+      <div class="row"><span class="row-ic">•</span>outcome_checked: false (henüz değerlendirilmedi)</div>
+    </div>
+  </div>
+</div>
+
+<div class="agent" style="border-color:#2d3148">
+  <div class="agent-hdr" style="background:#1a1d2e">
+    <div class="anum" style="background:#fdf4ff;color:#7e22ce">OT</div>
+    <div><div class="aname">Outcome Tracker</div><div class="adesc">14 gün sonra kararın doğru çıkıp çıkmadığını hesapla</div></div>
+    <div class="abadge" style="background:#fdf4ff22;color:#c084fc;border:1px solid #7e22ce33">Saf kod — Haiku yok</div>
+  </div>
+  <div class="agent-body">
+    <div class="col col-in">
+      <div class="col-lbl">Girdi</div>
+      <div class="row"><span class="row-ic">📋</span>decision_log — outcome_checked = false olanlar</div>
+      <div class="row"><span class="row-ic">⏱</span>Filtre: date ≥ 14 gün önce</div>
+      <div class="row"><span class="row-ic">📊</span>Güncel fiyat (yfinance)</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="col col-out">
+      <div class="col-lbl">Günceller → decision_log/{id}</div>
+      <div class="row"><span class="row-ic">•</span>outcome: correct / incorrect</div>
+      <div class="row"><span class="row-ic">•</span>price_at_check: $89.20</div>
+      <div class="row"><span class="row-ic">•</span>pct_change: -8.4%</div>
+      <div class="row"><span class="row-ic">•</span>outcome_checked: true</div>
+    </div>
+  </div>
+</div>
+
+<div class="agent" style="border-color:#7c85ff44">
+  <div class="agent-hdr" style="background:#1a1d2e">
+    <div class="anum" style="background:#eef2ff;color:#3730a3">12</div>
+    <div><div class="aname">Learning Agent</div><div class="adesc">Hatalı pattern'leri tespit et, threshold değişikliği öner</div></div>
+    <div class="abadge" style="background:#eef2ff22;color:#818cf8;border:1px solid #3730a333">Sonnet 5 · Haftalık</div>
+  </div>
+  <div class="agent-body">
+    <div class="col col-in">
+      <div class="col-lbl">Girdi</div>
+      <div class="row"><span class="row-ic">📋</span>Son 90 günün decision_log (outcome_checked = true)</div>
+      <div class="row"><span class="row-ic">🧮</span>Agent bazlı hit rate hesabı</div>
+      <div class="row"><span class="row-ic">🔍</span>Yanlış kararların koşulları (earnings?, makro?, sektör?)</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="col col-out">
+      <div class="col-lbl">Çıktı → agents/learning_report</div>
+      <div class="row"><span class="row-ic">•</span>pattern: "Exit agent earnings öncesi erken tetikleniyor"</div>
+      <div class="row"><span class="row-ic">•</span>affected_agent: "exit_signal_agent"</div>
+      <div class="row"><span class="row-ic">•</span>suggestion: "Earnings ≤7g ise exit değil, review ver"</div>
+      <div class="row"><span class="row-ic">•</span>awaiting_approval: true — sen onaylayana kadar uygulanmaz</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

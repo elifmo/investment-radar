@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ETF Scan — Mockup Preview (Bux)</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0f1117; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 14px; }
+    .mock-banner {
+      background: #312e81; border-bottom: 1px solid #6366f1; padding: 10px 24px;
+      font-size: 13px; color: #c7d2fe; text-align: center;
+    }
+    header {
+      background: #1a1d27; border-bottom: 1px solid #2d3148; padding: 14px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    header h1 { font-size: 18px; font-weight: 700; color: #fff; }
+    header h1 span { color: #6366f1; }
+    .tabs { background: #1a1d27; border-bottom: 1px solid #2d3148; display: flex; padding: 0 24px; }
+    .tab { padding: 12px 20px; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; }
+    .tab.active { color: #6366f1; border-bottom-color: #6366f1; font-weight: 600; }
+    .layout { display: grid; grid-template-columns: 1fr 380px; height: calc(100vh - 120px); }
+    .left { padding: 20px 24px; overflow-y: auto; border-right: 1px solid #2d3148; }
+    .right { padding: 20px; overflow-y: auto; background: #131520; }
+    .etf-banner {
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+      background: linear-gradient(90deg, #1a2e1a 0%, #1a1d27 100%);
+      border: 1px solid #2d3148; border-radius: 10px; padding: 12px 16px; margin-bottom: 14px;
+    }
+    .etf-banner-title { font-size: 15px; font-weight: 800; color: #fff; }
+    .etf-banner-sub { font-size: 12px; color: #94a3b8; margin-top: 4px; line-height: 1.5; }
+    .badge { font-size: 11px; font-weight: 700; background: #0c1a3b; color: #93c5fd; border: 1px solid #1e3a8a; border-radius: 20px; padding: 4px 12px; }
+    .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 11px; color: #64748b; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th { text-align: left; padding: 8px; font-size: 10px; color: #64748b; text-transform: uppercase; border-bottom: 1px solid #2d3148; }
+    tr { cursor: pointer; border-bottom: 1px solid #1e2130; }
+    tr:hover { background: #1e2130; }
+    tr.selected { background: #1e2338; }
+    td { padding: 9px 8px; vertical-align: middle; }
+    .bux-pill { background: #312e81; color: #c7d2fe; font-size: 10px; font-weight: 700; border-radius: 20px; padding: 2px 8px; }
+    .name-main { font-weight: 700; color: #fff; font-size: 12px; }
+    .name-sub { font-size: 10px; color: #64748b; margin-top: 2px; max-width: 180px; }
+    .price { font-weight: 700; }
+    .sr-green { color: #4ade80; font-weight: 600; white-space: nowrap; font-size: 11px; }
+    .sr-red { color: #f87171; font-weight: 600; white-space: nowrap; font-size: 11px; }
+    .sr-sub { display: block; font-size: 9px; color: #64748b; font-weight: 400; margin-top: 1px; }
+    .pos { color: #4ade80; } .neg { color: #f87171; }
+    .pill { display: inline-block; font-size: 10px; font-weight: 700; border-radius: 20px; padding: 2px 8px; }
+    .pill-green { background: #1e3b2b; color: #4ade80; }
+    .pill-blue { background: #1e2a4a; color: #93c5fd; }
+    .pill-orange { background: #3b1f0a; color: #fb923c; }
+    .pill-yellow { background: #2d3a1a; color: #facc15; }
+    .pill-red { background: #3b1f1f; color: #f87171; }
+    .detail-title { font-size: 28px; font-weight: 800; color: #fff; }
+    .detail-sub { font-size: 13px; color: #94a3b8; margin: 4px 0 8px; }
+    .detail-bux { font-size: 11px; color: #6366f1; margin-bottom: 12px; }
+    .detail-price { font-size: 24px; font-weight: 800; margin-bottom: 16px; }
+    .section-label { font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; margin: 16px 0 8px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .box { background: #1a1d27; border: 1px solid #2d3148; border-radius: 8px; padding: 10px 12px; }
+    .box .lbl { font-size: 10px; color: #64748b; }
+    .box .val { font-size: 15px; font-weight: 700; margin-top: 2px; }
+    .box.green .val { color: #4ade80; }
+    .box.red .val { color: #f87171; }
+    .box.blue .val { color: #93c5fd; }
+    .box.orange .val { color: #fb923c; }
+    .rec-card { border-radius: 10px; overflow: hidden; border: 1px solid #2d3148; margin-top: 8px; }
+    .rec-card.rec-buy { border-color: #166534; }
+    .rec-card.rec-wait { border-color: #92400e; }
+    .rec-card.rec-small { border-color: #1e40af; }
+    .rec-verdict { padding: 14px 16px; font-size: 20px; font-weight: 800; }
+    .rec-buy .rec-verdict { background: #14532d; color: #4ade80; }
+    .rec-wait .rec-verdict { background: #451a03; color: #fb923c; }
+    .rec-small .rec-verdict { background: #1e3a5f; color: #93c5fd; }
+    .rec-body { background: #1a1d27; padding: 14px 16px; }
+    .rec-headline { font-size: 15px; font-weight: 700; color: #f1f5f9; margin-bottom: 10px; line-height: 1.45; }
+    .rec-block-title { font-size: 11px; font-weight: 700; color: #6366f1; text-transform: uppercase; margin: 12px 0 6px; }
+    .rec-list { margin: 0; padding-left: 18px; color: #cbd5e1; font-size: 13px; line-height: 1.55; }
+    .rec-dont { background: #3b1f1f; border: 1px solid #7f1d1d; border-radius: 8px; padding: 10px 12px; font-size: 12px; color: #fca5a5; margin-top: 10px; }
+    .act-short { display: inline-block; font-size: 10px; font-weight: 800; border-radius: 4px; padding: 2px 6px; }
+    .act-short.buy { background: #14532d; color: #4ade80; }
+    .act-short.wait { background: #451a03; color: #fb923c; }
+    .act-short.small { background: #1e3a5f; color: #93c5fd; }
+    .act-short.watch { background: #1e2130; color: #94a3b8; }
+    .hint { margin-top: 20px; padding: 14px; background: #1a1d27; border: 1px dashed #4b5563; border-radius: 8px; font-size: 12px; color: #94a3b8; line-height: 1.6; }
+    .hint strong { color: #e2e8f0; }
+  </style>
+</head>
+<body>
+  <div class="mock-banner">📐 MOCKUP — Sample data only. Shows how the ETF Scan tab looks.</div>
+  <header>
+    <h1>Investment <span>Radar</span> — US Markets</h1>
+    <span style="font-size:12px;color:#64748b;">6 Jul 2026 · Mockup</span>
+  </header>
+  <div class="tabs">
+    <div class="tab">Candidates</div>
+    <div class="tab">Sector Heatmap</div>
+    <div class="tab active">ETF Scan</div>
+    <div class="tab">Opportunities</div>
+  </div>
+
+  <div class="layout">
+    <div class="left">
+      <div class="etf-banner">
+        <div>
+          <div class="etf-banner-title">📊 Daily ETF Scan — Bux</div>
+          <div class="etf-banner-sub">Search in Bux: <b>VHYL · VUSA · SEMI · HEAL · DFEN · NUKL</b><br/>Click a row → support, resistance &amp; order plan on the right</div>
+        </div>
+        <span class="badge">ETF · 2026-07-06</span>
+      </div>
+      <div class="toolbar">
+        <span>6 ETFs · EUR · regular close</span>
+        <span>📅 2026-07-06 (Latest)</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Bux</th><th>ETF</th><th>Price</th><th>1D</th><th>5D</th><th>1M</th>
+            <th>RSI</th><th>Support</th><th>Resistance</th><th>Trend</th><th>Signal</th><th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <div class="hint">
+        <strong>What you should see:</strong><br/>
+        ① Left table — 6 Bux ETFs with support &amp; resistance<br/>
+        ② Click a row — details open on the right<br/>
+        ③ Right panel — clear BUY / WAIT / WATCH + Bux steps<br/>
+        ④ Search the same symbol in Bux (e.g. VUSA) and place a limit order
+      </div>
+    </div>
+    <div class="right" id="detail"></div>
+  </div>
+
+  <script>
+    const ETFS = [
+      { bux:"VUSA", name:"Vanguard S&P 500", full:"Vanguard S&P 500 UCITS ETF", price:124.98, d1:0.58, d5:1.79, d21:1.49, rsi:58.8, trend:"Strong", trendC:"pill-green", signal:"Strong move", sigC:"pill-green", action:"buy", sup1:120.42, sup2:109.09, res1:125.07, res2:null, entry:120.42, stop:108, target:125.07, role:"Core — S&P 500" },
+      { bux:"VHYL", name:"Vanguard High Div Yield", full:"Vanguard FTSE All-World High Dividend Yield UCITS ETF", price:79.98, d1:0.2, d5:1.83, d21:2.36, rsi:57, trend:"Strong", trendC:"pill-green", signal:"Strong move", sigC:"pill-green", action:"buy", sup1:77.49, sup2:75.06, res1:80.22, res2:null, entry:77.49, stop:74.3, target:80.22, role:"Core — dividend" },
+      { bux:"DFEN", name:"VanEck Defense", full:"VanEck Defense UCITS ETF", price:54.78, d1:1.73, d5:11.38, d21:2.01, rsi:58, trend:"Neutral", trendC:"pill-yellow", signal:"Strong move", sigC:"pill-green", action:"buy", sup1:51.75, sup2:48.08, res1:57.33, res2:60.78, entry:51.75, stop:47.6, target:57.33, role:"Theme — defense" },
+      { bux:"NUKL", name:"VanEck Uranium & Nuclear", full:"VanEck Uranium and Nuclear Technologies UCITS ETF", price:47.56, d1:1.03, d5:2.15, d21:-4.57, rsi:35.4, trend:"Weak", trendC:"pill-red", signal:"Oversold", sigC:"pill-blue", action:"small", sup1:47.07, sup2:45.3, res1:54.28, res2:56.92, entry:47.07, stop:44.85, target:54.28, role:"Theme — nuclear" },
+      { bux:"SEMI", name:"iShares Semiconductors", full:"iShares MSCI Global Semiconductors UCITS ETF", price:22.16, d1:-0.09, d5:-2.01, d21:7.39, rsi:48, trend:"Strong", trendC:"pill-green", signal:"Pullback", sigC:"pill-yellow", action:"wait_support", sup1:19.97, sup2:17.84, res1:22.68, res2:24.59, entry:19.97, stop:17.66, target:22.68, role:"Theme — semiconductors" },
+      { bux:"HEAL", name:"iShares Healthcare Innov.", full:"iShares Healthcare Innovation UCITS ETF", price:8.62, d1:-0.2, d5:2.99, d21:11.05, rsi:91.1, trend:"Strong", trendC:"pill-green", signal:"Overbought", sigC:"pill-orange", action:"wait", sup1:7.84, sup2:7.48, res1:8.68, res2:null, entry:7.84, stop:7.4, target:8.68, role:"Theme — healthcare" },
+    ];
+
+    function fmt(v) { return (v>=0?"+":"")+v.toFixed(2)+"%"; }
+    function eur(v) { return "€"+Number(v).toFixed(2); }
+
+    function buildRec(e) {
+      const maps = {
+        buy: { v:"BUY", t:"buy", h:"Uptrend looks good. Set a limit buy on a small dip.",
+          why:["Long-term direction is up.","Buyers are still active.",`RSI ${e.rsi} — not overbought yet.`],
+          steps:[`Search <b>${e.bux}</b> in Bux`,`Limit buy at ${eur(e.entry)}`,`Stop at ${eur(e.stop)}`,`Target ${eur(e.target)}`] },
+        wait: { v:"WAIT", t:"wait", h:"Don't buy now. Price is high — wait for a pullback.",
+          why:[`RSI ${e.rsi} — overbought.`,"Price is expensive today.",`Better entry: ${eur(e.sup1)}`],
+          steps:[`Add <b>${e.bux}</b> to watchlist`,`Wait for ${eur(e.sup1)}`,`Then limit buy at ${eur(e.entry)}`], dont:"Don't buy at today's price." },
+        small: { v:"SMALL BUY", t:"small", h:"Weak trend but oversold. Only a small, careful position.",
+          why:[`RSI ${e.rsi} — oversold.`,"Keep size small."],
+          steps:[`Search <b>${e.bux}</b> in Bux — small size`,`Limit buy ${eur(e.entry)}`,`Stop ${eur(e.stop)}`], dont:"Don't put a large part of your portfolio here." },
+        wait_support: { v:"WAIT", t:"wait", h:"Good trend but price is far from support. Wait.",
+          why:["A short dip is possible.",`Wait for support at ${eur(e.sup1)}`],
+          steps:[`Add <b>${e.bux}</b> to watchlist`,`When price hits ${eur(e.sup1)}, limit buy`], dont:"Don't buy before support." },
+      };
+      return maps[e.action] || { v:"WATCH", t:"watch", h:"No clear signal — just watch.", why:["Mixed signals."], steps:[`Watch <b>${e.bux}</b> in Bux`] };
+    }
+
+    function renderDetail(e) {
+      const r = buildRec(e);
+      document.getElementById("detail").innerHTML = `
+        <div class="detail-title">${e.bux}</div>
+        <div class="detail-sub">${e.full}</div>
+        <div class="detail-bux">🔍 Search <b>${e.bux}</b> in Bux</div>
+        <div class="detail-price">${eur(e.price)}</div>
+        <div class="section-label">What To Do</div>
+        <div class="rec-card rec-${r.t}">
+          <div class="rec-verdict">${r.v}</div>
+          <div class="rec-body">
+            <div class="rec-headline">${r.h}</div>
+            <div class="rec-block-title">What this means</div>
+            <ul class="rec-list">${r.why.map(w=>`<li>${w}</li>`).join("")}</ul>
+            <div class="rec-block-title">What to do in Bux</div>
+            <ol class="rec-list">${r.steps.map(s=>`<li>${s}</li>`).join("")}</ol>
+            ${r.dont ? `<div class="rec-dont">❌ ${r.dont}</div>` : ""}
+            <div style="font-size:11px;color:#64748b;margin-top:10px;">${e.role} · Not financial advice.</div>
+          </div>
+        </div>
+        <div class="section-label">Support & Resistance (EUR)</div>
+        <div class="grid">
+          <div class="box green"><div class="lbl">Support 1</div><div class="val">${eur(e.sup1)}</div></div>
+          <div class="box green"><div class="lbl">Support 2</div><div class="val">${eur(e.sup2)}</div></div>
+          <div class="box red"><div class="lbl">Resistance 1</div><div class="val">${eur(e.res1)}</div></div>
+          <div class="box red"><div class="lbl">Resistance 2</div><div class="val">${e.res2 != null ? eur(e.res2) : "—"}</div></div>
+        </div>
+        <div class="section-label">Your Order Plan (EUR)</div>
+        <div class="grid">
+          <div class="box blue"><div class="lbl">Limit Buy</div><div class="val">${eur(e.entry)}</div></div>
+          <div class="box orange"><div class="lbl">Stop Loss</div><div class="val">${eur(e.stop)}</div></div>
+          <div class="box"><div class="lbl">Target</div><div class="val">${eur(e.target)}</div></div>
+          <div class="box"><div class="lbl">RSI</div><div class="val">${e.rsi}</div></div>
+        </div>`;
+    }
+
+    const tbody = document.getElementById("rows");
+    tbody.innerHTML = ETFS.map((e,i) => {
+      const r = buildRec(e);
+      return `
+      <tr data-i="${i}" class="${i===0?"selected":""}">
+        <td><span class="bux-pill">${e.bux}</span></td>
+        <td><div class="name-main">${e.name}</div><div class="name-sub">${e.full}</div></td>
+        <td class="price">${eur(e.price)}</td>
+        <td class="${e.d1>=0?"pos":"neg"}">${fmt(e.d1)}</td>
+        <td class="${e.d5>=0?"pos":"neg"}">${fmt(e.d5)}</td>
+        <td class="${e.d21>=0?"pos":"neg"}">${fmt(e.d21)}</td>
+        <td>${e.rsi}</td>
+        <td class="sr-green">${eur(e.sup1)}<span class="sr-sub">S2 ${eur(e.sup2)}</span></td>
+        <td class="sr-red">${eur(e.res1)}${e.res2 != null ? `<span class="sr-sub">R2 ${eur(e.res2)}</span>` : ""}</td>
+        <td><span class="pill ${e.trendC}">${e.trend}</span></td>
+        <td><span class="pill ${e.sigC}">${e.signal}</span></td>
+        <td><span class="act-short ${r.t}">${r.v}</span></td>
+      </tr>`;
+    }).join("");
+
+    tbody.querySelectorAll("tr").forEach(row => {
+      row.addEventListener("click", () => {
+        tbody.querySelectorAll("tr").forEach(r => r.classList.remove("selected"));
+        row.classList.add("selected");
+        renderDetail(ETFS[row.dataset.i]);
+      });
+    });
+    renderDetail(ETFS[0]);
+  </script>
+</body>
+</html>
