@@ -4,23 +4,25 @@ from __future__ import annotations
 
 import logging
 from datetime import date, datetime, timezone
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 
 logger = logging.getLogger(__name__)
 
-# US regular session close 16:00 ET ≈ 20:00 UTC (EDT). Small buffer for Yahoo to publish final bar.
-_USA_CLOSE_UTC_HOUR = 20
-_USA_CLOSE_BUFFER_MIN = 10
+_NY = ZoneInfo("America/New_York")
+# 16:00 ET close, plus a few minutes for Yahoo to publish the official daily bar.
+# Do not use a fixed UTC hour — that is 16:00 only in summer (EDT) and 15:00 in winter (EST).
+_USA_CLOSE_ET_MIN = 16 * 60 + 10
 
 
 def usa_regular_close_settled(now: datetime | None = None) -> bool:
     """True if today's US regular-session close should be final on Yahoo Finance."""
     now = now or datetime.now(timezone.utc)
-    if now.weekday() >= 5:
+    et = now.astimezone(_NY)
+    if et.weekday() >= 5:
         return False
-    mins = now.hour * 60 + now.minute
-    return mins >= _USA_CLOSE_UTC_HOUR * 60 + _USA_CLOSE_BUFFER_MIN
+    return et.hour * 60 + et.minute >= _USA_CLOSE_ET_MIN
 
 
 def _last_bar_date(df: pd.DataFrame) -> str | None:

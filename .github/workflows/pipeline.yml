@@ -6,10 +6,11 @@ on:
     - cron: "15 7 * * 1-5"
     - cron: "15 11 * * 1-5"
     - cron: "15 15 * * 1-5"
-    # USA: 16:30 TR (13:30 UTC), 20:30 TR (17:30 UTC), 23:15 TR (20:15 UTC)
+    # USA: 16:30 TR (13:30 UTC), 20:30 TR (17:30 UTC),
+    # after NY cash close: 21:20 UTC = 16:20 EST / 17:20 EDT (00:20 TR)
     - cron: "30 13 * * 1-5"
     - cron: "30 17 * * 1-5"
-    - cron: "15 20 * * 1-5"
+    - cron: "20 21 * * 1-5"
   workflow_dispatch:
     inputs:
       market:
@@ -67,11 +68,11 @@ jobs:
         env:
           SCHEDULE: ${{ github.event.schedule }}
         run: |
-          # 20:15 UTC = 23:15 TR — always run heatmap + ETF on this slot
+          # 21:20 UTC is after the NY cash close in both EST and EDT.
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.daily_reports }}" = "true" ]; then
             export RUN_DAILY_REPORTS=true
           fi
-          if [ "$SCHEDULE" = "15 20 * * 1-5" ]; then
+          if [ "$SCHEDULE" = "20 21 * * 1-5" ]; then
             export RUN_DAILY_REPORTS=true
           fi
           EXTRA=""
@@ -92,7 +93,7 @@ jobs:
           SCHEDULE: ${{ github.event.schedule }}
         run: |
           # Prefer the daily USA close slot; still allow manual all/usa runs.
-          if [ "${{ github.event_name }}" = "schedule" ] && [ "$SCHEDULE" != "15 20 * * 1-5" ]; then
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "$SCHEDULE" != "20 21 * * 1-5" ]; then
             echo "Skipping agents on non-daily USA slot ($SCHEDULE)"
             exit 0
           fi

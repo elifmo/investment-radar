@@ -2122,7 +2122,7 @@
   // Warm-load GIS so the button appears quickly when Sign in is clicked
   loadGisScript().catch(() => {});
 
-  const MARKET = { id: "usa", label: "🇺🇸 USA", market: "USA", currency: "$", openUTC: 13*60+30, closeUTC: 20*60+5 };
+  const MARKET = { id: "usa", label: "🇺🇸 USA", market: "USA", currency: "$", openET: 9*60+30, closeET: 16*60+5 };
 
   const COMPANY_NAMES = {
     COIN:"Coinbase",HOOD:"Robinhood",JPM:"JPMorgan Chase",BAC:"Bank of America",GS:"Goldman Sachs",
@@ -2165,19 +2165,30 @@
     GOOGL:"Alphabet (A)",GOOG:"Alphabet (C)",META:"Meta Platforms",T:"AT&T",NFLX:"Netflix",
   };
 
+  function nyClock() {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/New_York",
+      weekday: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    }).formatToParts(new Date());
+    const get = (type) => parts.find(p => p.type === type)?.value || "";
+    let hour = Number(get("hour"));
+    if (hour === 24) hour = 0;
+    return { weekday: get("weekday"), mins: hour * 60 + Number(get("minute")) };
+  }
+
   function marketHasClosed() {
-    const now = new Date();
-    const day = now.getUTCDay();
-    if (day === 0 || day === 6) return true;
-    return (now.getUTCHours() * 60 + now.getUTCMinutes()) >= MARKET.closeUTC;
+    const { weekday, mins } = nyClock();
+    if (weekday === "Sat" || weekday === "Sun") return true;
+    return mins >= MARKET.closeET;
   }
 
   function isMarketOpen() {
-    const now = new Date();
-    const day = now.getUTCDay();
-    if (day === 0 || day === 6) return false;
-    const mins = now.getUTCHours() * 60 + now.getUTCMinutes();
-    return mins >= MARKET.openUTC && mins < MARKET.closeUTC;
+    const { weekday, mins } = nyClock();
+    if (weekday === "Sat" || weekday === "Sun") return false;
+    return mins >= MARKET.openET && mins < MARKET.closeET;
   }
 
   let macroData = null;
@@ -2339,16 +2350,16 @@
     return `${iso} (${days[d.getDay()]})`;
   }
 
+  function latestHeatmapDate() {
+    return heatmapDates.find(d => d && d !== "current") || heatmapDates[0];
+  }
+
   function populateHeatmapDateSelect() {
     const sel = document.getElementById("heatmap-date");
     if (!sel) return;
-    const thu = lastThursdayISO();
-    const preferred = heatmapDates.includes(thu) ? thu : heatmapSelectedDate;
-    if (!heatmapSelectedDate || heatmapSelectedDate === "current") {
-      heatmapSelectedDate = preferred;
-    }
+    heatmapSelectedDate = latestHeatmapDate();
     sel.innerHTML = heatmapDates.map(d =>
-      `<option value="${d}">${formatHeatmapDate(d)}${d === thu ? " · last Thu" : ""}</option>`
+      `<option value="${d}">${formatHeatmapDate(d)}</option>`
     ).join("");
     if (heatmapDates.includes(heatmapSelectedDate)) {
       sel.value = heatmapSelectedDate;
@@ -2824,13 +2835,14 @@
     const stale = document.getElementById("heatmap-stale-banner");
     const staleText = document.getElementById("heatmap-stale-text");
     const asOf = heatmapData?.as_of_date || heatmapData?.updated_at;
-    const ageDays = dataAgeDays(asOf);
+    const latest = latestHeatmapDate() || asOf;
+    const ageDays = dataAgeDays(latest);
     if (badge && asOf) badge.textContent = `US · ${asOf}`;
     if (stale) {
       const showStale = ageDays != null && ageDays > 2;
       stale.style.display = showStale ? "block" : "none";
       if (showStale && staleText) {
-        staleText.textContent = `Last snapshot ${asOf} (${ageDays}d ago). Weekdays 23:15 TR auto; manual: python3 scripts/backfill_sector_heatmap.py --days 1`;
+        staleText.textContent = `Newest snapshot is ${latest} (${ageDays}d ago). The daily heatmap runs after the New York close.`;
       }
     }
     if (!meta) return;
@@ -4104,12 +4116,16 @@
     const dxy    = macroData.dxy_trend_20d ?? 0;
     const cls    = r === "RISK_ON" ? "risk-on" : r === "RISK_OFF" ? "risk-off" : "neutral";
     const label  = r === "RISK_ON" ? "RISK ON" : r === "RISK_OFF" ? "RISK OFF" : "NEUTRAL";
+    const plain  = r === "RISK_ON"
+      ? "Yields and the dollar are easing — a tailwind for stocks."
+      : r === "RISK_OFF"
+        ? "Yields and the dollar are rising — a headwind for stocks."
+        : "Yields and the dollar disagree, so there is no clear macro tilt. It does not block or approve a trade.";
     el.innerHTML = `
       <div class="regime-strip ${cls}">
         <span class="regime-label">${label}</span>
-        <span class="regime-meta">Indicator only — does not block entries</span>
-        <span class="regime-meta">10Y Yield 20d: ${(tnx >= 0 ? "+" : "") + tnx.toFixed(2)}</span>
-        <span class="regime-meta">DXY 20d: ${(dxy >= 0 ? "+" : "") + dxy.toFixed(2)}</span>
+        <span class="regime-meta">${plain}</span>
+        <span class="regime-meta">10Y yield 20d ${(tnx >= 0 ? "+" : "") + tnx.toFixed(2)} · Dollar 20d ${(dxy >= 0 ? "+" : "") + dxy.toFixed(2)}</span>
       </div>`;
     el.style.display = "block";
     updateHeatmapContextLayout();
@@ -4229,31 +4245,34 @@
     el.hidden = false;
     el.innerHTML = cryptoSignals.map(c => {
       const ticker = c.ticker || "";
-      const sig = (c.ichimoku_signal || "WAIT").toLowerCase();
+      const rawSig = (c.ichimoku_signal || "WAIT").toUpperCase();
+      const sig = rawSig === "EXIT" ? "" : rawSig.toLowerCase();
       const label = ticker === "BTC-USD" ? "Bitcoin" : ticker === "ETH-USD" ? "Ethereum" : ticker;
       const live = cryptoLivePrices[ticker];
       const dailyClose = c.close != null ? Number(c.close) : null;
       const price = live ?? dailyClose;
       const priceTag = live != null ? "live" : (c.date ? `scan ${c.date}` : "scan");
       const showDailyClose = dailyClose != null && live != null && Math.abs(live - dailyClose) > 0.5;
-      const fresh =
-        (sig === "enter" && c.cloud_breakout) ? " · New cloud break" :
-        (sig === "exit" && c.cloud_break_down) ? " · New break below cloud" : "";
+      const fresh = (sig === "enter" && c.cloud_breakout) ? " · New cloud break" : "";
+      const reason = rawSig === "EXIT" ? "" : `${c.reason || "Daily Ichimoku"}${fresh}`;
       const levels = [
         c.cloud_top != null ? `Cloud top ${fmtCryptoPrice(c.cloud_top)}` : "",
         c.cloud_bottom != null ? `Cloud bottom ${fmtCryptoPrice(c.cloud_bottom)}` : "",
       ].filter(Boolean).join(" · ");
+      const badge = sig
+        ? `<span class="crypto-ichi-signal ${sig}">${escHtml(rawSig)}</span>`
+        : "";
       return `<div class="crypto-ichi-card ${sig}">
         <div class="crypto-ichi-head">
           <span class="crypto-ichi-ticker">${escHtml(label)}</span>
-          <span class="crypto-ichi-signal ${sig}">${escHtml((c.ichimoku_signal || "WAIT").toUpperCase())}</span>
+          ${badge}
         </div>
         <div class="crypto-ichi-price-row">
           <span class="crypto-ichi-price">${price != null ? escHtml(fmtCryptoPrice(price)) : "—"}</span>
           <span class="crypto-ichi-price-tag">${escHtml(priceTag)}</span>
         </div>
         ${showDailyClose ? `<div class="crypto-ichi-daily-close">Daily close ${escHtml(fmtCryptoPrice(dailyClose))}</div>` : ""}
-        <div class="crypto-ichi-reason">${escHtml(c.reason || "Daily Ichimoku")}${escHtml(fresh)}</div>
+        ${reason ? `<div class="crypto-ichi-reason">${escHtml(reason)}</div>` : ""}
         <div class="crypto-ichi-levels">${escHtml(levels)}</div>
       </div>`;
     }).join("");

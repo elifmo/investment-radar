@@ -1,13 +1,10 @@
 # Investment Radar
 
-Daily stock scan and decision-support dashboard for **US** and **BIST** markets.
+Daily stock scan and decision-support dashboard for the **US** market.
 
 The pipeline scores a large universe, writes results to Firestore, and the dashboard reads them. You decide. The system does not place trades and is **not financial advice**.
 
-| Market | Live dashboard |
-|--------|----------------|
-| USA | [investment-radar-usa.web.app](https://investment-radar-usa.web.app) |
-| BIST | [investment-radar-bist.web.app](https://investment-radar-bist.web.app) |
+Live dashboard: [investment-radar-usa.web.app](https://investment-radar-usa.web.app)
 
 ---
 
@@ -42,7 +39,7 @@ GitHub Actions (weekdays)
 src/pipeline.py  →  Firestore
         │
         ▼
-Firebase Hosting  (frontend/usa, frontend/bist)
+Firebase Hosting  (frontend/usa)
 ```
 
 There is no app server. The dashboard talks to Firestore (and Deep Dive to a Cloud Function).
@@ -55,7 +52,6 @@ There is no app server. The dashboard talks to Firestore (and Deep Dive to a Clo
 | Nasdaq-100 extras | ~13 | `config/nasdaq100.yaml` |
 | Extra watch names | ~7 | `config/universe.yaml` |
 | **USA scan (default `sp500_nasdaq`)** | **~523** | `src/usa_universe.py` |
-| BIST | ~93 | `config/universe.yaml` |
 
 Thresholds live in `config/factors.yaml` (`min_score`, weights, oversold, Fib radar).
 
@@ -68,7 +64,6 @@ config/                 scores, universes, ETFs, themes
 src/                    pipeline, TA, layers, Firestore writers
 src/layers/             RS, sector, macro, quality, oversold, Fib radar
 frontend/usa/           USA dashboard (single HTML/JS app)
-frontend/bist/          BIST dashboard
 functions/              Deep Dive Cloud Function
 backtest/               historical tests and reports
 docs/                   extra notes (auth, roadmap)
@@ -95,14 +90,12 @@ pip install -r requirements.txt
 cd src
 python pipeline.py usa           # USA 4h scan
 python pipeline.py usa --daily   # + heatmap + ETF
-python pipeline.py bist
 ```
 
-Deploy dashboards:
+Deploy the dashboard:
 
 ```bash
 firebase deploy --only hosting:investment-radar-usa
-firebase deploy --only hosting:investment-radar-bist
 firebase deploy --only firestore:rules
 ```
 

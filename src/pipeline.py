@@ -58,34 +58,28 @@ _CONFIG_DIR = Path(__file__).parent.parent / "config"
 
 def _market_open_now(market: str) -> bool:
     from datetime import datetime, timezone
+    from zoneinfo import ZoneInfo
     utc = datetime.now(timezone.utc)
-    day = utc.weekday()  # 0=Mon … 4=Fri
-    if day >= 5:
-        return False
-    mins = utc.hour * 60 + utc.minute
     if market.upper() == "BIST":
+        if utc.weekday() >= 5:
+            return False
+        mins = utc.hour * 60 + utc.minute
         return 7 * 60 <= mins < 15 * 60 + 5
-    else:  # USA
-        return 13 * 60 + 30 <= mins < 20 * 60
+    et = utc.astimezone(ZoneInfo("America/New_York"))
+    if et.weekday() >= 5:
+        return False
+    mins = et.hour * 60 + et.minute
+    return 9 * 60 + 30 <= mins < 16 * 60
 
 
 def _should_run_usa_daily_reports(force: bool = False) -> bool:
-    """Heatmap + ETF: once per day after US close (~23:15 Turkey time)."""
+    """Heatmap + ETF: after the New York cash close (16:10 ET), not a fixed UTC hour."""
     if force:
         return True
     if os.environ.get("RUN_DAILY_REPORTS", "").lower() in ("1", "true", "yes"):
         return True
-    from datetime import datetime
-    from zoneinfo import ZoneInfo
-
-    now = datetime.now(ZoneInfo("Europe/Istanbul"))
-    if now.weekday() >= 5:
-        return False
-    mins = now.hour * 60 + now.minute
-    # 22:30–23:59 TR + 00:00–01:30 catch-up if cron was late
-    evening = 22 * 60 + 30 <= mins <= 23 * 60 + 59
-    catchup = mins <= 90  # 00:00–01:30
-    return evening or catchup
+    from market_calendar import usa_regular_close_settled
+    return usa_regular_close_settled()
 
 
 def load_config() -> tuple[dict, dict]:
@@ -448,17 +442,52 @@ def run(market_arg: str, force_daily: bool = False) -> None:
 
         candidates, daily_data, scan_data, scan_tf = run_market(market, tickers, factors)
 
-        # Use today's date when market is open (intraday runs); fall back to
-        # last bar date so weekend/holiday runs still tag the correct trading day.
-        from datetime import date, datetime, timezone
-        today_utc = date.today().isoformat()
+        # Tag the last completed session. A fixed UTC "today" stamped Tuesday
+        # onto a run that only had Monday's bar, and a crash after the heatmap
+        # used to skip this write entirely.
+        from datetime import date
         trade_date = None
-        if daily_data:
+        if market == "usa" and daily_data:
+            trade_date = resolve_usa_snapshot_date(daily_data)
+            logger.info("Trade date for USA: %s", trade_date)
+        elif daily_data:
+            today_utc = date.today().isoformat()
             sample_df = next(iter(daily_data.values()))
             if not sample_df.empty:
                 last_bar = str(sample_df.index[-1].date())
                 trade_date = today_utc if last_bar == today_utc or _market_open_now(market) else last_bar
                 logger.info("Trade date for %s: %s (last_bar=%s)", market.upper(), trade_date, last_bar)
+
+        # Persist the scored list before enrichment and heatmap. The last USA
+        # run wrote the heatmap, then died before this write, so Monday vanished.
+        write_daily_candidates(db, candidates, market, trade_date=trade_date)
+
+        if market == "usa" and candidates:
+            logger.info("[USA] Running enrichment layers + entry gate...")
+            try:
+                enriched = _enrich_usa_candidates(
+                    candidates, tickers, sector_map, daily_data, db,
+                    factors.get("decision", {}),
+                    _entry_cfg(factors),
+                    factors.get("weights", {}),
+                )
+                if enriched:
+                    candidates = enriched
+                    write_daily_candidates(db, candidates, market, trade_date=trade_date)
+                else:
+                    logger.warning("[USA] Entry gate kept nobody — leaving the scored list in place")
+            except Exception:
+                logger.exception("[USA] Enrichment failed — scored list already saved")
+        elif market == "usa":
+            logger.info("[USA] No candidates — refreshing macro + sector rotation only...")
+            try:
+                sector_status = compute_sector_rotation()
+                if sector_status:
+                    write_sector_status(db, sector_status)
+                macro = compute_macro_regime()
+                write_macro_regime(db, macro)
+            except Exception as exc:
+                logger.warning("USA macro/sector refresh failed: %s", exc)
 
         if market == "usa" and _should_run_usa_daily_reports(force_daily):
             logger.info("[USA] Daily close run — computing sector heatmap + ETF scan...")
@@ -489,37 +518,15 @@ def run(market_arg: str, force_daily: bool = False) -> None:
             try:
                 etf_results = scan_all_etfs()
                 if etf_results:
-                    write_etf_scan(db, etf_results)
+                    write_etf_scan(db, etf_results, scan_date=trade_date)
                 else:
                     logger.warning("ETF scan returned no results")
             except Exception as exc:
                 logger.warning("Could not write ETF scan: %s", exc)
         elif market == "usa":
             logger.info(
-                "[USA] Skipping heatmap + ETF (daily close only at ~23:15 TR; use --daily to force)",
+                "[USA] Skipping heatmap + ETF (after NY close only; use --daily to force)",
             )
-
-        if market == "usa" and candidates:
-            logger.info("[USA] Running enrichment layers + entry gate...")
-            candidates = _enrich_usa_candidates(
-                candidates, tickers, sector_map, daily_data, db,
-                factors.get("decision", {}),
-                _entry_cfg(factors),
-                factors.get("weights", {}),
-            )
-        elif market == "usa":
-            # Still refresh macro + sector rotation when no candidates pass filter
-            logger.info("[USA] No candidates — refreshing macro + sector rotation only...")
-            try:
-                sector_status = compute_sector_rotation()
-                if sector_status:
-                    write_sector_status(db, sector_status)
-                macro = compute_macro_regime()
-                write_macro_regime(db, macro)
-            except Exception as exc:
-                logger.warning("USA macro/sector refresh failed: %s", exc)
-
-        write_daily_candidates(db, candidates, market, trade_date=trade_date)
 
         if market == "usa":
             try:
