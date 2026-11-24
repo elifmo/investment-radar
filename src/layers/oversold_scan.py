@@ -69,10 +69,18 @@ def scan_oversold_watch(
             sr = ind["support_resistance"]
             grade_info = quality_grades.get(ticker, {})
             grade = grade_info.get("grade")
+            close = float(ind["latest_close"])
+            prev = float(df["Close"].iloc[-2]) if len(df) >= 2 else None
+            change_1d = round((close / prev - 1) * 100, 2) if prev else None
+            look = min(len(df), 50)
+            window_high = float(df["High"].iloc[-look:].max()) if look else None
+            drop_pct = round((close / window_high - 1) * 100, 1) if window_high else None
 
             rows.append({
                 "ticker": ticker,
-                "close": round(ind["latest_close"], 2),
+                "close": round(close, 2),
+                "change_1d": change_1d,
+                "drop_pct": drop_pct,
                 "stoch_k": round(stoch_k, 1) if stoch_k is not None else None,
                 "stoch_d": round(stoch_d, 1) if stoch_d is not None else None,
                 "rsi": round(rsi_val, 1) if rsi_val is not None else None,

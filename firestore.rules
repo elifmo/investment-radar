@@ -39,6 +39,24 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false;
     }
+    match /fib_ema_radar/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /system_health/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // ── Beta V1 agent layer (Admin SDK write; dashboard read) ─────────────
+    match /agents/{document=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /decision_log/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
 
     // ── Private user data (Firebase Auth required) ────────────────────────
     function signedIn() {

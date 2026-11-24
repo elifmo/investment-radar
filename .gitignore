@@ -218,3 +218,17 @@ __marimo__/
 .streamlit/secrets.toml
 serviceAccountKey.json
 functions/.env
+.env.save
+.env.*
+!.env.example
+node_modules/
+.DS_Store
+.firebase/
+backtest/cache/
+*.pkl
+config/portfolio.yaml
+reports/
+.vscode/
+*.docx
+*.pdf
+~$*

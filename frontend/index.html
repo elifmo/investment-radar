@@ -608,10 +608,14 @@
     const tbody = document.getElementById(`tbody-${mId}`);
     let candidates = state[mId].candidates;
 
-    // Filter SKIP decisions for USA (decision engine output)
+    // Filter NO_SIGNAL / SKIP for USA (entry gate)
     if (mId === "usa") {
-      const hasDecisions = candidates.some(c => c.decision);
-      if (hasDecisions) candidates = candidates.filter(c => c.decision !== "SKIP");
+      candidates = candidates.filter(c => {
+        const es = (c.entry_signal || "").toUpperCase();
+        if (es === "NO_SIGNAL") return false;
+        if (c.decision === "SKIP") return false;
+        return true;
+      });
     }
 
     if (candidates.length === 0) {
@@ -705,42 +709,40 @@
 
   // ── Task 7: Decision banner ───────────────────────────────────────────────
   function decisionBanner(c) {
+    const es = (c.entry_signal || "").toUpperCase();
     const d    = c.decision;
     const r    = c.reason ?? "";
-    const size = c.position_size_multiplier;
 
-    if (!d || d === "SKIP") return "";
+    if (es === "NO_SIGNAL" || d === "SKIP") return "";
 
-    const sizeStr = size != null ? `Position size: ${Math.round(size * 100)}%` : "";
-
-    if (d === "BUY") {
+    if (es === "ENTER" || d === "BUY") {
+      const title = c.cloud_breakout
+        ? "Enter now — score + new daily cloud break"
+        : "Enter now — score + above cloud";
       return `
         <div class="decision-banner buy">
-          <div class="decision-banner-title">Confirmed — All layers aligned</div>
+          <div class="decision-banner-title">${title}</div>
           ${r ? `<div class="decision-banner-reason">${r}</div>` : ""}
-          ${sizeStr ? `<div class="decision-banner-size">${sizeStr}</div>` : ""}
           <div class="banner-btn-row">
             <button class="btn-primary" onclick="window._openModal('${c.ticker}')">+ Add to Radar</button>
           </div>
         </div>`;
     }
-    if (d === "WATCH") {
+    if (es === "WAIT" || d === "WATCH") {
       return `
         <div class="decision-banner watch">
-          <div class="decision-banner-title">Watch — Waiting for confirmation</div>
+          <div class="decision-banner-title">Wait — below daily cloud</div>
           ${r ? `<div class="decision-banner-reason">${r}</div>` : ""}
           <div class="banner-btn-row">
             <button class="btn-secondary" onclick="window._openModal('${c.ticker}')">Add to watchlist</button>
-            <button class="btn-primary"   onclick="window._openModal('${c.ticker}')">Add to radar anyway</button>
           </div>
         </div>`;
     }
     if (d === "BUY_SMALL") {
       return `
         <div class="decision-banner small">
-          <div class="decision-banner-title">Contrarian opportunity (small position)</div>
+          <div class="decision-banner-title">Small position idea</div>
           ${r ? `<div class="decision-banner-reason">${r}</div>` : ""}
-          ${sizeStr ? `<div class="decision-banner-size">${sizeStr}</div>` : ""}
           <div class="banner-btn-row">
             <button class="btn-primary" onclick="window._openModal('${c.ticker}')">+ Add to Radar</button>
           </div>

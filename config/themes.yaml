@@ -1,0 +1,85 @@
+# Popular thematic groups — parent_sector = GICS sector these themes sit under
+themes:
+  - id: semiconductors
+    name: "Semiconductors & Chips"
+    icon: "🔬"
+    parent_sector: Technology
+    parent_etf: XLK
+    tickers: [NVDA, AMD, INTC, QCOM, TSM, AVGO, MRVL, ARM, "ON", TXN, ADI, NXPI, MCHP, MPWR, LRCX, AMAT, KLAC, SNPS, CDNS]
+
+  - id: memory
+    name: "Memory & Storage"
+    icon: "💾"
+    parent_sector: Technology
+    parent_etf: XLK
+    tickers: [MU, WDC, STX]
+
+  - id: nuclear
+    name: "Nuclear & Uranium"
+    icon: "☢️"
+    parent_sector: "Energy & Utilities"
+    parent_etf: "XLE · XLU"
+    tickers: [CCJ, LEU, OKLO, CEG, VST, NEE]
+
+  - id: space_defense
+    name: "Space & Defense"
+    icon: "🚀"
+    parent_sector: Industrials
+    parent_etf: XLI
+    tickers: [RTX, GD, TDG, GE, PLTR, MSI]
+
+  - id: ai_cloud
+    name: "AI & Cloud"
+    icon: "🤖"
+    parent_sector: Technology
+    parent_etf: XLK
+    tickers: [NVDA, MSFT, GOOGL, GOOG, META, AMZN, PLTR, CRM, NOW, SNOW, DDOG, ARM, SMCI, ORCL]
+
+  - id: cybersecurity
+    name: "Cybersecurity"
+    icon: "🛡️"
+    parent_sector: Technology
+    parent_etf: XLK
+    tickers: [CRWD, PANW, FTNT]
+
+  - id: fintech_crypto
+    name: "Fintech & Crypto"
+    icon: "💰"
+    parent_sector: Financials
+    parent_etf: XLF
+    tickers: [COIN, HOOD, V, MA, BLK, GS, JPM]
+
+  - id: ev_auto
+    name: "EV & Auto Tech"
+    icon: "⚡"
+    parent_sector: "Consumer Discretionary"
+    parent_etf: XLY
+    tickers: [TSLA, GM, F, PCAR, ON, MPWR]
+
+  - id: datacenter
+    name: "Data Center & Servers"
+    icon: "🖥️"
+    parent_sector: "Technology & Real Estate"
+    parent_etf: "XLK · XLRE"
+    tickers: [EQIX, DLR, ANET, CSCO, DELL, SMCI, MU, AVGO]
+
+  - id: networking
+    name: "Networking & Infra"
+    icon: "🌐"
+    parent_sector: Technology
+    parent_etf: XLK
+    tickers: [ANET, CSCO, TEL, APH, MSFT, AMZN]
+
+  - id: biotech
+    name: "Biotech & Pharma"
+    icon: "🧬"
+    parent_sector: "Health Care"
+    parent_etf: XLV
+    tickers: [VRTX, GILD, AMGN, BMY, MRK, LLY, ABBV, ISRG, DXCM, IDXX, TMO, DHR, ABT, ZTS]
+
+  - id: quantum
+    name: "Quantum & Advanced Computing"
+    icon: "⚛️"
+    parent_sector: Technology
+    parent_etf: XLK
+    tickers: [IBM, GOOGL, GOOG, MSFT, NVDA, ORCL, HON, ACN]

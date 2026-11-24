@@ -1,0 +1,4 @@
+# Daily ETF scan — after US/EU market close (22:30 Turkey summer / 21:30 winter)
+# Install: crontab cron/etf_scan.crontab
+
+30 22 * * 1-5 cd /Users/Elifcik/Desktop/apps/investment-radar && /usr/bin/python3 scripts/scan_etfs_daily.py >> logs/etf_scan.log 2>&1

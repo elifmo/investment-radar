@@ -19,9 +19,21 @@
     header h1 span { color: #e11d48; }
     #last-updated { color: #64748b; font-size: 12px; }
 
+    .tabs {
+      display: flex; gap: 0; background: #131520; border-bottom: 1px solid #2d3148;
+      padding: 0 24px;
+    }
+    .tab-btn {
+      background: none; border: none; border-bottom: 2px solid transparent;
+      color: #64748b; cursor: pointer; font-size: 13px; font-weight: 600;
+      padding: 12px 16px; margin-bottom: -1px;
+    }
+    .tab-btn:hover { color: #e2e8f0; }
+    .tab-btn.active { color: #e11d48; border-bottom-color: #e11d48; }
+
     .layout {
       display: grid; grid-template-columns: 1fr 340px;
-      height: calc(100vh - 57px); overflow: hidden;
+      height: calc(100vh - 105px); overflow: hidden;
     }
     .panel-left {
       overflow-y: auto; padding: 20px 16px 20px 24px;
@@ -117,6 +129,37 @@
     .kv-value.yellow { color: #facc15; }
 
     .status-row { text-align: center; padding: 40px; color: #4b5563; font-size: 13px; }
+
+    #tab-fibradar {
+      display: none; padding: 20px 24px; max-width: 1100px;
+      overflow-y: auto; height: calc(100vh - 105px);
+    }
+    .fib-radar-hint {
+      font-size: 12px; color: #94a3b8; line-height: 1.5; margin-bottom: 16px;
+      background: #1a1d27; border: 1px solid #2d3148; border-radius: 8px; padding: 12px 14px;
+    }
+    .fib-radar-hint b { color: #e2e8f0; }
+    .fib-radar-meta { font-size: 12px; color: #64748b; margin-bottom: 14px; }
+    .fib-section { margin-bottom: 28px; }
+    .fib-section-title {
+      font-size: 13px; font-weight: 700; color: #e2e8f0; margin-bottom: 10px;
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    }
+    .fib-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
+    .fib-badge.early { background: #1e3a5f; color: #93c5fd; }
+    .fib-badge.confirmed { background: #14532d; color: #86efac; }
+    .fib-table { width: 100%; border-collapse: collapse; }
+    .fib-table th {
+      text-align: left; padding: 8px 10px; font-size: 11px; font-weight: 600;
+      color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;
+      border-bottom: 1px solid #2d3148;
+    }
+    .fib-table td {
+      padding: 10px; border-bottom: 1px solid #1e2130; font-size: 13px; color: #cbd5e1;
+      vertical-align: top;
+    }
+    .fib-table .tk { font-weight: 700; color: #fff; }
+    .fib-empty { color: #64748b; font-size: 13px; padding: 16px 0; }
   </style>
 </head>
 <body>
@@ -126,7 +169,12 @@
   <span id="last-updated">Yükleniyor…</span>
 </header>
 
-<div class="layout">
+<div class="tabs" id="tabs-bar">
+  <button class="tab-btn active" data-tab="bist">Adaylar</button>
+  <button class="tab-btn" data-tab="fibradar">Fib Radar</button>
+</div>
+
+<div id="tab-bist" class="layout tab-content">
   <div class="panel-left">
     <div class="panel-header">
       <span class="panel-title">🇹🇷 BIST 100</span>
@@ -146,6 +194,29 @@
   </div>
   <div class="panel-right" id="detail-bist">
     <div class="detail-empty">← Detay için<br>bir hisse seçin</div>
+  </div>
+</div>
+
+<div id="tab-fibradar" class="tab-content">
+  <div class="fib-radar-hint">
+    <b>Fib Radar</b> — 1Y swing’de fiyat <b>61.8%</b> veya <b>78.6%</b> Fib’e düştü,
+    sonra <b>4h EMA5 ↑ EMA20</b> (erken radar). Günlükte aynı kesişim olursa
+    <b>Daily confirmed</b>. Adaylar (skor) sekmesi bundan bağımsızdır.
+  </div>
+  <div class="fib-radar-meta" id="fib-radar-meta">Yükleniyor…</div>
+  <div class="fib-section">
+    <div class="fib-section-title">
+      <span class="fib-badge early">4H EARLY</span>
+      Erken radar — 4 saatte kesişim (günlük teyit bekleniyor)
+    </div>
+    <div id="fib-early-body"><div class="fib-empty">Yükleniyor…</div></div>
+  </div>
+  <div class="fib-section">
+    <div class="fib-section-title">
+      <span class="fib-badge confirmed">DAILY ✓</span>
+      Günlük teyit — 4h sonrası daily EMA5 ↑ EMA20
+    </div>
+    <div id="fib-confirmed-body"><div class="fib-empty">Yükleniyor…</div></div>
   </div>
 </div>
 
@@ -243,6 +314,84 @@
   }
 
   let candidates = [];
+  let fibRadarItems = [];
+
+  function escHtml(s) {
+    return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const tab = btn.dataset.tab;
+      document.getElementById("tab-bist").style.display = tab === "bist" ? "grid" : "none";
+      document.getElementById("tab-fibradar").style.display = tab === "fibradar" ? "block" : "none";
+      if (tab === "fibradar") loadFibRadar();
+    });
+  });
+
+  async function loadFibRadar() {
+    const metaEl = document.getElementById("fib-radar-meta");
+    const earlyEl = document.getElementById("fib-early-body");
+    const confEl = document.getElementById("fib-confirmed-body");
+    try {
+      const snap = await getDoc(doc(db, "fib_ema_radar", "bist_current"));
+      if (!snap.exists()) {
+        fibRadarItems = [];
+        if (metaEl) metaEl.textContent = "Fib Radar verisi yok — pipeline çalıştırın.";
+        earlyEl.innerHTML = `<div class="fib-empty">Erken 4h sinyal yok.</div>`;
+        confEl.innerHTML = `<div class="fib-empty">Günlük teyit yok.</div>`;
+        return;
+      }
+      const data = snap.data();
+      fibRadarItems = data.items || [];
+      if (metaEl) {
+        metaEl.textContent =
+          `${data.as_of_date || "—"} · ${data.early_4h_count ?? 0} erken 4h · ${data.daily_confirmed_count ?? 0} günlük teyit`;
+      }
+      const early = fibRadarItems.filter(x => x.status === "early_4h");
+      const conf = fibRadarItems.filter(x => x.status === "daily_confirmed");
+      earlyEl.innerHTML = fibTable(early, true);
+      confEl.innerHTML = fibTable(conf, false);
+    } catch (err) {
+      console.warn("Fib radar load failed:", err);
+      if (metaEl) metaEl.textContent = "Fib Radar yüklenemedi.";
+    }
+  }
+
+  function fibTable(rows, isEarly) {
+    if (!rows.length) {
+      return `<div class="fib-empty">${isEarly ? "Erken 4h sinyal yok." : "Günlük teyit yok."}</div>`;
+    }
+    const body = rows.map(r => {
+      const fibs = (r.fib_touches || []).map(t =>
+        `${t.label} ₺${Number(t.price).toFixed(2)} @ ${t.touch_date || "—"}`
+      ).join("<br>") || (r.fib_labels || []).join(", ");
+      const h4 = r.h4_cross_date || "—";
+      const daily = r.daily_cross_date || "—";
+      const ema = (r.daily_ema5 != null && r.daily_ema20 != null)
+        ? `${Number(r.daily_ema5).toFixed(2)} / ${Number(r.daily_ema20).toFixed(2)}`
+        : "—";
+      const sector = BIST_SECTORS[r.ticker] || r.sector || "—";
+      return `<tr>
+        <td class="tk">${escHtml(r.ticker)}</td>
+        <td style="font-size:11px;color:#64748b">${escHtml(sector)}</td>
+        <td>₺${Number(r.close).toFixed(2)}</td>
+        <td style="font-size:12px;color:#94a3b8">${fibs}</td>
+        <td>${escHtml(h4)}</td>
+        <td>${isEarly ? `<span class="fib-badge early">bekliyor</span>` : escHtml(daily)}</td>
+        <td style="font-size:11px;color:#64748b">${ema}</td>
+      </tr>`;
+    }).join("");
+    return `<table class="fib-table">
+      <thead><tr>
+        <th>Sembol</th><th>Sektör</th><th>Kapanış</th><th>Fib</th><th>4h kesişim</th>
+        <th>${isEarly ? "Günlük" : "Günlük teyit"}</th><th>EMA5/20</th>
+      </tr></thead>
+      <tbody>${body}</tbody>
+    </table>`;
+  }
 
   const IST = "Europe/Istanbul";
 

@@ -79,3 +79,21 @@ jobs:
             EXTRA="--daily"
           fi
           python src/pipeline.py ${{ steps.market.outputs.market }} $EXTRA
+
+      # Beta V1 agents — USA only, after pipeline. Soft-fail so scoring stays up.
+      # Secrets to add: ANTHROPIC_API_KEY, RADAR_USER_ID. Optional: RUN_AGENTS=false.
+      - name: Run Beta V1 agents
+        if: steps.market.outputs.market == 'usa' || steps.market.outputs.market == 'all'
+        continue-on-error: true
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          RADAR_USER_ID: ${{ secrets.RADAR_USER_ID }}
+          RUN_AGENTS: ${{ vars.RUN_AGENTS }}
+          SCHEDULE: ${{ github.event.schedule }}
+        run: |
+          # Prefer the daily USA close slot; still allow manual all/usa runs.
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "$SCHEDULE" != "15 20 * * 1-5" ]; then
+            echo "Skipping agents on non-daily USA slot ($SCHEDULE)"
+            exit 0
+          fi
+          python -m src.agents.run_v1

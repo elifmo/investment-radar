@@ -3,11 +3,12 @@
 > Cursor'a yüklemek ve gözden geçirmek için. Bu bir yol haritasıdır — hepsini
 > birden yapma. Her faz bittiğinde elinde çalışan bir şey olsun diye sıralı.
 >
-> **Temel ilke:** Sistem sana al/sat DEMEZ. Kararı senin yerine vermez —
+> **Temel ilke:** Sistem al/sat demez. Kararı kullanıcının yerine vermez —
 > tezini yazdırır, riskini gösterir, exit adayı sunar, kaçışı fark ettirir.
-> Bugünkü pozisyonlar (INTC/RKLB/ASTS) için karar hep senin.
 
-**Son güncelleme:** Temmuz 2026
+> Bu dosya iç yol haritasıdır; ürün özeti için `README.md`.
+
+**Son güncelleme:** Temmuz 2026 (UI notları Kasım 2026’da README’de)
 
 ---
 
@@ -21,7 +22,8 @@
 | Oversold Watch (Stoch + RSI) | ✅ | `oversold_watch` koleksiyonu |
 | USA evren genişletmesi (523) | ✅ | S&P 500 + Nasdaq-100 + 7 ekstra |
 | My Radar + Firebase Auth | ✅ | `firestore.rules` |
-| Opportunities sekmesi | ✅ | `DASHBOARD_DESIGN_EN.md` |
+| Oversold / Fib radar | ✅ | `fib_ema_radar` |
+| Opportunities sekmesi | kodda var, USA’da gizli | `DASHBOARD_DESIGN_EN.md` |
 | Deep Dive | ✅ | Cloud Function |
 
 **Mimari referans:** `CLAUDE_EN.md` ve `README_DOCUMENTATION.md`

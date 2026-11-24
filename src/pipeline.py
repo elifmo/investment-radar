@@ -24,6 +24,7 @@ from firebase_writer import (
     init_firebase,
     write_daily_candidates,
     write_etf_scan,
+    write_fib_ema_radar,
     write_macro_regime,
     write_oversold_watch,
     write_quality_grades,
@@ -31,6 +32,7 @@ from firebase_writer import (
     write_sector_status,
 )
 from layers.oversold_scan import scan_oversold_watch
+from layers.fib_ema_radar import scan_fib_ema_radar
 from layers.relative_strength import compute_rs_ratings
 from layers.sector_heatmap import compute_sector_heatmap, merge_heatmap_payload
 from market_calendar import resolve_usa_snapshot_date
@@ -40,7 +42,10 @@ from layers.sector_rotation import compute_sector_rotation, SECTOR_ETFS
 from layers.macro_regime import compute_macro_regime
 from layers.earnings_calendar import get_earnings_calendar
 from layers.quality_grade import compute_quality_grades
-from decision_engine import decide
+from layers.ichimoku import cloud_state_at_close
+from detailed_scorer import score_ticker
+from entry_gate import evaluate_entry
+from crypto_signal import scan_crypto
 
 logging.basicConfig(
     level=logging.INFO,
@@ -140,7 +145,7 @@ def run_market(market: str, tickers: list[str], factors: dict) -> tuple[list[dic
     if not triggered_tickers:
         logger.info("  No events detected for %s (%s).", market.upper(), timeframe)
         daily_data = fetch_batch_daily(tickers) if timeframe == "4h" else scan_data
-        return [], daily_data
+        return [], daily_data, scan_data, timeframe
 
     logger.info("[3/3] Scoring %d triggered tickers (%s)...", len(triggered_tickers), timeframe)
     scored = score_all(triggered_tickers, scan_data, weights, timeframe=timeframe)
@@ -202,6 +207,75 @@ def _read_cached_quality_grades(db, tickers: list[str]) -> dict[str, dict]:
     return result
 
 
+def _entry_cfg(factors: dict) -> dict:
+    return factors.get("entry") or {}
+
+
+def _crypto_tickers(factors: dict) -> list[str]:
+    raw = (factors.get("crypto") or {}).get("tickers") or []
+    return [str(t).strip() for t in raw if str(t).strip()]
+
+
+def _run_crypto_scan(db, factors: dict, trade_date: str | None) -> None:
+    tickers = _crypto_tickers(factors)
+    if not tickers:
+        return
+    try:
+        logger.info("[CRYPTO] Ichimoku scan for %d tickers...", len(tickers))
+        daily_data = fetch_batch_daily(tickers)
+        rows = scan_crypto(daily_data)
+        if not rows:
+            logger.warning("[CRYPTO] No crypto rows produced")
+            return
+        for row in rows:
+            logger.info(
+                "[CRYPTO] %s close=%s signal=%s",
+                row.get("ticker"),
+                row.get("close"),
+                row.get("ichimoku_signal"),
+            )
+        write_daily_candidates(db, rows, "crypto", trade_date=trade_date)
+        logger.info("[CRYPTO] Wrote %d crypto signals", len(rows))
+    except Exception:
+        logger.exception("[CRYPTO] scan failed — leaving previous crypto docs in place")
+
+
+def _run_fib_ema_radar(
+    db,
+    market: str,
+    tickers: list[str],
+    daily_data: dict,
+    sector_map: dict,
+    trade_date: str | None,
+    factors: dict,
+) -> None:
+    """Fib 61.8/78.6 pullback → 4h EMA cross (early) → daily confirm."""
+    if not daily_data:
+        return
+    cfg = factors.get("fib_ema_radar") or {}
+    if cfg.get("enabled") is False:
+        return
+    logger.info("[%s] Fib EMA radar — fetching 4h for %d tickers...", market.upper(), len(tickers))
+    try:
+        four_h = fetch_batch_4h(tickers, chunk_size=60)
+        items = scan_fib_ema_radar(
+            daily_data,
+            four_h,
+            market=market,
+            sector_map=sector_map,
+            fib_tol_pct=float(cfg.get("fib_tol_pct", 1.5)),
+            touch_lookback=int(cfg.get("touch_lookback", 20)),
+            max_age_days=int(cfg.get("max_age_days", 5)),
+            max_daily_lag_days=int(cfg.get("max_daily_lag_days", 1)),
+        )
+        write_fib_ema_radar(db, items, market, trade_date=trade_date)
+        early = sum(1 for x in items if x.get("status") == "early_4h")
+        conf = sum(1 for x in items if x.get("status") == "daily_confirmed")
+        logger.info("[%s] Fib EMA radar: %d early_4h, %d daily_confirmed", market.upper(), early, conf)
+    except Exception as exc:
+        logger.warning("[%s] Fib EMA radar failed: %s", market.upper(), exc)
+
+
 def _enrich_usa_candidates(
     candidates: list[dict],
     all_tickers: list[str],
@@ -209,16 +283,18 @@ def _enrich_usa_candidates(
     daily_data: dict,
     db,
     decision_cfg: dict,
+    entry_cfg: dict,
+    weights: dict,
 ) -> list[dict]:
     """
-    Run enrichment layers (RS, Sector, Macro, Quality, Earnings) and the
-    decision engine on all USA candidates passing min_score.
+    Indicators (RS, sector, macro, quality, earnings) + entry gate (daily score + cloud).
+    Returns only ENTER and WAIT candidates (NO_SIGNAL excluded).
     """
     if not candidates:
         return candidates
 
-    rs_threshold   = float(decision_cfg.get("rs_threshold",   70))
-    drop_threshold = float(decision_cfg.get("drop_threshold", -0.20))
+    entry_min = float(entry_cfg.get("min_score", 65))
+    entry_tf: Timeframe = "daily"
 
     # ── Layer 2: RS Rating (full-universe ranking) ────────────────────────────
     logger.info("[USA] Computing RS ratings for %d tickers...", len(daily_data))
@@ -271,7 +347,7 @@ def _enrich_usa_candidates(
     logger.info("[USA] Fetching earnings calendar for %d candidates...", len(candidate_tickers))
     earnings = get_earnings_calendar(candidate_tickers)
 
-    # ── Decision Engine ───────────────────────────────────────────────────────
+    # ── Entry gate (daily score + cloud) ──────────────────────────────────────
     enriched = []
     for c in candidates:
         ticker      = c["ticker"]
@@ -280,8 +356,38 @@ def _enrich_usa_candidates(
         grade_info  = grades.get(ticker, {})
         rs_info     = rs_ratings.get(ticker, {})
 
+        daily_df = daily_data.get(ticker)
+        daily_score = c.get("score")
+        cloud = None
+        if daily_df is not None and not daily_df.empty:
+            try:
+                daily_score, _ = score_ticker(ticker, daily_df, weights, entry_tf)
+                cloud = cloud_state_at_close(daily_df)
+            except Exception as exc:
+                logger.warning("Daily entry scoring failed for %s: %s", ticker, exc)
+
+        above_cloud = cloud.get("above_cloud") if cloud else False
+        entry_result = evaluate_entry(daily_score, above_cloud, min_score=entry_min)
+        reason = entry_result.reason
+        if cloud and cloud.get("cloud_breakout") and entry_result.entry_signal == "ENTER":
+            reason = f"{reason} — new daily cloud break"
+
         enriched_c = {
             **c,
+            # Keep the scan-bar score/close (4h). Daily values live in daily_score + cloud fields.
+            "score": c.get("score"),
+            "daily_score": daily_score,
+            "entry_signal": entry_result.entry_signal,
+            "decision": entry_result.decision,
+            "reason": reason,
+            "position_size_multiplier": entry_result.position_size_multiplier,
+            "above_cloud": above_cloud,
+            "cloud_top": cloud.get("cloud_top") if cloud else None,
+            "cloud_bottom": cloud.get("cloud_bottom") if cloud else None,
+            "in_cloud": cloud.get("in_cloud") if cloud else None,
+            "cloud_breakout": cloud.get("cloud_breakout") if cloud else False,
+            "cloud_break_down": cloud.get("cloud_break_down") if cloud else False,
+            "close": c.get("close"),
             "rs_rating":           rs_info.get("rs_rating"),
             "return_30d":          rs_info.get("return_30d"),
             "spy_return_30d":      rs_info.get("spy_return_30d"),
@@ -293,29 +399,25 @@ def _enrich_usa_candidates(
             "days_to_earnings":    earnings.get(ticker),
         }
 
-        try:
-            result = decide(
-                enriched_c,
-                rs_threshold=rs_threshold,
-                drop_threshold=drop_threshold,
+        if entry_result.entry_signal == "NO_SIGNAL":
+            logger.info(
+                "  %s → NO_SIGNAL (daily_score=%s, above_cloud=%s)",
+                ticker,
+                enriched_c.get("daily_score", "—"),
+                above_cloud,
             )
-            enriched_c["decision"]                 = result.decision
-            enriched_c["reason"]                   = result.reason
-            enriched_c["position_size_multiplier"] = result.size
-        except Exception as exc:
-            logger.warning("Decision engine failed for %s: %s", ticker, exc)
-            enriched_c["decision"]                 = "WATCH"
-            enriched_c["reason"]                   = "Decision engine error — defaulting to WATCH"
-            enriched_c["position_size_multiplier"] = 1.0
+            continue
 
         logger.info(
-            "  %s → decision=%-8s  rs=%s  grade=%s  sector_short=%-9s  earnings_in=%sd",
+            "  %s → %-10s  daily_score=%s  cloud=%s  break=%s  rs=%s  grade=%s  sector=%s",
             ticker,
-            enriched_c["decision"],
+            enriched_c["entry_signal"],
+            enriched_c.get("daily_score", "—"),
+            "above" if above_cloud else "below/in",
+            enriched_c.get("cloud_breakout"),
             enriched_c.get("rs_rating", "—"),
             enriched_c.get("quality_grade", "—"),
             enriched_c.get("sector_short_status", "—"),
-            enriched_c.get("days_to_earnings", "—"),
         )
         enriched.append(enriched_c)
 
@@ -398,10 +500,12 @@ def run(market_arg: str, force_daily: bool = False) -> None:
             )
 
         if market == "usa" and candidates:
-            logger.info("[USA] Running enrichment layers + decision engine...")
+            logger.info("[USA] Running enrichment layers + entry gate...")
             candidates = _enrich_usa_candidates(
                 candidates, tickers, sector_map, daily_data, db,
                 factors.get("decision", {}),
+                _entry_cfg(factors),
+                factors.get("weights", {}),
             )
         elif market == "usa":
             # Still refresh macro + sector rotation when no candidates pass filter
@@ -416,6 +520,16 @@ def run(market_arg: str, force_daily: bool = False) -> None:
                 logger.warning("USA macro/sector refresh failed: %s", exc)
 
         write_daily_candidates(db, candidates, market, trade_date=trade_date)
+
+        if market == "usa":
+            try:
+                _run_crypto_scan(db, factors, trade_date)
+            except Exception:
+                logger.exception("[CRYPTO] USA pipeline continued after crypto failure")
+
+        # Fib EMA radar (4h early + daily confirm) — both USA and BIST
+        if daily_data:
+            _run_fib_ema_radar(db, market, tickers, daily_data, sector_map, trade_date, factors)
 
         if market == "usa" and scan_data:
             os_cfg = factors.get("oversold") or {}

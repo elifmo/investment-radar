@@ -11,8 +11,8 @@ etfs:
     isin: IE00B8GKDB10
     exchange: Euronext Amsterdam
     currency: EUR
-    role: Çekirdek — temettü
-    risk: Düşük
+    role: Core — dividend
+    risk: Low
 
   - ticker: VUSA.AS
     bux_symbol: VUSA
@@ -22,8 +22,8 @@ etfs:
     isin: IE00B3XXRP09
     exchange: Euronext Amsterdam
     currency: EUR
-    role: Çekirdek — S&P 500
-    risk: Düşük
+    role: Core — S&P 500
+    risk: Low
 
   - ticker: SEMI.AS
     bux_symbol: SEMI
@@ -33,8 +33,8 @@ etfs:
     isin: IE00BMC38736
     exchange: Euronext Amsterdam
     currency: EUR
-    role: Tema — yarı iletken
-    risk: Yüksek
+    role: Theme — semiconductors
+    risk: High
 
   - ticker: HEAL.AS
     bux_symbol: HEAL
@@ -44,8 +44,8 @@ etfs:
     isin: IE00BYZK4552
     exchange: Euronext Amsterdam
     currency: EUR
-    role: Tema — sağlık / biotech
-    risk: Yüksek
+    role: Theme — healthcare / biotech
+    risk: High
 
   - ticker: DFEN.DE
     bux_symbol: DFEN
@@ -55,8 +55,8 @@ etfs:
     isin: IE000YYE6WK5
     exchange: XETRA
     currency: EUR
-    role: Tema — savunma
-    risk: Orta
+    role: Theme — defense
+    risk: Medium
 
   - ticker: NUKL.DE
     bux_symbol: NUKL
@@ -66,5 +66,16 @@ etfs:
     isin: IE000M7V94E1
     exchange: XETRA
     currency: EUR
-    role: Tema — nükleer / uranyum
-    risk: Yüksek
+    role: Theme — nuclear / uranium
+    risk: High
+
+  - ticker: 8PSG.DE
+    bux_symbol: 8PSG
+    bux_name: Invesco Physical Gold ETC
+    short_name: Invesco Physical Gold
+    full_name: Invesco Physical Gold ETC
+    isin: IE00B579F325
+    exchange: XETRA
+    currency: EUR
+    role: Hedge — gold
+    risk: Low

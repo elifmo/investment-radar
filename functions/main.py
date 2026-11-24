@@ -1,6 +1,6 @@
 import json
 import os
-from datetime import datetime, timezone, timedelta
+from datetime import date, datetime, timezone, timedelta
 
 import anthropic
 import firebase_admin
@@ -77,19 +77,49 @@ def _fetch_news(ticker: str, av_key: str, market: str = "US") -> list[dict]:
             result = []
             for a in data.get("feed", [])[:5]:
                 label = a.get("overall_sentiment_label", "Neutral")
-                emoji = "🟢" if "Bullish" in label else "🔴" if "Bearish" in label else "🟡"
-                sentiment = "Pozitif" if "Bullish" in label else "Negatif" if "Bearish" in label else "Nötr"
-                result.append({"emoji": emoji, "title": a.get("title", ""), "sentiment": sentiment})
+                if "Bullish" in label:
+                    emoji, sentiment = "🟢", "Positive"
+                elif "Bearish" in label:
+                    emoji, sentiment = "🔴", "Negative"
+                else:
+                    emoji, sentiment = "🟡", "Neutral"
+                result.append({
+                    "emoji": emoji,
+                    "title": a.get("title", ""),
+                    "sentiment": sentiment,
+                    "published": a.get("time_published") or "",
+                })
             if result:
                 return result
         except Exception:
             pass
-    # fallback: yfinance news
+    # fallback: yfinance news (no reliable sentiment — mark as Info)
     try:
         stock = yf.Ticker(ticker)
         yf_news = stock.news or []
-        return [{"emoji": "🟡", "title": n.get("content", {}).get("title", n.get("title", "")), "sentiment": "Bilgi"}
-                for n in yf_news[:5]]
+        out = []
+        for n in yf_news[:5]:
+            content = n.get("content") if isinstance(n.get("content"), dict) else {}
+            title = content.get("title") or n.get("title") or ""
+            if not title:
+                continue
+            published = ""
+            # yfinance shapes vary
+            for key in ("pubDate", "providerPublishTime", "published"):
+                val = content.get(key) or n.get(key)
+                if val:
+                    published = str(val)
+                    break
+            ts = content.get("pubDate") or n.get("providerPublishTime")
+            if isinstance(ts, (int, float)) and ts > 0:
+                published = datetime.fromtimestamp(ts, tz=timezone.utc).strftime("%Y%m%dT%H%M%S")
+            out.append({
+                "emoji": "🟡",
+                "title": title,
+                "sentiment": "Info",
+                "published": published,
+            })
+        return out
     except Exception:
         return []
 
@@ -170,6 +200,7 @@ Return ONLY a valid JSON object with these exact fields:
     cors=options.CorsOptions(cors_origins="*", cors_methods=["get", "options"]),
     memory=options.MemoryOption.MB_512,
     timeout_sec=120,
+    secrets=["ANTHROPIC_API_KEY"],
 )
 def deep_dive(req: https_fn.Request) -> https_fn.Response:
     if not firebase_admin._apps:
@@ -194,18 +225,20 @@ def deep_dive(req: https_fn.Request) -> https_fn.Response:
 
     db        = firestore.client()
     cache_ref = db.collection("deep_dive").document(cache_id)
+    levels_only = str(req.args.get("levels_only", "")).lower() in ("1", "true", "yes")
 
-    # ── Cache check ───────────────────────────────────────────────────────────
-    cached = cache_ref.get()
-    if cached.exists:
-        data       = cached.to_dict()
-        cached_at  = data.get("cached_at")
-        if cached_at and (datetime.now(timezone.utc) - cached_at) < timedelta(hours=24):
-            return https_fn.Response(
-                json.dumps({"result": data["result"], "cached": True,
-                            "cached_at": cached_at.isoformat()}),
-                mimetype="application/json",
-            )
+    # ── Cache check (full deep dive only) ─────────────────────────────────────
+    if not levels_only:
+        cached = cache_ref.get()
+        if cached.exists:
+            data       = cached.to_dict()
+            cached_at  = data.get("cached_at")
+            if cached_at and (datetime.now(timezone.utc) - cached_at) < timedelta(hours=24):
+                return https_fn.Response(
+                    json.dumps({"result": data["result"], "cached": True,
+                                "cached_at": cached_at.isoformat()}),
+                    mimetype="application/json",
+                )
 
     # ── Fetch market data ─────────────────────────────────────────────────────
     try:
@@ -228,9 +261,9 @@ def deep_dive(req: https_fn.Request) -> https_fn.Response:
                 cache_id = nl_symbol
 
         if hist.empty:
-            hint = " Hollanda hisseleri için .AS ekleyin (ör. SIFG.AS)." if "." not in ticker else ""
+            hint = " For Dutch listings add .AS (e.g. SIFG.AS)." if "." not in ticker else ""
             return https_fn.Response(
-                json.dumps({"error": f"{ticker} için fiyat verisi bulunamadı.{hint}"}),
+                json.dumps({"error": f"No price data found for {ticker}.{hint}"}),
                 status=404, mimetype="application/json",
             )
 
@@ -268,10 +301,50 @@ def deep_dive(req: https_fn.Request) -> https_fn.Response:
         av_key = os.environ.get("ALPHA_VANTAGE_API_KEY", "")
         news   = _fetch_news(yf_symbol, av_key, market)
 
+        # Approximate days to earnings when Yahoo exposes it
+        days_to_earnings = None
+        try:
+            cal = getattr(stock, "calendar", None)
+            earn_date = None
+            if isinstance(cal, dict):
+                earn_date = cal.get("Earnings Date") or cal.get("earningsDate")
+            elif cal is not None and hasattr(cal, "empty") and not cal.empty:
+                if "Earnings Date" in cal.index:
+                    earn_date = cal.loc["Earnings Date"]
+            if earn_date is not None:
+                if hasattr(earn_date, "__iter__") and not isinstance(earn_date, (str, bytes)):
+                    earn_date = list(earn_date)[0] if list(earn_date) else None
+                if earn_date is not None:
+                    if hasattr(earn_date, "date"):
+                        ed = earn_date.date()
+                    else:
+                        ed = date.fromisoformat(str(earn_date)[:10])
+                    days_to_earnings = (ed - date.today()).days
+        except Exception:
+            days_to_earnings = None
+
     except Exception as e:
         return https_fn.Response(
             json.dumps({"error": f"Data fetch failed: {e}"}),
             status=500, mimetype="application/json",
+        )
+
+    # Fast path: levels + news (no Claude) for portfolio enrich
+    if levels_only:
+        preview = news[0] if news else None
+        levels = {
+            "ticker": yf_symbol,
+            "currency": currency,
+            "price": price,
+            "support": support,
+            "resistance": resistance,
+            "days_to_earnings": days_to_earnings,
+            "news": news,
+            "news_preview": preview,
+        }
+        return https_fn.Response(
+            json.dumps({"result": levels, "cached": False, "levels_only": True}),
+            mimetype="application/json",
         )
 
     # ── Claude analysis ───────────────────────────────────────────────────────
@@ -282,6 +355,15 @@ def deep_dive(req: https_fn.Request) -> https_fn.Response:
             currency=currency, market=market,
         )
         client  = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
+        if not os.environ.get("ANTHROPIC_API_KEY", "").strip():
+            return https_fn.Response(
+                json.dumps({
+                    "error": "ANTHROPIC_API_KEY is not configured on deep_dive. "
+                             "Set the Firebase secret and redeploy."
+                }),
+                status=500,
+                mimetype="application/json",
+            )
         message = client.messages.create(
             model="claude-haiku-4-5-20251001",
             max_tokens=1600,

@@ -289,6 +289,37 @@ def write_oversold_watch(
     logger.info("Oversold watch written: %s — %d items (%s)", date_key, len(items), timeframe)
 
 
+def write_fib_ema_radar(
+    db: firestore.client,
+    items: list[dict],
+    market: str,
+    trade_date: str | None = None,
+) -> None:
+    """Upsert fib_ema_radar/{market}_current — Fib pullback + 4h/daily EMA cross radar."""
+    from datetime import date as _date, datetime, timezone
+
+    market_u = market.upper()
+    date_key = trade_date or _date.today().isoformat()
+    early = sum(1 for x in items if x.get("status") == "early_4h")
+    confirmed = sum(1 for x in items if x.get("status") == "daily_confirmed")
+    payload = {
+        "market": market_u,
+        "as_of_date": date_key,
+        "updated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "count": len(items),
+        "early_4h_count": early,
+        "daily_confirmed_count": confirmed,
+        "items": items,
+    }
+    col = db.collection("fib_ema_radar")
+    col.document(f"{market_u.lower()}_current").set(payload)
+    col.document(f"{market_u.lower()}_{date_key}").set(payload)
+    logger.info(
+        "Fib EMA radar written: %s %s — %d items (early=%d confirmed=%d)",
+        market_u, date_key, len(items), early, confirmed,
+    )
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 

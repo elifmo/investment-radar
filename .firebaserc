@@ -1,5 +1,17 @@
 {
   "projects": {
     "default": "investment-radar-2c19d"
+  },
+  "targets": {
+    "investment-radar-2c19d": {
+      "hosting": {
+        "investment-radar-usa": [
+          "investment-radar-usa"
+        ],
+        "investment-radar-bist": [
+          "investment-radar-bist"
+        ]
+      }
+    }
   }
 }

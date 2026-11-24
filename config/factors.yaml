@@ -1,5 +1,27 @@
-# Minimum score threshold — candidates below this are filtered out
+# Monthly budget envelope for Beta V1 position sizing (EUR)
+monthly_budget_eur: 2000
+
+# Minimum score threshold — scan list funnel (4h event + score)
 min_score: 45
+
+# Stock entry gate — daily score + Ichimoku cloud (decision layer)
+entry:
+  min_score: 65
+  timeframe: daily
+
+# Crypto — daily Ichimoku only (no score)
+crypto:
+  tickers:
+    - BTC-USD
+    - ETH-USD
+
+# Fib pullback + EMA5/20 cross radar (4h early → daily confirm)
+fib_ema_radar:
+  enabled: true
+  fib_tol_pct: 1.5
+  touch_lookback: 20
+  max_age_days: 5
+  max_daily_lag_days: 1
 
 # Scan timeframe for top-stock ranking: daily | 4h
 # universe: watchlist (~177) | sp500 (~503) | sp500_nasdaq (~523, default)

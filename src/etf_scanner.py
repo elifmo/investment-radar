@@ -84,15 +84,15 @@ def _trend_label(price: float, e20: float, e50: float, e200: float, chg_21d: flo
         45 <= rsi <= 70,
     ])
     if score <= 1:
-        return "Zayıf"
+        return "Weak"
     if score <= 3:
-        return "Nötr"
-    return "Güçlü"
+        return "Neutral"
+    return "Strong"
 
 
 def _signal_label(price: float, e20: float, e50: float, rsi: float, chg_5d: float | None) -> str:
     if rsi > 70:
-        return "Aşırı alım"
+        return "Overbought"
     if rsi < 40:
         return "Oversold"
     if price > e20 and (chg_5d or 0) > 0:
@@ -101,19 +101,19 @@ def _signal_label(price: float, e20: float, e50: float, rsi: float, chg_5d: floa
         return "Pullback"
     if price < e50:
         return "Downtrend"
-    return "Nötr"
+    return "Neutral"
 
 
 def _action_label(trend: str, signal: str) -> str:
-    if signal == "Aşırı alım":
-        return "Bekle — pullback"
+    if signal == "Overbought":
+        return "Wait — pullback"
     if signal == "Oversold":
-        return "Küçük pozisyon — destek"
+        return "Small size — at support"
     if signal == "Pullback":
-        return "Destek bekle"
-    if trend == "Güçlü" and signal in ("Momentum", "Nötr"):
-        return "Al — pullback limit"
-    return "İzle"
+        return "Wait for support"
+    if trend == "Strong" and signal in ("Momentum", "Neutral"):
+        return "Buy — pullback limit"
+    return "Watch"
 
 
 def scan_etf(entry: dict, fx_eurusd: float | None = None) -> dict[str, Any] | None:
@@ -267,33 +267,33 @@ def results_to_dataframe(results: list[dict[str, Any]]) -> pd.DataFrame:
             "Kısa İsim": r["short_name"],
             "Tam Fon Adı": r["full_name"],
             "Para Birimi": r["currency"],
-            "Tarih": r["as_of_date"],
-            "Fiyat (EUR)": r["price_eur"],
-            "Fiyat (Native)": r["price_native"],
-            "1 Gün %": r["change_1d"],
-            "5 Gün %": r["change_5d"],
-            "1 Ay (21G) %": r["change_21d"],
-            "3 Ay (63G) %": r["change_63d"],
-            "52H (EUR)": r["high_52w_eur"],
-            "52L (EUR)": r["low_52w_eur"],
+            "Date": r["as_of_date"],
+            "Price (EUR)": r["price_eur"],
+            "Price (native)": r["price_native"],
+            "1D %": r["change_1d"],
+            "5D %": r["change_5d"],
+            "1M (21D) %": r["change_21d"],
+            "3M (63D) %": r["change_63d"],
+            "52W high (EUR)": r["high_52w_eur"],
+            "52W low (EUR)": r["low_52w_eur"],
             "RSI": r["rsi"],
             "EMA20 (EUR)": r["ema20_eur"],
             "EMA50 (EUR)": r["ema50_eur"],
             "EMA200 (EUR)": r["ema200_eur"],
-            "EMA20 Üstü?": "Evet" if r["above_ema20"] else "Hayır",
-            "EMA50 Üstü?": "Evet" if r["above_ema50"] else "Hayır",
-            "Hacim Oranı": r["volume_ratio"],
+            "Above EMA20?": "Yes" if r["above_ema20"] else "No",
+            "Above EMA50?": "Yes" if r["above_ema50"] else "No",
+            "Volume ratio": r["volume_ratio"],
             "Trend": r["trend"],
-            "Sinyal": r["signal"],
-            "Destek 1 (EUR)": r["support_1_eur"],
-            "Destek 2 (EUR)": r["support_2_eur"],
-            "Direnç 1 (EUR)": r["resistance_1_eur"],
-            "Direnç 2 (EUR)": r["resistance_2_eur"],
-            "Limit Giriş (EUR)": r["entry_eur"],
+            "Signal": r["signal"],
+            "Support 1 (EUR)": r["support_1_eur"],
+            "Support 2 (EUR)": r["support_2_eur"],
+            "Resistance 1 (EUR)": r["resistance_1_eur"],
+            "Resistance 2 (EUR)": r["resistance_2_eur"],
+            "Limit entry (EUR)": r["entry_eur"],
             "Stop (EUR)": r["stop_eur"],
-            "Hedef 1 (EUR)": r["target_eur"],
-            "Alım Önerisi": r["action"],
-            "Rol": r["role"],
+            "Target 1 (EUR)": r["target_eur"],
+            "Action": r["action"],
+            "Role": r["role"],
             "Risk": r["risk"],
         })
     return pd.DataFrame(rows)
