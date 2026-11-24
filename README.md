@@ -21,7 +21,8 @@ On a weekday schedule (GitHub Actions), `src/pipeline.py`:
 The USA site currently shows:
 
 - **Momentum** — ranked setups with score, streak, and ticker detail (support / resistance, decision)
-<img width="2084" height="1156" alt="image" src="https://github.com/user-attachments/assets/7a71436c-82f6-4573-b744-62134a3db070" />
+<img width="2866" height="1464" alt="image" src="https://github.com/user-attachments/assets/e4477bcd-a0fa-4d30-ba4f-3cb6e9b9a228" />
+
 
 
 - **Oversold** — Fib pullback + 4h EMA5/20 cross, daily confirm, 5-day window
