@@ -1,6 +1,6 @@
 # Cursor command guide (historical)
 
-> **November 2026:** Start with **README.md** and **CLAUDE_EN.md**. This file is an old phase-by-phase prompt log, not current UI spec.
+> **November 2026:** Start with **[README.md](../README.md)** and **[CLAUDE_EN.md](CLAUDE_EN.md)**. This file is an old phase-by-phase prompt log, not current UI spec.
 > Live dashboard: https://investment-radar-usa.web.app
 
 ## BEFORE STARTING

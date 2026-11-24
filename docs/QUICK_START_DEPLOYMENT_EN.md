@@ -2,7 +2,7 @@
 
 **Last updated:** November 2026
 
-Product overview: **[README.md](README.md)**
+Product overview: **[README.md](../README.md)**
 
 ---
 

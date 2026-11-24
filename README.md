@@ -114,9 +114,9 @@ firebase deploy --only hosting:investment-radar-usa
 firebase deploy --only firestore:rules
 ```
 
-Full commands, cron times, and troubleshooting: **[QUICK_START_DEPLOYMENT_EN.md](QUICK_START_DEPLOYMENT_EN.md)**  
-Architecture: **[CLAUDE_EN.md](CLAUDE_EN.md)**  
-Doc index: **[README_DOCUMENTATION.md](README_DOCUMENTATION.md)**
+Full commands, cron times, and troubleshooting: **[docs/QUICK_START_DEPLOYMENT_EN.md](docs/QUICK_START_DEPLOYMENT_EN.md)**  
+Architecture: **[docs/CLAUDE_EN.md](docs/CLAUDE_EN.md)**  
+Everything else: **[docs/README.md](docs/README.md)**
 
 ---
 

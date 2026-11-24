@@ -16,17 +16,17 @@
 
 | Özellik | Durum | Doküman |
 |---------|-------|---------|
-| Pipeline + Firestore | ✅ | `CLAUDE_EN.md` |
+| Pipeline + Firestore | ✅ | `docs/CLAUDE_EN.md` |
 | Decision engine (BUY/WATCH/SKIP) | ✅ | `src/decision_engine.py` |
 | Sector heatmap + ETF scan | ✅ | 23:15 TR cron |
 | Oversold Watch (Stoch + RSI) | ✅ | `oversold_watch` koleksiyonu |
 | USA evren genişletmesi (523) | ✅ | S&P 500 + Nasdaq-100 + 7 ekstra |
 | My Radar + Firebase Auth | ✅ | `firestore.rules` |
 | Oversold / Fib radar | ✅ | `fib_ema_radar` |
-| Opportunities sekmesi | kodda var, USA’da gizli | `DASHBOARD_DESIGN_EN.md` |
+| Opportunities sekmesi | kodda var, USA’da gizli | `docs/DASHBOARD_DESIGN_EN.md` |
 | Deep Dive | ✅ | Cloud Function |
 
-**Mimari referans:** `CLAUDE_EN.md` ve `README_DOCUMENTATION.md`
+**Mimari referans:** `docs/CLAUDE_EN.md` ve `docs/README.md`
 
 ---
 

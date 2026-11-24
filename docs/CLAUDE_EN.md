@@ -3,7 +3,7 @@
 **Last updated:** November 2026  
 **Status:** Production (Firebase Hosting + Firestore + GitHub Actions)
 
-Public overview: **[README.md](README.md)**
+Public overview: **[README.md](../README.md)**
 
 ---
 
@@ -308,7 +308,7 @@ backtest/         Historical validation scripts
 
 ## Pending / Roadmap
 
-See `ITERATIONS.md` (two-pipeline architecture) and `docs/YAPILACAKLAR_PLANI.md` (Turkish long-term plan).
+See `ITERATIONS.md` (two-pipeline architecture) and `YAPILACAKLAR_PLANI.md` (Turkish long-term plan).
 
 ---
 

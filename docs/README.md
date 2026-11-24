@@ -2,18 +2,21 @@
 
 **Updated:** November 2026
 
-Start at **[README.md](README.md)** for product overview and setup. This file maps the rest.
+Start at **[README.md](../README.md)** for product overview and setup. This file maps the rest.
 
 | Goal | Document |
 |------|----------|
-| What the system is | [README.md](README.md) |
+| What the system is | [README.md](../README.md) |
 | Pipeline, Firestore, cron | [CLAUDE_EN.md](CLAUDE_EN.md) |
 | Local run + deploy | [QUICK_START_DEPLOYMENT_EN.md](QUICK_START_DEPLOYMENT_EN.md) |
 | UI layout (may lag the live site) | [DASHBOARD_DESIGN_EN.md](DASHBOARD_DESIGN_EN.md) |
-| Auth console steps | [docs/FAZ0_AUTH_SETUP.md](docs/FAZ0_AUTH_SETUP.md) |
-| Product roadmap (TR, internal) | [docs/YAPILACAKLAR_PLANI.md](docs/YAPILACAKLAR_PLANI.md) |
-| Backtest summaries | [backtest/BACKTEST_OZET.md](backtest/BACKTEST_OZET.md) |
+| Auth console steps | [FAZ0_AUTH_SETUP.md](FAZ0_AUTH_SETUP.md) |
+| Product roadmap (TR, internal) | [YAPILACAKLAR_PLANI.md](YAPILACAKLAR_PLANI.md) |
+| Iteration notes | [ITERATIONS.md](ITERATIONS.md) |
+| Backtest summaries | [backtest/BACKTEST_OZET.md](../backtest/BACKTEST_OZET.md) |
 | Cursor prompt history | [CURSOR_QUICK_START_EN.md](CURSOR_QUICK_START_EN.md) |
+| Older plans (docx) | [plans/](plans/) |
+| Beta mockups and agent plans | [beta-version/](../beta-version/) |
 
 ---
 
@@ -49,12 +52,14 @@ fetch (4h or daily) → event_filter → score_all → top Momentum names
 ## Layout
 
 ```
+README.md        product overview (repo root)
 config/          factors.yaml, universes, ETFs, themes
 src/             pipeline + TA + layers + firebase_writer
 frontend/        usa + bist dashboards
 functions/       deep_dive
 backtest/        scripts + markdown reports
-docs/            auth + roadmap
+beta-version/    mockups kept next to their plans
+docs/            architecture, deploy, design, roadmap, plans/
 ```
 
 Removed long ago: `backend/`, GitHub Pages as the dashboard host.
@@ -65,5 +70,5 @@ Removed long ago: `backend/`, GitHub Pages as the dashboard host.
 
 1. `config/factors.yaml` is source of truth for thresholds  
 2. Update **CLAUDE_EN.md** if collections, cron, or pipeline steps change  
-3. Update **README.md** if tabs or setup change  
+3. Update the root **README.md** if tabs or setup change  
 4. Treat **DASHBOARD_DESIGN_EN.md** as a design note, not always the live UI  
